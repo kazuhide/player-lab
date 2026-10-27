@@ -17,6 +17,139 @@ final class RuntimeChecks: XCTestCase {
         app.terminate()
     }
 
+    func testLiveRewindAndOperationAvailability() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard let live = environment["PLAYER_LAB_LIVE_URL"], let vod = environment["PLAYER_LAB_MEDIA_URL"] else { throw Failure.input }
+        app.launch()
+        _ = try waitReport { ($0["owner"] as? [String: Any])?["viewReady"] as? Bool == true }
+        try configureControlsSource(live)
+        try chooseWorkspace("theme-selector", "Live (DVR)")
+        let playing = try waitReport { value in
+            guard let owner = value["owner"] as? [String: Any], let sample = owner["sample"] as? [String: Any] else { return false }
+            return owner["sourceLoaded"] as? Int ?? 0 > 0 && sample["live"] as? Bool == true && sample["playing"] as? Bool == true &&
+                (sample["maxTimeShift"] as? Double ?? 0) < -10
+        }
+        let video = app.descendants(matching: .any).matching(identifier: "player-lab-player").firstMatch
+        let pixels = try moviePixels(video.screenshot().image)
+        Thread.sleep(forTimeInterval: 1.5)
+        let advanced = try waitReport { value in
+            guard let owner = value["owner"] as? [String: Any], let sample = owner["sample"] as? [String: Any],
+                  let original = playing["owner"] as? [String: Any], let previous = original["sample"] as? [String: Any] else { return false }
+            return owner["generation"] as? Int == original["generation"] as? Int &&
+                (sample["sequence"] as? Int ?? 0) > (previous["sequence"] as? Int ?? 0) &&
+                (sample["time"] as? Double ?? 0) > (previous["time"] as? Double ?? 0)
+        }
+        let afterPixels = try moviePixels(video.screenshot().image)
+        let ratio = Double(zip(pixels, afterPixels).filter { abs(Int($0.0) - Int($0.1)) > 12 }.count) / Double(pixels.count)
+        XCTAssertGreaterThan(ratio, 0.01, "The live native picture must change with the native clock")
+        result["livePlayback"] = ["samples": [playing, advanced], "videoRegionChangedRatio": ratio]
+        try pauseControlsPlayback()
+        try chooseOperation("Player.timeShift")
+        try replace("Time (seconds)", "-10"); try tapWorkspace("api-run")
+        let before = try waitReport { value in
+            let sample = (value["owner"] as? [String: Any])?["sample"] as? [String: Any]
+            return sample?["playing"] as? Bool == false && (sample?["timeShift"] as? Double ?? 0) < -5
+        }
+        let visibleBefore = try embeddedSeekbar(true)
+        try tapWorkspace("workspace-nav-more"); try setSwitch("Allow DVR", false)
+        let disabled = try report()
+        let visibleDisabled = try embeddedSeekbar(false)
+        try setSwitch("Allow DVR", true)
+        let enabled = try report()
+        let visibleEnabled = try embeddedSeekbar(true)
+        result["liveControlSamples"] = [before, disabled, enabled]
+        result["liveControls"] = ["seekbarVisible": [visibleBefore, visibleDisabled, visibleEnabled]]
+        let originalOwner = try XCTUnwrap(before["owner"] as? [String: Any])
+        for value in [disabled, enabled] {
+            let owner = try XCTUnwrap(value["owner"] as? [String: Any])
+            let sample = try XCTUnwrap(owner["sample"] as? [String: Any])
+            for key in ["generation", "sourceLoads", "sourceLoaded"] { XCTAssertEqual(owner[key] as? Int, originalOwner[key] as? Int) }
+            XCTAssertEqual(sample["playing"] as? Bool, false)
+            XCTAssertLessThan(try XCTUnwrap(sample["timeShift"] as? Double), -5)
+        }
+        try configureControlsSource(vod)
+        try tapWorkspace("workspace-nav-more"); try setSwitch("Allow DVR", false)
+        let ordinary = try waitReport { value in
+            let owner = value["owner"] as? [String: Any]
+            return owner?["sourceLoaded"] as? Int ?? 0 > 0 && (owner?["sample"] as? [String: Any])?["live"] as? Bool == false
+        }
+        try pauseControlsPlayback()
+        let vodVisible = try embeddedSeekbar(true)
+        var unavailable: [Bool] = []
+        for id in ["Player.skipAd", "Player.scheduleAd"] {
+            try openOperationPicker(id)
+            let option = app.buttons.matching(identifier: "api-operation-selector-option-" + id).firstMatch
+            XCTAssertTrue(option.exists && !option.isEnabled, "Ordinary VOD must disable the unavailable ad operation")
+            unavailable.append(option.exists && !option.isEnabled)
+            try tap("Close", scroll: false)
+        }
+        result["vodSample"] = ordinary
+        result["vodControls"] = ["seekbarVisible": vodVisible, "skipAdUnavailable": unavailable[0], "scheduleAdUnavailable": unavailable[1]]
+        try tap("Finish runtime checks", scroll: false)
+        let finished = try waitReport { $0["owner"] is NSNull }
+        let retired = try XCTUnwrap(finished["retired"] as? [[String: Any]])
+        XCTAssertEqual(retired.count, finished["created"] as? Int)
+        XCTAssertTrue(retired.allSatisfy { $0["wrapperDestroyed"] as? Bool == true })
+        result["final"] = finished
+        result["wrapperDestroyFlagsConfirmed"] = true
+        result["nativeReleaseAcknowledgementAvailable"] = false
+        result["passed"] = true
+    }
+
+    private func tapWorkspace(_ identifier: String) throws {
+        let control = app.buttons.matching(identifier: identifier).firstMatch
+        XCTAssertTrue(control.waitForExistence(timeout: 5) && control.isHittable && control.isEnabled, "Workspace control must be usable")
+        control.tap()
+    }
+    private func chooseWorkspace(_ identifier: String, _ value: String) throws {
+        try tapWorkspace(identifier); try tapWorkspace(identifier + "-option-" + value)
+    }
+    private func controlsField(_ group: String, _ field: String) throws {
+        try tapWorkspace("workspace-nav-settings")
+        try chooseWorkspace("configuration-group-selector", group)
+        try chooseWorkspace("workspace-setting-selector", field)
+    }
+    private func configureControlsSource(_ url: String) throws {
+        try controlsField("source", "url"); try replace("Source URL", url)
+        try controlsField("source", "type"); if app.buttons["HLS"].isEnabled { try tap("HLS", scroll: false) }
+        try controlsField("source", "startOffset"); try replace("Start offset (seconds)", "")
+        try controlsField("player", "autoplay"); try setSwitch("Autoplay", true)
+        try controlsField("player", "muted"); try setSwitch("Mute on startup", true)
+        try tapWorkspace("configuration-apply")
+    }
+    private func openOperationPicker(_ id: String) throws {
+        try tapWorkspace("workspace-nav-apis"); try chooseWorkspace("api-view-selector", "operations")
+        try tapWorkspace("api-operation-selector"); try replace("Find API operation", id)
+    }
+    private func chooseOperation(_ id: String) throws {
+        try openOperationPicker(id); try tapWorkspace("api-operation-selector-option-" + id)
+    }
+    private func embeddedSeekbar(_ expected: Bool) throws -> Bool {
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline {
+            let webview = app.webViews.firstMatch
+            let visible = webview.sliders.allElementsBoundByIndex.contains { $0.isHittable }
+            if webview.exists && visible == expected { return visible }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        XCTFail("The actual SDK WebView seekbar did not match the preference")
+        throw Failure.deadline
+    }
+    private func pauseControlsPlayback() throws {
+        let baseline = try report()
+        let generation = try owner(baseline)
+        for _ in 0..<3 {
+            let control = app.webViews.firstMatch.buttons.matching(NSPredicate(format: "label ==[c] 'Pause' OR label ==[c] 'Pause video'")).firstMatch
+            if !control.isHittable { tapVideoCenter() }
+            if control.exists && control.isHittable { control.tap() }
+            let value = try report()
+            XCTAssertEqual(try owner(value), generation)
+            if try !playing(value) { return }
+        }
+        XCTFail("The native player did not acknowledge the SDK Pause control")
+        throw Failure.deadline
+    }
+
     func testNormalConfigurationPlaybackAndCleanup() throws {
         guard let media = ProcessInfo.processInfo.environment["PLAYER_LAB_MEDIA_URL"] else { throw Failure.input }
         app.launch()
@@ -361,7 +494,7 @@ final class RuntimeChecks: XCTestCase {
         button.tap()
     }
     private func replace(_ label: String, _ text: String) throws {
-        let field = app.textFields[label]
+        let field = app.textFields[label].exists ? app.textFields[label] : app.textViews[label]
         try reveal(field); field.tap(); _ = app.keyboards.firstMatch.waitForExistence(timeout: 2); try reveal(field)
         let value = field.value as? String ?? ""
         if !value.isEmpty {
@@ -375,7 +508,7 @@ final class RuntimeChecks: XCTestCase {
             field.typeText(XCUIKeyboardKey.delete.rawValue)
             XCTAssertTrue(field.value as? String == "", "Controlled input must be empty before typing")
         }
-        field.typeText(text + "\n")
+        field.typeText(text + (field.elementType == .textView ? "" : "\n"))
         XCTAssertTrue(field.value as? String == text, "Controlled input must retain the exact edit")
     }
     private func setSwitch(_ label: String, _ enabled: Bool) throws {

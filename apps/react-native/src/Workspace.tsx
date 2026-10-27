@@ -50,7 +50,7 @@ export function WorkspacePage({ active, children, testID }: { active: boolean; c
 }
 
 export function WorkspaceChoice({ label, selected, options, onSelect, testID }: {
-  label: string; selected: string; options: ReadonlyArray<{ id: string; label: string }>;
+  label: string; selected: string; options: ReadonlyArray<{ id: string; label: string; unavailable?: string | undefined }>;
   onSelect: (id: string) => void; testID: string;
 }): React.JSX.Element {
   const [open, setOpen] = useState(false);
@@ -90,9 +90,11 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
           </View>
           <ScrollView keyboardShouldPersistTaps="handled" style={styles.options}>
             {matches.map(option => <Pressable key={option.id} testID={`${testID}-option-${option.id}`}
-              accessibilityRole="button" accessibilityLabel={option.label} accessibilityState={{ selected: selected === option.id }}
-              onPress={() => { onSelect(option.id); close(); }} style={[styles.option, selected === option.id && styles.selectedTab]}>
-              <Text style={styles.optionText}>{option.label}</Text>
+              accessibilityRole="button" accessibilityLabel={option.label} accessibilityState={{ selected: selected === option.id, disabled: Boolean(option.unavailable) }}
+              disabled={Boolean(option.unavailable)} accessibilityHint={option.unavailable ? translateCopy(option.unavailable, language) : undefined}
+              onPress={() => { if (!option.unavailable) { onSelect(option.id); close(); } }} style={[styles.option, selected === option.id && styles.selectedTab, option.unavailable && styles.disabled]}>
+              <View style={{ flex: 1 }}><Text style={styles.optionText}>{option.label}</Text>
+              {option.unavailable && <Text style={styles.choiceLabel}>{option.unavailable}</Text>}</View>
               {selected === option.id && <Text accessibilityElementsHidden>✓</Text>}
             </Pressable>)}
             {!matches.length && <Text style={styles.empty}>No matching items.</Text>}

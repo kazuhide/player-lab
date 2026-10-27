@@ -1,5 +1,17 @@
 /** Japanese application copy. Public SDK names and code samples retain their original spelling. */
 export const japaneseCopy: Record<string, string> = {
+  "Recreate the player before running this operation.": "この操作を実行する前にプレイヤーを再作成してください。",
+  "This operation requires iOS.": "この操作にはiOSが必要です。",
+  "This operation requires Android.": "この操作にはAndroidが必要です。",
+  "Wait for a loaded source.": "ソースの読み込みが完了するまで待ってください。",
+  "No active ad is available to skip.": "スキップ対象の広告がありません。",
+  "Wait for the linear ad to finish.": "本編を中断する広告の再生が終わるまで待ってください。",
+  "Seek requires an on-demand source.": "シークにはオンデマンドのソースが必要です。",
+  "Time shift requires a live source.": "タイムシフトにはライブのソースが必要です。",
+  "Live rewind is unavailable for this source or setting.": "このソースまたは設定では、ライブを巻き戻せません。",
+  "Apply an advertising schedule first.": "先に広告スケジュールを適用してください。",
+  "No Cast receiver is available.": "利用可能なCast受信機がありません。",
+  "No Cast session is active.": "有効なCastセッションがありません。",
   "Changes": "変更",
   "Changed": "変更あり",
   "Added": "追加",

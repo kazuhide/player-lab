@@ -50,6 +50,7 @@ vi.mock("bitmovin-player-react-native", async () => {
     constructor(public config: import("bitmovin-player-react-native").SourceConfig) {}
     initialize = vi.fn(async () => { this.isInitialized = true; });
     destroy = vi.fn(() => { this.isDestroyed = true; });
+    loadingState = vi.fn(async () => 2);
   }
   return {
     CustomUi: class { constructor(public factoryFunction: string) {} },
@@ -60,7 +61,7 @@ vi.mock("bitmovin-player-react-native", async () => {
       constructor(private readonly options: { onReceivedSynchronousMessage: (message: string, data: string | undefined) => string | undefined; onReceivedAsynchronousMessage: (message: string, data: string | undefined) => void }) {}
       receivedSynchronousMessage(message: string, data: string | undefined) { return this.options.onReceivedSynchronousMessage(message, data); }
       receivedAsynchronousMessage(message: string, data: string | undefined) { return this.options.onReceivedAsynchronousMessage(message, data); }
-      sendMessage() {}
+      sendMessage = vi.fn();
     },
     HttpRequestType: { Unknown: "unknown" },
     SourceType: { NONE: "none", HLS: "hls", DASH: "dash", PROGRESSIVE: "progressive" },
@@ -81,6 +82,7 @@ vi.mock("bitmovin-player-react-native", async () => {
         load: vi.fn((configuration: import("bitmovin-player-react-native").SourceConfig) => player.loadSource(new MockSource(configuration))),
         loadSource: vi.fn((source: MockSource) => { player.source = source; void source.initialize().then(() => {}); }),
         unload: vi.fn(), buffer: { getLevel: vi.fn(async () => 5), setTargetLevel: vi.fn() }, isDestroyed: false, destroy: vi.fn(() => { player.isDestroyed = true; }), timeShift: vi.fn(),
+        isAd: vi.fn(async () => false), skipAd: vi.fn(), isCastAvailable: vi.fn(async () => false), isCasting: vi.fn(async () => false),
         isLive: vi.fn(async () => true), getDuration: vi.fn(async () => Infinity),
         getMaxTimeShift: vi.fn(async () => -900), getTimeShift: vi.fn(async () => 0),
         getCurrentTime: vi.fn(async () => 0),
@@ -232,6 +234,94 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("connects the native UI preference channel and sends paused changes without reloading", async () => {
+    await act(async () => { screen = create(<App />); });
+    await ready();
+    const original = current();
+    const loads = original.load.mock.calls.length;
+    const props = element("PlayerView").props;
+    expect(props.customMessageHandler).toBeDefined();
+    props.customMessageHandler.receivedAsynchronousMessage("playerlab-live-rewind-ready", undefined);
+    expect(props.customMessageHandler.sendMessage).toHaveBeenLastCalledWith("playerlab-live-rewind-enabled", "true");
+    await toggle("Allow DVR", false);
+    expect(element("PlayerView").props.customMessageHandler).toBe(props.customMessageHandler);
+    expect(props.customMessageHandler.sendMessage).toHaveBeenLastCalledWith("playerlab-live-rewind-enabled", "false");
+    expect(runtime.players).toHaveLength(1);
+    expect(original.load).toHaveBeenCalledTimes(loads);
+    expect(original.destroy).not.toHaveBeenCalled();
+  });
+
+  it("marks skipAd unavailable in the ordinary-source picker with recording paused", async () => {
+    await act(async () => { screen = create(<App />); });
+    await ready();
+    await press("Pause event log");
+    await text("Filter API operations", "Player.skipAd");
+    const choice = element("Pressable", { testID: "api-operation-selector-option-Player.skipAd" });
+    expect(choice.props.accessibilityState.disabled).toBe(true);
+    expect(choice.props.disabled).toBe(true);
+  });
+
+  it("tracks pause ads independently of isAd and blocks a stale skip after the ad finishes", async () => {
+    await mount(); await ready(); await press("Pause event log");
+    const owner = current();
+    await act(async () => element("PlayerView").props.onNonLinearAdStarted({ ad: { isLinear: false } }));
+    await text("Filter API operations", "Player.skipAd");
+    expect(element("Pressable", { testID: "api-operation-selector-option-Player.skipAd" }).props.disabled).toBe(false);
+    await press("Player.skipAd");
+    const stale = element("Pressable", { testID: "api-run" }).props.onPress;
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+    await act(async () => element("PlayerView").props.onNonLinearAdFinished({ ad: { isLinear: false } }));
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(true);
+    await act(async () => stale());
+    expect(Reflect.get(owner, "skipAd")).not.toHaveBeenCalled();
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toContain("No active ad");
+  });
+
+  it("reads the latest linear-ad state immediately before native skip dispatch", async () => {
+    await mount(); await ready();
+    const owner = current();
+    const isAd = Reflect.get(owner, "isAd");
+    isAd.mockResolvedValue(true);
+    await act(async () => element("PlayerView").props.onAdStarted({}));
+    await text("Filter API operations", "Player.skipAd"); await press("Player.skipAd");
+    isAd.mockResolvedValue(false);
+    await press("Run selected API");
+    expect(Reflect.get(owner, "skipAd")).not.toHaveBeenCalled();
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toContain("No active ad");
+  });
+
+  it("never dispatches a native command when a timed-out availability read finishes later", async () => {
+    await mount(); await ready();
+    const owner = current();
+    Reflect.get(owner, "isAd").mockResolvedValue(true);
+    await act(async () => element("PlayerView").props.onAdStarted({}));
+    await text("Filter API operations", "Player.skipAd"); await press("Player.skipAd");
+    let finish!: (value: number) => void;
+    owner.getMaxTimeShift.mockReturnValueOnce(new Promise<number>(resolve => { finish = resolve; }));
+    vi.useFakeTimers();
+    try {
+      await press("Run selected API");
+      await act(async () => { await vi.advanceTimersByTimeAsync(10001); });
+      expect(element("Text", { accessibilityLabel: "API result" }).props.children).toContain("No response within 10 seconds");
+      await act(async () => finish(-900));
+      expect(Reflect.get(owner, "skipAd")).not.toHaveBeenCalled();
+      expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("updates seek availability from native live-to-VOD state while DVR stays disabled", async () => {
+    await mount(); await ready(); await toggle("Allow DVR", false);
+    await text("Filter API operations", "Player.seek");
+    expect(element("Pressable", { testID: "api-operation-selector-option-Player.seek" }).props.disabled).toBe(true);
+    await act(async () => button("Close").props.onPress());
+    current().isLive.mockResolvedValue(false); current().getDuration.mockResolvedValue(60);
+    await act(async () => element("PlayerView").props.onTimeChanged());
+    await text("Filter API operations", "Player.seek");
+    expect(element("Pressable", { testID: "api-operation-selector-option-Player.seek" }).props.disabled).toBe(false);
+    await press("Player.seek");
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+  });
+
   it("shows field differences, clears reverted edits, and retains differences after validation failure", async () => {
     await mount(); await ready();
     await basicField("source", "title");

@@ -3,7 +3,7 @@ import type { Player, SubtitleTrack } from "bitmovin-player-react-native";
 /** Read-only public SDK boundary used only by the opt-in runtime entry. */
 export type RuntimeReadablePlayer = Pick<Player,
   "isDestroyed" | "getCurrentTime" | "getDuration" | "isLive" | "isPlaying" | "isMuted" |
-  "getAvailableSubtitles" | "getSubtitleTrack">;
+  "getAvailableSubtitles" | "getSubtitleTrack" | "getTimeShift" | "getMaxTimeShift">;
 
 export interface RuntimeAppState {
   ui: "Default" | "Sports" | "Live (DVR)" | "Cinema";
@@ -23,6 +23,8 @@ interface RuntimeSample {
   sequence: number;
   time: number | null;
   duration: number | null;
+  timeShift: number | null;
+  maxTimeShift: number | null;
   live: boolean;
   playing: boolean;
   muted: boolean;
@@ -167,13 +169,14 @@ export function createRuntimeMonitor(changed: () => void = () => {}): RuntimeMon
       const pending = (async () => {
         try {
           const p = owner.player;
-          const [time, duration, live, playing, muted, tracks, selected] = await Promise.all([
+          const [time, duration, live, playing, muted, tracks, selected, timeShift, maxTimeShift] = await Promise.all([
             p.getCurrentTime(), p.getDuration(), p.isLive(), p.isPlaying(), p.isMuted(),
             p.getAvailableSubtitles(), p.getSubtitleTrack(),
+            p.getTimeShift(), p.getMaxTimeShift(),
           ]);
           if (current !== owner || sourceLoads !== owner.report.sourceLoads) return;
           owner.report.sample = { sequence: (owner.report.sample?.sequence ?? 0) + 1,
-            time: finite(time), duration: finite(duration), live, playing, muted, subtitleCount: tracks.length,
+            time: finite(time), duration: finite(duration), timeShift: finite(timeShift), maxTimeShift: finite(maxTimeShift), live, playing, muted, subtitleCount: tracks.length,
             externalSubtitleAvailable: tracks.some(external), externalSubtitleSelected: external(selected) };
           changed();
         } catch {

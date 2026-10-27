@@ -8,7 +8,7 @@ def report():
             "code": {"generation": 0, "clipboardMatches": None, "readFailed": False},
             "owner": {"generation": 1, "viewReady": True, "sourceLoads": 1, "sourceLoaded": 1, "timeChanged": 1,
                       "cueEnter": 0, "errors": 0, "readFailures": 0, "errorCodes": [],
-                      "sample": {"sequence": 1, "time": 5, "duration": 60, "live": False, "playing": True,
+                      "sample": {"sequence": 1, "time": 5, "duration": 60, "timeShift": 0, "maxTimeShift": 0, "live": False, "playing": True,
                                  "muted": True, "subtitleCount": 0, "externalSubtitleAvailable": False, "externalSubtitleSelected": False}}}
 
 

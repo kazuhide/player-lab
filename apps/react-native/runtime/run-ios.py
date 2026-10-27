@@ -11,6 +11,7 @@ import sys
 from urllib.parse import urlsplit
 
 from report import configuration_stages, external_cue_selection, playback_samples, validate_report
+from controls import live_rewind_transition, vod_controls
 
 
 def command(args, cwd=None, log=None, timeout=300):
@@ -32,7 +33,9 @@ def main():
     parser.add_argument("--device", required=True, help="An already-booted, dedicated iOS simulator UDID")
     parser.add_argument("--media-url", required=True, help="The public/local 60-second HLS fixture, without credentials or a query")
     parser.add_argument("--output", required=True, type=Path, help="A new private directory outside the checkout")
-    parser.add_argument("--subtitle-url", help="Run the external-WebVTT GUI/menu scenario instead of the configuration scenario")
+    scenarios = parser.add_mutually_exclusive_group()
+    scenarios.add_argument("--subtitle-url", help="Run the external-WebVTT GUI/menu scenario instead of the configuration scenario")
+    scenarios.add_argument("--live-url", help="Run embedded-control checks with this live-DVR fixture and the ordinary VOD media URL")
     args = parser.parse_args()
     url = urlsplit(args.media_url)
     if url.scheme not in {"http", "https"} or not url.hostname or url.username or url.password or url.query or url.fragment or len(args.media_url) > 512:
@@ -41,6 +44,10 @@ def main():
         subtitle = urlsplit(args.subtitle_url)
         if subtitle.scheme not in {"http", "https"} or not subtitle.hostname or subtitle.username or subtitle.password or subtitle.query or subtitle.fragment or len(args.subtitle_url) > 512:
             parser.error("Use a credential-free HTTP(S) WebVTT URL without query/fragment")
+    if args.live_url:
+        live = urlsplit(args.live_url)
+        if live.scheme not in {"http", "https"} or not live.hostname or live.username or live.password or live.query or live.fragment or len(args.live_url) > 512:
+            parser.error("Use a credential-free HTTP(S) live-DVR URL without query/fragment")
     root = Path(__file__).resolve().parents[3]
     output = args.output.resolve()
     if output.exists() or output == root or root in output.parents:
@@ -65,9 +72,11 @@ def main():
                 target.setdefault("EnvironmentVariables", {})["PLAYER_LAB_MEDIA_URL"] = args.media_url
                 if args.subtitle_url:
                     target["EnvironmentVariables"]["PLAYER_LAB_SUBTITLE_URL"] = args.subtitle_url
+                if args.live_url:
+                    target["EnvironmentVariables"]["PLAYER_LAB_LIVE_URL"] = args.live_url
         runs[0].write_bytes(plistlib.dumps(data))
         result_path = output / "Runtime.xcresult"
-        case = "testExternalSubtitleConfigurationAndMenu" if args.subtitle_url else "testNormalConfigurationPlaybackAndCleanup"
+        case = "testLiveRewindAndOperationAvailability" if args.live_url else "testExternalSubtitleConfigurationAndMenu" if args.subtitle_url else "testNormalConfigurationPlaybackAndCleanup"
         command(["xcodebuild", "test-without-building", "-xctestrun", str(runs[0]), "-destination", "platform=iOS Simulator,id=" + args.device,
                  "-resultBundlePath", str(result_path), "-parallel-testing-enabled", "NO", "-collect-test-diagnostics", "never",
                  "-only-testing:RuntimeChecks/RuntimeChecks/" + case],
@@ -81,7 +90,10 @@ def main():
             raise RuntimeError("Normal GUI runtime receipt did not pass")
         for stage in receipt["stages"]:
             playback_samples(stage["samples"])
-        if not args.subtitle_url:
+        if args.live_url:
+            live_rewind_transition(*receipt["liveControlSamples"], receipt["liveControls"]["seekbarVisible"])
+            vod_controls(receipt["vodSample"], receipt["vodControls"]["seekbarVisible"], receipt["vodControls"]["skipAdUnavailable"], receipt["vodControls"]["scheduleAdUnavailable"])
+        elif not args.subtitle_url:
             configuration_stages(receipt["stages"])
         else:
             external_cue_selection(*receipt["externalCueSelection"])

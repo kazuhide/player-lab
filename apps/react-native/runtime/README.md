@@ -111,3 +111,25 @@ source URLs, cue text, license keys, native identifiers and raw SDK messages.
 Local build/test logs and screenshots remain private, including failed results;
 do not publish the result directory or generated host. Capture user-guide images
 from the normal entry without the runtime header or footer.
+
+## Live controls and API availability
+
+The controls scenario additionally needs an existing live HLS source with more
+than ten seconds of native DVR depth. Supply the fixture explicitly; the runner
+does not create media or launch a simulator/emulator. It checks the real embedded
+SDK seekbar while the native player is paused and rewound: visible, hidden after
+disabling **Allow DVR**, then visible after enabling it. Fresh native offsets and
+unchanged player/source counters must accompany the UI transition. Native live
+clock advancement and changing video pixels establish playback before pausing.
+The existing VOD fixture must retain its seekbar with DVR disabled and disable
+the ordinary-source `skipAd` and `scheduleAd` picker entries.
+
+```bash
+python3 -B apps/react-native/runtime/run-controls-android.py --device <SERIAL> --media-url <VOD_HLS_URL> --live-url <LIVE_DVR_HLS_URL> --output ../runtime-android-controls
+python3 -B apps/react-native/runtime/run-ios.py --device <UDID> --media-url <VOD_HLS_URL> --live-url <LIVE_DVR_HLS_URL> --output ../runtime-ios-controls
+```
+
+The report includes allowlisted native `getTimeShift()` and `getMaxTimeShift()`
+values. An app preference flag alone cannot satisfy this scenario. Ad playback,
+linear skip timing, SSAI behavior and device qualification require their own
+fixtures and runtime results.
