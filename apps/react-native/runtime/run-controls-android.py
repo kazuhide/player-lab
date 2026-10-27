@@ -3,6 +3,7 @@
 import argparse
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -20,6 +21,86 @@ spec.loader.exec_module(driver)
 
 class ControlsUi(driver.Ui):
     INPUT_LABELS = driver.Ui.INPUT_LABELS | {"Find API operation", "Time (seconds)"}
+    sdk_port = None
+    sdk_observations = None
+
+    def sdk_snapshot(self):
+        if self.sdk_port is None:
+            pid = self.adb("shell", "pidof", driver.PACKAGE).decode().strip()
+            if not pid.isdecimal():
+                raise RuntimeError("Expected one owned application process")
+            port = self.adb("forward", "tcp:0", "localabstract:webview_devtools_remote_" + pid).decode().strip()
+            if not port.isdecimal():
+                raise RuntimeError("The owned SDK debugger port was unavailable")
+            self.sdk_port = int(port)
+        result = driver.subprocess.run(["node", str(Path(__file__).with_name("embedded-ui.mjs")), str(self.sdk_port)],
+            stdout=driver.subprocess.PIPE, stderr=driver.subprocess.DEVNULL, timeout=15)
+        if result.returncode or len(result.stdout) > 128 * 1024:
+            raise RuntimeError("Read-only SDK DOM observation failed")
+        return json.loads(result.stdout)
+
+    def sdk_frame(self):
+        tree = self.tree()
+        views = [node for node in tree.iter("node") if node.get("class") == "android.webkit.WebView" and self.visible(node)]
+        if not views:
+            raise RuntimeError("The actual SDK WebView was unavailable")
+        return self.bounds(views[0])
+
+    def sdk_tap(self, control, frame, snapshot):
+        if not control["visible"] or not control["hittable"]:
+            raise RuntimeError("The SDK touch target was not visibly hittable")
+        left, top, right, bottom = frame
+        x, y, width, height = control["rect"]
+        x, y = (x + width / 2) / snapshot["width"], (y + height / 2) / snapshot["height"]
+        if not 0 <= x <= 1 or not 0 <= y <= 1:
+            raise RuntimeError("The SDK touch target was outside its native viewport")
+        self.adb("shell", "input", "tap", str(round(left + x * (right - left))), str(round(top + y * (bottom - top))))
+
+    @staticmethod
+    def compact_controls(snapshot):
+        return [control for control in snapshot["controls"] if "bmpui-ui-playbacktogglebutton" in control["className"].split()]
+
+    def sdk_reveal(self, frame, snapshot):
+        if any(control["visible"] and control["hittable"] for control in self.compact_controls(snapshot)):
+            return snapshot
+        overlays = [control for control in snapshot["controls"] if "bmpui-ui-hugeplaybacktogglebutton" in control["className"].split()
+            and control["visible"] and control["hittable"]]
+        if len(overlays) != 1:
+            raise RuntimeError("A visible SDK reveal target was unavailable")
+        self.sdk_tap(overlays[0], frame, snapshot)
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            snapshot = self.sdk_snapshot()
+            if any(control["visible"] and control["hittable"] for control in self.compact_controls(snapshot)):
+                return snapshot
+            time.sleep(.1)
+        raise RuntimeError("The SDK control bar did not become visible")
+
+    def playback_control(self, play):
+        before = self.report()
+        identity = tuple(before["owner"][key] for key in ["generation", "sourceLoads", "sourceLoaded"])
+        for _ in range(3):
+            frame = self.sdk_frame()
+            snapshot = self.sdk_reveal(frame, self.sdk_snapshot())
+            labels = {"play", "play video"} if play else {"pause", "pause video"}
+            controls = [control for control in self.compact_controls(snapshot) if control["visible"] and control["hittable"]
+                and (control["label"] or "").lower() in labels]
+            if len(controls) != 1:
+                raise RuntimeError("The visible compact SDK playback control was unavailable")
+            self.sdk_tap(controls[0], frame, snapshot)
+            sequence = before["owner"]["sample"]["sequence"]
+            current = self.wait_report(lambda value: value["owner"] and value["owner"]["sample"] and value["owner"]["sample"]["sequence"] > sequence)
+            if tuple(current["owner"][key] for key in ["generation", "sourceLoads", "sourceLoaded"]) != identity:
+                raise RuntimeError("The SDK touch crossed native owners or sources")
+            if current["owner"]["sample"]["playing"] is play:
+                return
+            before = current
+        raise RuntimeError("The native player did not acknowledge the visible SDK playback control")
+
+    def close_sdk_observer(self):
+        if self.sdk_port is not None:
+            self.adb("forward", "--remove", "tcp:" + str(self.sdk_port))
+            self.sdk_port = None
     def top(self):
         pass  # The workspace keeps its native player above the selected editor.
 
@@ -41,12 +122,12 @@ class ControlsUi(driver.Ui):
         self.choice("configuration-group-selector", group)
         self.choice("workspace-setting-selector", selected)
 
-    def configure(self, url):
+    def configure(self, url, source_type="hls"):
         self.field("source", "url"); self.edit("Source URL", url)
         self.field("source", "type")
-        hls = self.reveal("HLS")
-        if hls.get("enabled") != "false":
-            self.tap(hls)
+        source_format = self.reveal("DASH" if source_type == "dash" else "HLS")
+        if source_format.get("enabled") != "false":
+            self.tap(source_format)
         self.field("source", "startOffset"); self.edit("Start offset (seconds)", "")
         self.field("player", "autoplay"); self.switch("Autoplay", True)
         self.field("player", "muted"); self.switch("Mute on startup", True)
@@ -63,12 +144,31 @@ class ControlsUi(driver.Ui):
         return self.by_id("api-operation-selector-option-" + identifier)
 
     def seekbar(self, expected):
-        def observed(tree):
-            webviews = [n for n in tree.iter("node") if n.get("class") == "android.webkit.WebView"]
-            bars = [n for view in webviews for n in view.iter("node") if self.visible(n) and
-                    (n.get("class", "").endswith("SeekBar") or n.get("content-desc", "").lower() in {"seek bar", "seekbar"})]
-            return {"visible": bool(bars)} if bool(bars) is expected and webviews else None
-        return self.wait(observed)["visible"]
+        snapshot = self.sdk_reveal(self.sdk_frame(), self.sdk_snapshot())
+        visible = any(control["visible"] and "bmpui-ui-seekbar" in control["className"].split() for control in snapshot["controls"])
+        if visible is not expected:
+            raise RuntimeError("The actual SDK seekbar did not match the preference")
+        if self.sdk_observations is None:
+            self.sdk_observations = []
+        self.sdk_observations.append(snapshot)
+        return visible
+
+    def loaded_api_query(self):
+        option = self.operation("Player.getMaxTimeShift")
+        if option.get("enabled") == "false":
+            raise RuntimeError("The loaded native source API was unavailable in the picker")
+        self.tap(option); self.tap_id("api-run")
+        def result(tree):
+            origin = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("api-result-origin")), None)
+            node = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("api-result-value")), None)
+            if origin is None or origin.get("text") != "Player.getMaxTimeShift" or node is None:
+                return None
+            try:
+                value = float(node.get("text", ""))
+            except ValueError:
+                return None
+            return {"id": "Player.getMaxTimeShift", "value": value} if math.isfinite(value) and value < -10 else None
+        return self.wait(result)
 
 
 def main():
@@ -77,6 +177,7 @@ def main():
     parser.add_argument("--device", required=True)
     parser.add_argument("--media-url", required=True)
     parser.add_argument("--live-url", required=True)
+    parser.add_argument("--live-type", choices=["hls", "dash"], default="hls")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     for raw in [args.media_url, args.live_url]:
@@ -88,7 +189,7 @@ def main():
     if not args.adb or output.exists() or output == root or root in output.parents:
         parser.error("Supply adb and a new private output directory outside the checkout")
     os.umask(0o077); output.mkdir(parents=True)
-    receipt = {"schemaVersion": 1, "platform": "android", "passed": False}
+    receipt = {"schemaVersion": 1, "platform": "android", "liveSourceType": args.live_type, "passed": False}
     def phase(name):
         receipt["phase"] = name
         (output / "progress.json").write_text(json.dumps({"phase": name}) + "\n")
@@ -99,7 +200,7 @@ def main():
         ui.adb("shell", "am", "force-stop", driver.PACKAGE)
         ui.adb("shell", "am", "start", "-W", "-n", driver.PACKAGE + "/.MainActivity")
         ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["viewReady"])
-        phase("configure-live"); ui.configure(args.live_url)
+        phase("configure-live"); ui.configure(args.live_url, args.live_type)
         ui.choice("theme-selector", "Live (DVR)")
         phase("native-live-playback")
         live = ui.wait_report(lambda v: v["owner"] and v["owner"]["sample"] and v["owner"]["sample"]["live"] and
@@ -115,6 +216,7 @@ def main():
         if ratio <= .01:
             raise RuntimeError("The native video did not change with its live clock")
         receipt["livePlayback"] = {"samples": [live, advanced], "videoRegionChangedRatio": ratio}
+        phase("loaded-source-api"); receipt["loadedSourceApi"] = ui.loaded_api_query()
         phase("native-pause-and-rewind"); ui.pause_visible()
         ui.tap(ui.operation("Player.timeShift"))
         ui.edit("Time (seconds)", "-10"); ui.tap_id("api-run")
@@ -127,7 +229,7 @@ def main():
         receipt["liveControlSamples"] = [before, disabled, enabled]
         phase("configure-vod"); ui.configure(args.media_url); ui.dvr(False)
         vod = ui.wait_report(lambda v: v["owner"] and v["owner"]["sample"] and not v["owner"]["sample"]["live"] and
-                             v["owner"]["sourceLoaded"] > 0)
+                             v["owner"]["sourceLoaded"] > 0 and v["owner"]["sample"]["playing"])
         ui.pause_visible(); vod_visible = ui.seekbar(True)
         phase("ordinary-source-ad-availability"); unavailable = []
         for identifier in ["Player.skipAd", "Player.scheduleAd"]:
@@ -152,6 +254,11 @@ def main():
             receipt["lastAction"] = ui.last_action
     finally:
         if ui:
+            receipt["embeddedUiObservations"] = ui.sdk_observations
+            try:
+                ui.close_sdk_observer()
+            except (RuntimeError, OSError, driver.subprocess.TimeoutExpired):
+                receipt.update(passed=False, failure="Owned SDK debugger cleanup could not be requested")
             try:
                 ui.adb("shell", "am", "force-stop", driver.PACKAGE)
             except (RuntimeError, OSError, driver.subprocess.TimeoutExpired):

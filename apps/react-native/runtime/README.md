@@ -1,5 +1,17 @@
 # React Native device regression checks
 
+The Android controls check additionally requires Node 22 or newer. It opens an
+owned, temporary debugger port for the debug SDK WebView and reads computed DOM
+visibility, including hidden ancestors. It uses normal Android touches to reveal
+and operate the compact SDK controls, then requires fresh native playback and
+owner/source readback. The port is removed during cleanup. No DOM or player
+state is changed by the observer. Both native controls checks run
+`Player.getMaxTimeShift` through the normal API picker and Run action to verify
+that a loaded source is usable through the actual bridge.
+Pass `--live-type dash` to the Android controls runner for a live DASH fixture;
+the default live format and the ordinary VOD stage are HLS. The read-only DOM
+checks have standalone regressions: `node --test runtime/test_embedded_ui.mjs`.
+
 These runners operate an explicitly generated `--runtime-checks` host. That
 entry wraps the production `App`; it keeps the existing player creation, native
 view readiness, source loading, GUI controls and cleanup. The report reads only

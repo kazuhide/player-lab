@@ -43,6 +43,21 @@ final class RuntimeChecks: XCTestCase {
         let ratio = Double(zip(pixels, afterPixels).filter { abs(Int($0.0) - Int($0.1)) > 12 }.count) / Double(pixels.count)
         XCTAssertGreaterThan(ratio, 0.01, "The live native picture must change with the native clock")
         result["livePlayback"] = ["samples": [playing, advanced], "videoRegionChangedRatio": ratio]
+        result["phase"] = "loaded-source-api"
+        try chooseOperation("Player.getMaxTimeShift")
+        try tapWorkspace("api-run")
+        let query = app.descendants(matching: .any).matching(identifier: "api-result-value").firstMatch
+        let origin = app.descendants(matching: .any).matching(identifier: "api-result-origin").firstMatch
+        let queryDeadline = Date().addingTimeInterval(10)
+        var nativeWindow: Double?
+        while Date() < queryDeadline {
+            if origin.exists && origin.label == "Player.getMaxTimeShift", let value = Double(query.value as? String ?? query.label), value.isFinite && value < -10 {
+                nativeWindow = value; break
+            }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        result["loadedSourceApi"] = ["id": "Player.getMaxTimeShift", "value": try XCTUnwrap(nativeWindow, "The loaded source API must run through the normal GUI")]
+        result["phase"] = "native-pause-and-rewind"
         try pauseControlsPlayback()
         try chooseOperation("Player.timeShift")
         try replace("Time (seconds)", "-10"); try tapWorkspace("api-run")

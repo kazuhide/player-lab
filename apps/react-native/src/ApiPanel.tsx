@@ -148,7 +148,7 @@ export function ApiPanel({ player, source, ready, operationContext, dvrAllowed, 
       <Text verbatim selectable accessibilityLabel="Executed API code" accessibilityValue={{ text: failed ? "" : code }} style={[styles.mono, !!code && !failed && styles.result]}>{failed ? "" : code}</Text>
       {!!executedId && <Text style={styles.label}>{failed ? "API error" : "Result"}</Text>}
       {!!executedId && <Text verbatim testID="api-result-origin" style={styles.mono}>{executedId}</Text>}
-      <Text verbatim selectable accessibilityLabel="API result" accessibilityValue={{ text: result }} accessibilityRole={failed ? "alert" : "text"} style={[styles.mono, !!executedId && styles.result, failed && styles.error]}>{result}</Text>
+      <Text verbatim selectable testID="api-result-value" accessibilityLabel="API result" accessibilityValue={{ text: result }} accessibilityRole={failed ? "alert" : "text"} style={[styles.mono, !!executedId && styles.result, failed && styles.error]}>{result}</Text>
       </WorkspacePage>
       <WorkspacePage active={page === "events"}>
       <Text style={styles.heading}>Player events</Text>
