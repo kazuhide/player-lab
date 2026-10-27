@@ -654,7 +654,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 135,
+      "line": 136,
       "label": "SDK editor configuration and runtime APIs"
     },
     {
@@ -878,17 +878,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 364,
+      "line": 370,
       "label": "Event counts and recent-payload history"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 255,
+      "line": 257,
       "label": "Record reset on Player replacement"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 413,
+      "line": 419,
       "label": "Explicit event-history reset"
     },
     {

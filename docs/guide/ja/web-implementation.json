@@ -654,7 +654,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 135,
+      "line": 136,
       "label": "SDK設定エディターと再生中のAPI操作"
     },
     {
@@ -878,17 +878,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 364,
+      "line": 370,
       "label": "イベント回数と直近の内容"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 255,
+      "line": 257,
       "label": "Playerの入れ替え時の記録消去"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 413,
+      "line": 419,
       "label": "イベント履歴の消去操作"
     },
     {
