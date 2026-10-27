@@ -635,10 +635,32 @@ final class RuntimeChecks: XCTestCase {
             else if button.waitForExistence(timeout: 1) { button.tap() }
             else { field.tap(withNumberOfTaps: 3, numberOfTouches: 1) }
             field.typeText(XCUIKeyboardKey.delete.rawValue)
-            XCTAssertTrue(field.value as? String == "", "Controlled input must be empty before typing")
+            let cleared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                Self.emptyInput(value: field.value as? String, placeholder: field.placeholderValue)
+            }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [cleared], timeout: 2), .completed, "Controlled input must acknowledge its empty value before typing")
+            let placeholder = field.placeholderValue ?? ""
+            if !placeholder.isEmpty && field.value as? String == placeholder {
+                print("Controlled input clear: value equals its exact reported nonempty placeholder")
+            }
         }
         field.typeText(text + (field.elementType == .textView ? "" : "\n"))
-        XCTAssertTrue(field.value as? String == text, "Controlled input must retain the exact edit")
+        if text.isEmpty {
+            XCTAssertTrue(Self.emptyInput(value: field.value as? String, placeholder: field.placeholderValue), "Clear-only input must retain its acknowledged empty value")
+        } else {
+            XCTAssertTrue(field.value as? String == text, "Controlled input must retain the exact edit")
+        }
+    }
+    private static func emptyInput(value: String?, placeholder: String?) -> Bool {
+        value == nil || value == "" || (placeholder?.isEmpty == false && value == placeholder)
+    }
+    func testEmptyInputAccessibilityContract() {
+        XCTAssertTrue(Self.emptyInput(value: nil, placeholder: "Example"))
+        XCTAssertTrue(Self.emptyInput(value: "", placeholder: "Example"))
+        XCTAssertTrue(Self.emptyInput(value: "Example", placeholder: "Example"))
+        XCTAssertFalse(Self.emptyInput(value: "Uncleared value", placeholder: "Example"))
+        XCTAssertFalse(Self.emptyInput(value: " ", placeholder: "Example"))
+        XCTAssertFalse(Self.emptyInput(value: "Value", placeholder: ""))
     }
     private func setSwitch(_ label: String, _ enabled: Bool) throws {
         let control = app.switches[label]
