@@ -74,12 +74,13 @@ function read<T>(getter: () => T | null | undefined, fallback: T): T {
   try { return getter() ?? fallback; } catch { return fallback; }
 }
 
-export function readApiRuntimeState(player: PlayerAPI | undefined): ApiRuntimeState {
+export function readApiRuntimeState(player: PlayerAPI | undefined, sourceFailed = false): ApiRuntimeState {
   const source = read(() => player?.getSource(), null);
   const ids = (getter: () => readonly { id: string }[] | undefined) => read(getter, []).map(item => item.id);
   const activeAdBreak = read(() => player?.ads.getActiveAdBreak(), null);
   return {
-    hasSource: !!source,
+    // getSource can retain the last successful configuration after a fatal error.
+    hasSource: !!source && !sourceFailed,
     live: read(() => player?.isLive(), false),
     playing: read(() => player?.isPlaying(), false),
     timeShiftEnabled: read(() => player?.getConfig(false).playback?.timeShift, true) !== false,

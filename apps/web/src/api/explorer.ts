@@ -103,6 +103,7 @@ export class ApiExplorer {
   private readonly resources = new ResourcePool(this.constructors);
   private readonly contexts = new Map<string, ApiMaterializer>();
   private player: PlayerAPI | undefined;
+  private sourceFailed = false;
   private ui: UIManager | undefined;
   private unsubscribe: (() => void)[] = [];
   private readonly details = node("details");
@@ -269,6 +270,7 @@ export class ApiExplorer {
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* The SDK may already have released it. */ } });
     this.unsubscribe = [];
     if (player !== this.player) {
+      this.sourceFailed = false;
       if (!this.preparingPlayer) {
         for (const context of this.contexts.values()) context.dispose();
         this.contexts.clear(); this.resources.clear();
@@ -291,6 +293,8 @@ export class ApiExplorer {
     if (player) for (const event of availabilityEvents) {
       const listener = () => {
         if (this.options.getPlayer() !== player || this.preparingPlayer) return;
+        if (event === PlayerEvent.Error) this.sourceFailed = true;
+        else if (event === PlayerEvent.SourceLoaded) this.sourceFailed = false;
         if (event === PlayerEvent.SourceLoaded || event === PlayerEvent.SourceUnloaded) this.operation++;
         this.refreshRuntimeAvailability();
       };
@@ -329,8 +333,13 @@ export class ApiExplorer {
     return undefined;
   }
 
+  private runtimeState(): ApiRuntimeState {
+    const player = this.options.getPlayer();
+    return readApiRuntimeState(player, player === this.player && this.sourceFailed);
+  }
+
   private refreshRuntimeAvailability(): void {
-    const snapshot = readApiRuntimeState(this.options.getPlayer());
+    const snapshot = this.runtimeState();
     this.refreshRuntimeSelection?.(snapshot);
     this.drafts.forEach(draft => draft.refreshRuntime?.(snapshot));
   }
@@ -539,7 +548,7 @@ export class ApiExplorer {
             } else value = valueEditor(catalog, parameter.schema, resources);
             state.editors.add(value);
             labels.bind(() => value.relocalize?.());
-            const edited = () => { state.edited = true; state.refreshRuntime?.(readApiRuntimeState(this.options.getPlayer())); };
+            const edited = () => { state.edited = true; state.refreshRuntime?.(this.runtimeState()); };
             value.element.addEventListener("input", edited);
             value.element.addEventListener("change", edited);
             const enabled = node("input"); enabled.type = "checkbox"; enabled.checked = !parameter.optional; enabled.disabled = !parameter.optional;
@@ -551,7 +560,7 @@ export class ApiExplorer {
             args.push({ element: field, read: () => enabled.checked ? value.read() : undefined });
           }
         };
-        overload.addEventListener("change", () => { update(); state.refreshRuntime?.(readApiRuntimeState(this.options.getPlayer())); }); update(); form.append(overload, body);
+        overload.addEventListener("change", () => { update(); state.refreshRuntime?.(this.runtimeState()); }); update(); form.append(overload, body);
         let pending = false;
         const reasonText = node("p"); reasonText.className = "api-unavailable-reason";
         reasonText.dataset.apiReason = entry.id; reasonText.id = "api-unavailable-" + entry.id;
@@ -560,7 +569,7 @@ export class ApiExplorer {
           let inputs: unknown[];
           try { inputs = args.map(arg => arg.read()); }
           catch (error) { this.setStatus(applyErrorMessage(error)); return; }
-          const reason = this.unavailable(entry, readApiRuntimeState(this.options.getPlayer()), inputs);
+          const reason = this.unavailable(entry, this.runtimeState(), inputs);
           if (reason) { this.setStatus(reason.message); this.refreshRuntimeAvailability(); return; }
           pending = true; run.disabled = true;
           void this.invoke(entry, signature!, inputs)
@@ -582,7 +591,7 @@ export class ApiExplorer {
           if (reasonText.textContent !== message) reasonText.textContent = message;
           if (run.title !== message) run.title = message;
         };
-        state.refreshRuntime(readApiRuntimeState(this.options.getPlayer()));
+        state.refreshRuntime(this.runtimeState());
         form.append(run, reasonText);
       }
       form.append(action({ ja: "編集をリセット", en: "Reset draft" }, () => renderSelected(true)));
@@ -726,7 +735,7 @@ export class ApiExplorer {
       const fn = readPath(root, path);
       if (typeof fn !== "function") throw new ApiUnavailableError(apiReason("method"));
       if (root !== (entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi())) { context.rollback(checkpoint, through); return; }
-      const reason = this.unavailable(entry, readApiRuntimeState(this.options.getPlayer()), args);
+      const reason = this.unavailable(entry, this.runtimeState(), args);
       if (reason) throw new ApiUnavailableError(reason);
       if (root !== (entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi())) { context.rollback(checkpoint, through); return; }
       this.code.textContent = `${entry.id.replace(/^PlayerAPI/, "player").replace(/^UIManager/, "uiManager")}(${submitted.map(input => inputCode(input)).join(", ")});`;

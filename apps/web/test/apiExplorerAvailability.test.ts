@@ -156,3 +156,42 @@ it("retains owner and method checks when materialization replaces the player or 
   await expect(view.explorer.invoke(skip, signature, [])).rejects.toThrow("Unavailable in the current SDK instance.");
   expect(replacement.skipAd).not.toHaveBeenCalled();
 });
+
+it("keeps a failed source unavailable despite its retained configuration until a new source loads", async () => {
+  const fixture = playerFixture(); const view = await mounted(() => fixture.player);
+  view.select("PlayerAPI.timeShift");
+  const input = find(view.container, element => element.attributes.get("aria-label") === "number"); input.value = "-12";
+  const run = find(view.container, element => element.textContent === "Run API");
+  expect(run.disabled).toBe(false);
+  fixture.emit("error"); fixture.emit("timechanged"); view.explorer.refresh();
+  expect(fixture.player.getSource()).not.toBeNull();
+  expect(run.disabled).toBe(true);
+  expect(view.picker.options.find(option => option.value === "PlayerAPI.timeShift")!.disabled).toBe(true);
+  run.dispatchEvent(new Event("click")); await Promise.resolve();
+  expect(fixture.player.timeShift).not.toHaveBeenCalled();
+  fixture.emit("sourceloaded");
+  expect(run.disabled).toBe(false); expect(input.value).toBe("-12");
+});
+
+it("rejects an error received while arguments are materialized without dispatching to a failed source", async () => {
+  const fixture = playerFixture(); const view = await mounted(() => fixture.player);
+  const context = view.explorer.context("runtime:PlayerAPI");
+  const materialize = context.arguments.bind(context);
+  vi.spyOn(context, "arguments").mockImplementation((signature, values) => {
+    const args = materialize(signature, values); fixture.emit("error"); return args;
+  });
+  const entry = catalog.rows.find(row => row.id === "PlayerAPI.timeShift")!;
+  await expect(view.explorer.invoke(entry, catalog.nodes[entry.schema!]!.signatures![0]!, [-12])).rejects.toThrow("Load a source first.");
+  expect(fixture.player.timeShift).not.toHaveBeenCalled();
+});
+
+it("ignores an error from a retired player and clears the old failure when a new player is attached", async () => {
+  const first = playerFixture(); const second = playerFixture(); let current = first.player;
+  const view = await mounted(() => current); view.select("PlayerAPI.timeShift");
+  const run = find(view.container, element => element.textContent === "Run API");
+  const retiredErrors = [...first.listeners.get("error")!];
+  first.emit("error"); expect(run.disabled).toBe(true);
+  current = second.player; view.explorer.refresh();
+  retiredErrors.forEach(listener => listener({ type: "error" }));
+  expect(run.disabled).toBe(false);
+});
