@@ -65,10 +65,13 @@ actual playback on a simulator, emulator or physical device.
 
 ## Reference applications
 
-The [learning reference](references/elearning) is a separate Android application
-for lessons, timed transcript search and local resume. It includes its own
-media fixtures, setup, build and optional Analytics dashboard. It can be built
-without the settings-test applications above.
+These Android applications demonstrate integrations in separate projects:
+
+- [Learning](references/elearning): lessons, timed transcript search and local resume.
+- [Sports streaming](references/sports-streaming): live events, clips, archives and Google Cast.
+
+Each includes its own media fixtures, configuration, build instructions and
+optional Analytics dashboard, and can be built independently.
 
 ## Development checks
 
