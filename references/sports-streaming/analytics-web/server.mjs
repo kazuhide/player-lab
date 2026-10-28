@@ -30,8 +30,13 @@ export function createDashboardServer({ service = createAnalyticsService({ confi
       const port = server.address()?.port;
       const host = request.headers.host;
       if (![`127.0.0.1:${port}`, `localhost:${port}`].includes(host) || !request.url?.startsWith('/') || request.url.startsWith('//')) return send(403, { code: 'LOCAL_ORIGIN_REQUIRED' });
-      if ((request.headers.origin && request.headers.origin !== `http://${host}`) || request.headers['sec-fetch-site'] === 'cross-site') return send(403, { code: 'LOCAL_ORIGIN_REQUIRED' });
       const url = new URL(request.url, `http://${host}`);
+      // Native browser launches can carry cross-site metadata without web user
+      // activation. Only the public top-level document is exempt; APIs stay local.
+      const documentNavigation = request.method === 'GET' && url.pathname === '/' && !url.search &&
+        request.headers['sec-fetch-mode'] === 'navigate' && request.headers['sec-fetch-dest'] === 'document';
+      if ((request.headers.origin && request.headers.origin !== `http://${host}`) ||
+          (request.headers['sec-fetch-site'] === 'cross-site' && !documentNavigation)) return send(403, { code: 'LOCAL_ORIGIN_REQUIRED' });
       if (url.pathname.startsWith('/api/')) {
         if (request.method !== 'GET') return send(405, { code: 'METHOD_NOT_ALLOWED' }, undefined, { Allow: 'GET' });
         if (url.pathname === '/api/config' && !url.search) return send(200, config);

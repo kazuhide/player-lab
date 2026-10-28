@@ -13,14 +13,15 @@ serials, private origins and raw device logs are excluded.
 | Android unit tests | Availability, request identity, UTC mapping, Cast intent, readiness, queue/loading deadlines and handoff records | 99 passed |
 | Fixture publisher tests | Media contracts, source clocks, fixed caption sidecars, HTTP delivery and bounds | 35 passed |
 | Device-driver tests | Exact device, actual JUnit counts, installed APK identity and capture transfer | 18 passed |
-| Focused HLS | Pixel 11 Pro, Android 17; caption lifecycle, short event finalization, rotation and picture-in-picture | Four checks passed |
-| Focused DASH | Android API 36.1 emulator; same integration plus ownership/control changes | Seven checks passed |
-| Analysis Web | Node.js 24.19.0; fixed queries and localhost server | 26 tests passed; build check passed |
+| Physical workflows and Cast | Pixel 11 Pro, Android 17; HLS/DASH, source identity, play/pause, rewind, live return, archive start, disconnect and localized captures | 26 tests passed; 16 captures |
+| HLS event finalization | Pixel 11 Pro, Android 17; actual event end, unchanged paused Source/impression, UTC continuity and edited-archive handoff | Passed |
+| Analysis Web | Node.js 24.19.0; fixed queries and localhost server | 28 tests passed; build check passed |
 | Analysis browser | English/Japanese; 320–1,440 px viewports | Controls, tables and charts rendered without page errors |
 
-The focused checks confirm natural caption rendering, clearing at actual end of
-media, replay, fatal-source recovery, Source-bound UTC conversion and paused
-intent during an edited-archive handoff. A newly loaded VOD Source can be Ready
+Separate caption checks confirmed natural rendering, clearing at actual end of
+media, replay and fatal-source recovery. The physical event check confirmed
+Source-bound UTC conversion and paused intent during an edited-archive handoff.
+A newly loaded VOD Source can be Ready
 without having started: both SDK `isPlaying` and `isPaused` can be false. The
 app confirms its non-playing intent through source readiness and a stable
 actual position, retaining the raw SDK flags separately. An explicit Play must

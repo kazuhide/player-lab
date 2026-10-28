@@ -26,6 +26,34 @@ test('localhost binding, host allowlist and same-origin checks prevent cross-sit
   assert.equal((await request(port, '/api/qoe', { headers: { Origin: `http://127.0.0.1:${port}` } })).status, 200);
 });
 
+test('top-level native navigation can open the public dashboard without a web activation header', async t => {
+  let queries = 0;
+  const port = await open(t, { query: async () => { queries += 1; return { status: 'empty' }; } });
+  const headers = { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document' };
+  const result = await request(port, '/', { headers });
+  assert.equal(result.status, 200);
+  assert.match(result.headers['content-type'], /^text\/html/);
+  assert.match(result.headers['content-security-policy'], /frame-ancestors 'none'/);
+  assert.equal(queries, 0);
+  assert.equal(result.headers['access-control-allow-origin'], undefined);
+  for (const path of ['/api/qoe', '/api/config', '/app.mjs', '/?query=other']) {
+    assert.equal((await request(port, path, { headers })).status, 403);
+  }
+  assert.equal(queries, 0);
+});
+
+test('dashboard navigation exception does not admit embeds, scripted fetches or foreign origins', async t => {
+  const port = await open(t);
+  const navigation = { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document', 'Sec-Fetch-User': '?1' };
+  for (const headers of [
+    { ...navigation, 'Sec-Fetch-Dest': 'iframe' },
+    { ...navigation, 'Sec-Fetch-Mode': 'cors' },
+    { ...navigation, Origin: 'https://attacker.test' },
+    { ...navigation, Host: `attacker.test:${port}` },
+  ]) assert.equal((await request(port, '/', { headers })).status, 403);
+  for (const method of ['POST', 'HEAD']) assert.equal((await request(port, '/', { method, headers: navigation })).status, 403);
+});
+
 test('API method/path allowlist and private paths never expose configuration files', async t => {
   const port = await open(t);
   assert.equal((await request(port, '/api/qoe', { method: 'POST' })).status, 405);

@@ -38,6 +38,18 @@ same media paths. The receiver cannot use the phone's or emulator's localhost.
 `CATALOG_URL` can point to this application's prepared catalog; when omitted,
 the application requests `catalog.json` from its media origin.
 
+The Analytics button opens `ANALYTICS_URL`, which defaults to
+`http://localhost:9052/`. Start the [analysis Web server](analytics-web/README.md),
+then forward its port to the selected phone or emulator:
+
+```sh
+adb -s DEVICE_SERIAL reverse tcp:9052 tcp:9052
+```
+
+This connects the Android browser's localhost to the server on this computer.
+The server accepts only localhost origins. Remove your forwarding after use
+with `adb -s DEVICE_SERIAL reverse --remove tcp:9052`.
+
 Rebuild after changing build settings. Player and collector licenses are
 packaged in the APK, so use dedicated demo licenses and an application allowlist.
 The account API key belongs only to the analysis server.

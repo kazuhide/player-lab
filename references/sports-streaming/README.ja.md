@@ -24,6 +24,14 @@ cp android/.env.example android/.env
 
 `CATALOG_URL`で、このアプリ専用のカタログを指定できます。省略すると素材配信元の`catalog.json`を取得します。
 
+Analyticsボタンは`ANALYTICS_URL`を開きます。初期値は`http://localhost:9052/`です。[分析Webのサーバー](analytics-web/README.md)を起動し、使う実機または仮想端末へポートを転送してください。
+
+```sh
+adb -s DEVICE_SERIAL reverse tcp:9052 tcp:9052
+```
+
+ポート転送後はAndroidブラウザーのlocalhostからこのコンピューター上の分析Webへ接続できます。分析Webはlocalhostからの接続だけを受け付けます。使い終わったら`adb -s DEVICE_SERIAL reverse --remove tcp:9052`で転送を解除してください。
+
 ## 素材を用意して起動する
 
 ローカル素材の生成にはPython 3.9以降と、`drawtext`フィルターを含むFFmpegが必要です。
