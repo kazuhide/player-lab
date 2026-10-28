@@ -341,7 +341,7 @@ class TimingAndGenerationTests(unittest.TestCase):
         sports='\n'.join(media.video_filters({'id':'SP-ARCH-S','subject':'sports','renderUtcStartMs':1_700_000_000_000}))
         self.assertIn('Home 1 - 0 Away',sports);self.assertIn('gmtime',sports)
         self.assertIn('1700000000.000',sports);self.assertNotIn('Number line',sports)
-        self.assertIn('w=80:h=100',sports)
+        self.assertIn("text='BASEBALL'",sports)
         with self.assertRaises(ValueError):media.video_filters({'id':'SP-ARCH-S','subject':'sports'})
 
     def test_cpu_selection_scales_down_without_exceeding_two_encoders(self):

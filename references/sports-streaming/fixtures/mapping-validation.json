@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "source": "self-authored local media",
-  "verifiedAt": "2026-10-28T05:00:19.096Z",
+  "verifiedAt": "2026-10-28T21:55:55.452Z",
   "method": "Decoded video frame SHA-256 at retained interval boundaries; sampled, not exhaustive; audio is measured separately.",
   "cloudJob": null,
   "assets": [
     {
       "assetId": "SP-ARCH-E",
       "sourceAssetId": "SP-ARCH-S",
-      "sourceSha256": "979535e2f656f95e5f243e3e7cbb4aaa6678050d78021338d47c222a8c1d7aab",
-      "sha256": "0f2d8246ffc035d8abc93716f1c6e743ffd79216ef289211104a8f420bea7ee5",
+      "sourceSha256": "1d7db06c4c667fb70ed2548d06871e1318ee523afe121b4319e27ead7439d75b",
+      "sha256": "0dd3a934ca83c653d3fcf987d6926bd8386fda59a9e838c808cfd094f7c312c7",
       "intervals": [
         [
           30000,
@@ -24,29 +24,29 @@
         {
           "sourcePositionMs": 30000,
           "archivePositionMs": 0,
-          "sourceFrameSha256": "12807b2d617d00ad62506adf2e83477ad3b4f8352daa6e91c17108f7bea54798",
-          "archiveFrameSha256": "12807b2d617d00ad62506adf2e83477ad3b4f8352daa6e91c17108f7bea54798",
+          "sourceFrameSha256": "90f868f2c01516efe2380bbd1f9d227a866439c4f09b353240c5c7703c306d1a",
+          "archiveFrameSha256": "90f868f2c01516efe2380bbd1f9d227a866439c4f09b353240c5c7703c306d1a",
           "matches": true
         },
         {
           "sourcePositionMs": 89960,
           "archivePositionMs": 59960,
-          "sourceFrameSha256": "514cb8cdaafa1b3d25b5e447a61fc48b88b81c5d78000f7edd69d7ed03a6fc68",
-          "archiveFrameSha256": "514cb8cdaafa1b3d25b5e447a61fc48b88b81c5d78000f7edd69d7ed03a6fc68",
+          "sourceFrameSha256": "14d0092a3446172770899dbf640f38d04a4dfc911414be6c14a7104c512c0492",
+          "archiveFrameSha256": "14d0092a3446172770899dbf640f38d04a4dfc911414be6c14a7104c512c0492",
           "matches": true
         },
         {
           "sourcePositionMs": 120000,
           "archivePositionMs": 60000,
-          "sourceFrameSha256": "efa28bd0580099e5a69accd262841b1f141b9da1b691a2a9361f36f2cf8b6360",
-          "archiveFrameSha256": "efa28bd0580099e5a69accd262841b1f141b9da1b691a2a9361f36f2cf8b6360",
+          "sourceFrameSha256": "1db42924543648c98c1d58fe776b2488e6e292e3d9cf8c3ced0a716dd8001b96",
+          "archiveFrameSha256": "1db42924543648c98c1d58fe776b2488e6e292e3d9cf8c3ced0a716dd8001b96",
           "matches": true
         },
         {
           "sourcePositionMs": 179960,
           "archivePositionMs": 119960,
-          "sourceFrameSha256": "fdd0c180c7fed95fe6d15c8940e73c944de50319dab0adea60f9e23731d9fdde",
-          "archiveFrameSha256": "fdd0c180c7fed95fe6d15c8940e73c944de50319dab0adea60f9e23731d9fdde",
+          "sourceFrameSha256": "9778dfe90edb139ea34a38243a7516053e0b264198d1ea17c9bfb45a057b0774",
+          "archiveFrameSha256": "9778dfe90edb139ea34a38243a7516053e0b264198d1ea17c9bfb45a057b0774",
           "matches": true
         }
       ],
