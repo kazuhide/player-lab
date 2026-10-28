@@ -29,7 +29,7 @@ android {
         buildConfigField("String", "ANALYTICS_LICENSE_KEY", quoted(config("BITMOVIN_ANALYTICS_LICENSE_KEY")))
         buildConfigField("String", "MEDIA_BASE_URL", quoted(config("MEDIA_BASE_URL", "http://10.0.2.2:8622/")))
         buildConfigField("String", "CATALOG_URL", quoted(config("CATALOG_URL")))
-        buildConfigField("String", "ANALYTICS_URL", quoted(config("ANALYTICS_URL", "http://10.0.2.2:9052/")))
+        buildConfigField("String", "ANALYTICS_URL", quoted(config("ANALYTICS_URL", "http://localhost:9052/")))
     }
     buildFeatures { buildConfig = true; compose = true }
     compileOptions {
