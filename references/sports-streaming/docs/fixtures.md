@@ -1,7 +1,7 @@
 # Sports media fixtures
 
-The supplied media is self-authored: a synthetic pitch, score, moving point,
-elapsed time and UTC label. It supplies live-event playback, clips and archives
+The supplied media is self-authored: a baseball diamond, fielders, an animated
+pitch and hit, score, elapsed time and UTC label. It supplies live-event playback, clips and archives
 without requiring a cloud encoding account. See [Android setup](../README.md#requirements-and-configuration)
 and [the implementation guide](implementation.md) for Player and Cast integration.
 

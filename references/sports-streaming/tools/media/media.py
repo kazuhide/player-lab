@@ -635,6 +635,44 @@ def verify_edits(spec):
     return value
 
 
+def write_baseball_field(path):
+    """Rasterize the static field once; FFmpeg only animates the ball and labels."""
+    width, height = 640, 360
+    pixels = bytearray(width * height * 3)
+    bases = ((320, 175), (390, 245), (320, 315), (250, 245))
+    fielders = ((320, 236), (390, 231), (250, 231), (286, 206), (354, 206),
+                (235, 162), (320, 132), (405, 162), (320, 330))
+    for y in range(height):
+        for x in range(width):
+            dx, dy = x - 320, 315 - y
+            radius_squared = dx * dx + dy * dy
+            color = (20, 40, 63)
+            if dy >= 0 and abs(dx) <= dy + 8 and radius_squared <= 218 * 218:
+                color = (35, 104, 68) if (y // 22) % 2 else (40, 116, 75)
+                diamond = abs(dx) + abs(y - 245)
+                if diamond <= 76:
+                    color = (181, 126, 78)
+                if diamond < 56:
+                    color = (40, 116, 75)
+                if 213 * 213 <= radius_squared or abs(abs(dx) - dy) <= 1:
+                    color = (231, 239, 223)
+            if dx * dx + (y - 245) ** 2 <= 12 * 12:
+                color = (181, 126, 78)
+            if abs(dx) <= 4 and abs(y - 245) <= 1:
+                color = (248, 246, 226)
+            if any(abs(x - bx) + abs(y - by) <= 5 for bx, by in bases):
+                color = (248, 246, 226)
+            if any((x - px) ** 2 + (y - py) ** 2 <= 4 * 4 for px, py in fielders):
+                color = (99, 176, 236)
+            if (x - 306) ** 2 + (y - 314) ** 2 <= 4 * 4:
+                color = (243, 171, 96)
+            if 307 <= x <= 315 and abs((314 - y) - (x - 307)) <= 1:
+                color = (228, 195, 143)
+            offset = (y * width + x) * 3
+            pixels[offset:offset + 3] = bytes(color)
+    path.write_bytes(f"P6\n{width} {height}\n255\n".encode("ascii") + pixels)
+
+
 def video_filters(asset):
     identifier = asset["id"]
     if asset.get("subject") == "sports":
@@ -642,17 +680,16 @@ def video_filters(asset):
         if not valid_utc_base(base):
             raise ValueError("Sports fixtures require an explicit validated UTC render base")
         return [
-            "drawbox=x=40:y=104:w=560:h=190:color=0x286e58:t=fill",
-            "drawbox=x=40:y=104:w=560:h=190:color=white:t=2",
-            "drawbox=x=319:y=104:w=2:h=190:color=white:t=fill",
-            "drawbox=x=40:y=149:w=80:h=100:color=white:t=2",
-            "drawbox=x=520:y=149:w=80:h=100:color=white:t=2",
-            "drawbox=x=317:y=196:w=6:h=6:color=white:t=fill",
             f"drawtext=text='{identifier}':fontsize=22:fontcolor=white:x=26:y=20",
             "drawtext=text='Home 1 - 0 Away':fontsize=22:fontcolor=white:x=360:y=20",
             "drawtext=text='Elapsed %{pts\\:hms}':fontsize=18:fontcolor=white:x=26:y=58",
             f"drawtext=text='UTC %{{pts\\:gmtime\\:{base / 1000:.3f}}}':fontsize=18:fontcolor=white:x=300:y=58",
-            "drawtext=text='o':fontsize=28:fontcolor=0xffd669:x='50+mod(t*38,525)':y='185+40*sin(t)'",
+            "drawtext=text='BASEBALL':fontsize=18:fontcolor=0xdce8f5:x=26:y=114",
+            "drawtext=text='TOP 3':fontsize=16:fontcolor=white:x=26:y=141",
+            "drawtext=text='B 1   S 1   O 1':fontsize=14:fontcolor=0xdce8f5:x=26:y=166",
+            "drawtext=text='o':fontsize=14:fontcolor=white:"
+            "x='316+max(0,min(mod(t,4)-1.5,1.5))*60':"
+            "y='if(lt(mod(t,4),1.5),238+mod(t,4)*42,301-min(mod(t,4)-1.5,1.5)*88)'",
         ]
     return [
         "drawbox=x=40:y=220:w=560:h=3:color=0x58d6c7:t=fill",
@@ -693,7 +730,13 @@ def generate_asset(asset):
                    "-avoid_negative_ts", "make_zero", mp4)
     else:
         filters = video_filters(asset)
-        ffmpeg("-f", "lavfi", "-i", "color=c=0x14283f:s=640x360:r=25", "-f", "lavfi", "-i",
+        if asset.get("subject") == "sports":
+            background = output / "baseball-field.ppm"
+            write_baseball_field(background)
+            video_input = ["-loop", "1", "-framerate", "25", "-i", background]
+        else:
+            video_input = ["-f", "lavfi", "-i", "color=c=0x14283f:s=640x360:r=25"]
+        ffmpeg(*video_input, "-f", "lavfi", "-i",
                "sine=frequency=440:sample_rate=48000", "-t", duration, "-vf", ",".join(filters),
                "-c:v", "libx264", "-preset", "veryfast", "-crf", "28", "-threads", encoder_threads(), "-filter_threads", "1", "-filter_complex_threads", "1", "-pix_fmt", "yuv420p",
                "-g", "50", "-keyint_min", "50", "-sc_threshold", "0", "-bf", "0", "-c:a", "aac", "-b:a", "64k",
