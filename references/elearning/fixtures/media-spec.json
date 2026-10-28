@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "EDU-FX-01",
+      "durationMs": 180000,
+      "subject": "learning",
+      "subtitles": [
+        "en",
+        "ja"
+      ]
+    },
+    {
+      "id": "EDU-FX-02",
+      "durationMs": 780000,
+      "subject": "learning",
+      "subtitles": [
+        "en",
+        "ja"
+      ]
+    },
+    {
+      "id": "EDU-FX-03",
+      "durationMs": 8000,
+      "subject": "learning",
+      "subtitles": []
+    }
+  ],
+  "live": []
+}

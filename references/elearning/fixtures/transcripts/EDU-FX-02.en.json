@@ -1,0 +1,28 @@
+{
+  "cues": [
+    {
+      "startMs": 0,
+      "endMs": 3000,
+      "text": "Practice locating a point.",
+      "language": "en"
+    },
+    {
+      "startMs": 30000,
+      "endMs": 35000,
+      "text": "Compare 3 and 7.",
+      "language": "en"
+    },
+    {
+      "startMs": 753000,
+      "endMs": 756000,
+      "text": "12:34 checkpoint: observe the elapsed time.",
+      "language": "en"
+    },
+    {
+      "startMs": 778000,
+      "endMs": 780000,
+      "text": "End of the exercises.",
+      "language": "en"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "player-lab-elearning-analytics",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.13.0 <25" },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.mjs",
+    "test": "node --test",
+    "build": "node tools/check.mjs"
+  }
+}

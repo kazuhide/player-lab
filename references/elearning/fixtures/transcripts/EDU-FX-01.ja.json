@@ -1,0 +1,34 @@
+{
+  "cues": [
+    {
+      "startMs": 0,
+      "endMs": 2000,
+      "text": "数直線上の点を確認します。",
+      "language": "ja"
+    },
+    {
+      "startMs": 10000,
+      "endMs": 15000,
+      "text": "数字を読みます。\n点の間隔を比べます。",
+      "language": "ja"
+    },
+    {
+      "startMs": 20000,
+      "endMs": 26000,
+      "text": "0、1、2、3、4、5。目盛りを数えて0に戻ります。",
+      "language": "ja"
+    },
+    {
+      "startMs": 40000,
+      "endMs": 46000,
+      "text": "この字幕の直前は字幕がない区間です。",
+      "language": "ja"
+    },
+    {
+      "startMs": 178000,
+      "endMs": 180000,
+      "text": "最後の点です。",
+      "language": "ja"
+    }
+  ]
+}

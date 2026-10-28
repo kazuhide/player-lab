@@ -1,0 +1,20 @@
+{
+  "scenarios": [
+    {
+      "id": "subtitle-404",
+      "subtitleUrl": "subtitles/absent.vtt"
+    },
+    {
+      "id": "media-404",
+      "url": "missing/hls/master.m3u8"
+    },
+    {
+      "id": "malformed-vtt",
+      "subtitleUrl": "subtitles/malformed.vtt"
+    },
+    {
+      "id": "overlapping-cues",
+      "subtitleUrl": "subtitles/overlap.en.vtt"
+    }
+  ]
+}

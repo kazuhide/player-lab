@@ -63,6 +63,13 @@ use native interfaces. Start with the
 for setup and platform limits. Build and unit-test success are separate from
 actual playback on a simulator, emulator or physical device.
 
+## Reference applications
+
+The [learning reference](references/elearning) is a separate Android application
+for lessons, timed transcript search and local resume. It includes its own
+media fixtures, setup, build and optional Analytics dashboard. It can be built
+without the settings-test applications above.
+
 ## Development checks
 
 ```sh

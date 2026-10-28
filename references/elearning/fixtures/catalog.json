@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "courses": [
+    {
+      "id": "EDU-COURSE-01",
+      "title": "Number lines",
+      "titleJa": "数直線",
+      "lessonIds": [
+        "EDU-FX-01",
+        "EDU-FX-02",
+        "EDU-FX-03"
+      ]
+    }
+  ],
+  "lessons": [
+    {
+      "id": "EDU-FX-01",
+      "videoId": "EDU-FX-01",
+      "title": "Number-line basics",
+      "titleJa": "数直線の基本",
+      "durationMs": 180000,
+      "streams": {
+        "hls": "EDU-FX-01/hls/media.m3u8",
+        "dash": "EDU-FX-01/dash/manifest.mpd",
+        "hlsWithSubtitles": "EDU-FX-01/hls/master.m3u8"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/EDU-FX-01.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/EDU-FX-01.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "transcriptUrl": "transcripts/EDU-FX-01.json",
+      "checkpoints": [],
+      "validatedAt": null,
+      "provenance": "Self-authored local development fixture; see generated receipt, not cloud encoded",
+      "expectedDurationMs": 180000,
+      "durationBasis": "expected",
+      "measuredDurationMs": null,
+      "timingSource": null
+    },
+    {
+      "id": "EDU-FX-02",
+      "videoId": "EDU-FX-02",
+      "title": "Number-line exercises",
+      "titleJa": "数直線の練習",
+      "durationMs": 780000,
+      "streams": {
+        "hls": "EDU-FX-02/hls/media.m3u8",
+        "dash": "EDU-FX-02/dash/manifest.mpd",
+        "hlsWithSubtitles": "EDU-FX-02/hls/master.m3u8"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/EDU-FX-02.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/EDU-FX-02.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "transcriptUrl": "transcripts/EDU-FX-02.json",
+      "checkpoints": [
+        {
+          "positionMs": 754000,
+          "label": "12:34"
+        }
+      ],
+      "validatedAt": null,
+      "provenance": "Self-authored local development fixture; see generated receipt, not cloud encoded",
+      "expectedDurationMs": 780000,
+      "durationBasis": "expected",
+      "measuredDurationMs": null,
+      "timingSource": null
+    },
+    {
+      "id": "EDU-FX-03",
+      "videoId": "EDU-FX-03",
+      "title": "Summary",
+      "titleJa": "まとめ",
+      "durationMs": 8000,
+      "streams": {
+        "hls": "EDU-FX-03/hls/media.m3u8",
+        "dash": "EDU-FX-03/dash/manifest.mpd",
+        "hlsWithSubtitles": "EDU-FX-03/hls/master.m3u8"
+      },
+      "subtitleTracks": [],
+      "transcriptUrl": "transcripts/EDU-FX-03.json",
+      "checkpoints": [],
+      "validatedAt": null,
+      "provenance": "Self-authored local development fixture; see generated receipt, not cloud encoded",
+      "expectedDurationMs": 8000,
+      "durationBasis": "expected",
+      "measuredDurationMs": null,
+      "timingSource": null
+    }
+  ]
+}
