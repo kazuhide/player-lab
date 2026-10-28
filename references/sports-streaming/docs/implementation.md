@@ -137,6 +137,14 @@ the position unknown. An explicit seek after finalization invalidates that
 retained transform unless the SDK supplies a newly valid absolute mapping.
 The app never substitutes the device's wall clock or a cached UI position.
 
+Google Cast Framework's receiver position is a separate coordinate from the
+Bitmovin SDK's `currentTime`. The SDK conversion offsets apply only to values
+read directly from the SDK; adding them to CAF's approximate stream position
+can produce an incorrect Unix timestamp. Keep the raw receiver position and
+seekable range for transport confirmation, and validate a fresh SDK absolute
+mapping against the event's known bounds before an archive handoff. An unknown
+mapping must not overwrite a previously stored asset's resume position.
+
 Finalizing the current manifest and loading a prepared archive are different
 operations. The archive is a new Source with its own relative timeline; map a
 verified media UTC through its explicit intervals. A Web result does not qualify
@@ -199,10 +207,17 @@ an actual playable receiver status. Metadata-only, buffering, idle and failed
 states cannot establish readiness. This does not synthesize a local SDK event
 or reuse a previous Source's ready state.
 
-A same-URL reload first unloads through the SDK and waits for an observed remote
-stop belonging to that request and connection. An already-cached idle state or
-a natural end cannot acknowledge this stop. A timeout leaves an explicit failure
-and allows recovery; it does not send a second, independently owned CAF load.
+Before replacing a receiver Source, the app unloads through the SDK and waits
+for an observed stop belonging to that request and connection. An already-cached
+idle state or a natural end cannot acknowledge this stop. Stopped playback does
+not imply that the sender's queue cache is ready: an item count can be nonzero
+while its item details are unavailable. The app requests that missing item once
+through the public [MediaQueue API](https://developers.google.com/android/reference/com/google/android/gms/cast/framework/media/MediaQueue),
+then observes updates without repeatedly requesting it. Loading waits for an
+empty queue or a single cached item known to differ from the requested Source. A new
+user selection replaces the pending request; an older callback cannot dispatch
+it. A bounded load deadline leaves an explicit failure and recovery actions.
+The app does not send a second, independently owned CAF load.
 
 A remote source load is asynchronous. Calling `player.play()` immediately after
 `player.load(source)` can control the previous receiver item before the new
@@ -238,6 +253,21 @@ Receiver connection and receiver playback are separate observations. Read the
 actual receiver media information and status when confirming an operation.
 Retain an unknown position as unknown after disconnection or process restart.
 The user can choose a recovery action without a fabricated zero-second resume.
+
+The position in a CAF status message is a snapshot; it need not advance between
+messages. Use `RemoteMediaClient.approximateStreamPosition` and the current live
+seekable range for ongoing receiver transport observations. Match their session
+and Source identity before accepting a rewind, return to live or continuing
+playback. A local SDK seek-completion event alone does not confirm remote motion.
+
+In the controlled fixtures, the receiver's absolute-time mapping differed from
+the manifest's authored clock, and CAF's `MediaInfo.startAbsoluteTime` was
+unavailable. The app rejected that mapping while keeping receiver transport
+controls available. An unavailable UTC mapping prevents a position-preserving
+archive continuation. Starting the archive from its beginning is a separate,
+explicit user choice; it is recorded as a Source load, not a UTC handoff. See
+the [measured clock behavior](validation.md#playback-clocks-at-event-finalization)
+and the [CAF absolute-time API](https://developers.google.com/android/reference/com/google/android/gms/cast/MediaInfo#getStartAbsoluteTime()).
 
 Use media, subtitles and manifests reachable by the receiver. Check their
 transport, codecs, cross-origin access and expiry on that receiver. Emulator

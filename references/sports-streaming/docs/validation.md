@@ -10,7 +10,7 @@ serials, private origins and raw device logs are excluded.
 | Check | Conditions | Result |
 | --- | --- | --- |
 | Independent Android build | Only this reference's files; no parent application or `.env`; JDK 21 | Build, lint and app/test APK compilation passed; generated license fields empty |
-| Android unit tests | Availability, request identity, UTC mapping, Cast intent, readiness and handoff records | 87 passed |
+| Android unit tests | Availability, request identity, UTC mapping, Cast intent, readiness, queue/loading deadlines and handoff records | 99 passed |
 | Fixture publisher tests | Media contracts, source clocks, fixed caption sidecars, HTTP delivery and bounds | 35 passed |
 | Device-driver tests | Exact device, actual JUnit counts, installed APK identity and capture transfer | 18 passed |
 | Focused HLS | Pixel 11 Pro, Android 17; caption lifecycle, short event finalization, rotation and picture-in-picture | Four checks passed |
@@ -50,9 +50,14 @@ retained their Unix origin. These observations support the Web-specific API
 explanation; they do not establish Android, Cast or other HLS packaging behavior.
 See the [API comparison and handoff rules](implementation.md#playback-position-and-unix-time).
 
-The Android publisher finalized only its retained 60-second manifest window;
-the Web check above finalized the full 180-second presentation. Their different
-finite durations are fixture policies, not a measured SDK duration difference.
+A further Web DASH check used the same media and windowed publisher policy as
+the Android probe below. Its final static manifest declares a 180-second
+presentation while retaining about 60 seconds of segment timeline. Web 8.281.0
+reported duration 180 and a Unix-based seekable range; Android 3.172.0 reported
+59.999 and a range of 0–59.999 for this fixture. These are measured differences
+in the SDK getters for this manifest shape, not a general rule for every VOD.
+In that Web run, the paused default/absolute value 1793186922.750 and relative
+value 149.926 also remained unchanged, with one Source load.
 
 A physical Android 3.172.0 DASH probe retained the same Source, impression,
 request and paused frame through the short event's end. Its raw representation
@@ -83,6 +88,9 @@ require real elapsed time, changing video frames, a progressing live clock,
 expired-window recovery and an explicit archive handoff. Sampled process memory
 and available thermal status describe the tested device/run; they are not a
 memory-leak or thermal certification.
+
+The 30-minute continuous-playback run was excluded from this check. Its
+optional command remains available for local validation.
 
 Cloud VOD preparation completed for the stored sports originals, clips and
 edited archive. Both manifest families and their referenced fragments were
