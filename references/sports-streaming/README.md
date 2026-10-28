@@ -1,6 +1,6 @@
 # Sports streaming reference
 
-[日本語](README.ja.md) · [Implementation guide](docs/implementation.md) · [Analytics Web](analytics-web/README.md)
+[English](README.md) · [日本語](README.ja.md) · [Implementation guide](docs/implementation.md) · [Analytics Web](analytics-web/README.md)
 
 An independent Android example for live events, clips and recorded archives with
 Bitmovin Player. Compare the SDK's standard Web UI with native sports controls,

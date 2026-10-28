@@ -1,5 +1,7 @@
 # Learning playback quality dashboard
 
+[English](README.md) · [日本語](README.ja.md)
+
 Query playback quality for this reference app. The interface supports English and Japanese. The dashboard and its server run independently of the Android build.
 
 ## Setup

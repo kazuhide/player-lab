@@ -1,5 +1,7 @@
 # Learning media fixtures
 
+[English](fixtures.md) · [日本語](fixtures.ja.md)
+
 The supplied lessons are self-authored number-line videos with HLS, DASH,
 subtitles and timed transcripts. This page covers preparing and delivering the
 media. See [Android setup](../README.md#configure-and-run-android) for application
