@@ -1,0 +1,16 @@
+{
+  "cues": [
+    {
+      "startMs": 0,
+      "endMs": 3000,
+      "text": "Live practice match.",
+      "language": "en"
+    },
+    {
+      "startMs": 30000,
+      "endMs": 34000,
+      "text": "Compare live and replay time.",
+      "language": "en"
+    }
+  ]
+}

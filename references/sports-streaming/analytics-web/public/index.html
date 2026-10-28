@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Player Lab · Playback quality</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.mjs"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="page-header">
+      <div><p class="app-name">Player Lab</p><h1 id="title">Playback quality</h1></div>
+      <div class="header-actions">
+        <a id="dashboard-link" href="https://dashboard.bitmovin.com/analytics" target="_blank" rel="noreferrer">Bitmovin Dashboard</a>
+        <button id="language" type="button" lang="ja">日本語</button>
+      </div>
+    </header>
+    <main id="main" tabindex="-1">
+      <nav id="tabs" class="tabs" aria-label="Analysis view" hidden>
+        <button id="quality-tab" type="button" aria-current="page">Playback quality</button>
+        <button id="records-tab" type="button">Handoff records</button>
+      </nav>
+      <section id="quality" aria-labelledby="quality-heading">
+        <h2 id="quality-heading" class="visually-hidden">Playback quality</h2>
+        <form id="filters" class="filters">
+          <label><span data-text="period">Period</span><select id="period"><option value="24" data-text="last24">Last 24 hours</option><option value="168" data-text="last7">Last 7 days</option><option value="custom" data-text="custom">Custom</option></select></label>
+          <label><span id="asset-label">Lesson</span><select id="asset"></select></label>
+          <label id="origin-field"><span data-text="startOrigin">Playback entry</span><select id="origin"></select></label>
+          <label id="type-field" hidden><span data-text="mediaKind">Media type</span><select id="type"><option value="all" data-text="all">All</option><option value="live">Live</option><option value="clip" data-text="clip">Clip</option><option value="archive" data-text="archive">Archive</option></select></label>
+          <label><span data-text="collector">Collector</span><select id="collector" disabled><option>Android</option></select></label>
+          <button id="refresh" type="submit" class="primary" data-text="refresh">Refresh</button>
+          <fieldset id="custom-range" hidden><legend data-text="utcPeriod">Period in UTC</legend><label><span data-text="start">Start</span><input id="start" type="datetime-local" step="60" required></label><label><span data-text="end">End</span><input id="end" type="datetime-local" step="60" required></label></fieldset>
+          <label class="automatic"><input id="automatic" type="checkbox"><span data-text="automatic">Refresh every 60 seconds</span></label>
+        </form>
+        <div class="status-line"><p id="status" role="status" aria-live="polite"></p><span id="fetch-time"></span></div>
+        <p id="period-summary" class="period-summary"></p>
+        <div id="metrics" class="metrics" aria-busy="false"></div>
+        <div class="charts">
+          <section class="plot" aria-labelledby="plays-heading"><h2 id="plays-heading" data-text="playsTrend">Plays by hour</h2><div id="plays-chart"></div><details><summary data-text="tableView">Show data table</summary><div id="plays-table" class="table-scroll"></div></details></section>
+          <section class="plot" aria-labelledby="startup-heading"><h2 id="startup-heading" data-text="startupTrend">Video startup time by hour</h2><div class="legend"><span data-text="median">Median</span><span data-text="p95">95th percentile</span></div><div id="startup-chart"></div><details><summary data-text="tableView">Show data table</summary><div id="startup-table" class="table-scroll"></div></details></section>
+        </div>
+        <section class="comparison" aria-labelledby="comparison-heading"><h2 id="comparison-heading" data-text="comparison">Quality by video</h2><div id="comparison-table" class="table-scroll"></div></section>
+        <details class="definitions"><summary data-text="definitions">Metric definitions and data source</summary><p data-text="definitionsText">Cards use whole-period queries. Hourly percentiles are not averaged. Missing values stay unavailable. Percentage values use the standard API scale.</p><p id="source-summary"></p><p data-text="sampleTimeUnknown">The latest sample timestamp is not available from these aggregated queries. The fetch time records when the server received the API response.</p><a href="https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1" target="_blank" rel="noreferrer" data-text="officialDefinitions">Official metric query recipes</a></details>
+      </section>
+      <section id="records" aria-labelledby="records-heading" hidden>
+        <div class="records-heading"><h2 id="records-heading" data-text="handoffRecords">Handoff records</h2><div><button id="demo-records" type="button" data-text="loadDemo">Load fictional example</button><label class="file-button"><span data-text="openRecords">Open records</span><input id="record-file" type="file" accept="application/json,.json"></label></div></div>
+        <p id="records-status" role="status" aria-live="polite"></p>
+        <div id="records-content"></div>
+      </section>
+      <footer><p data-text="scope">Android reference app data only. Receiver playback quality is not inferred from sender data.</p></footer>
+    </main>
+  </body>
+</html>
