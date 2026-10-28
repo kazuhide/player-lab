@@ -1,6 +1,6 @@
 # Learning reference
 
-[日本語](README.ja.md) · [Implementation guide](docs/implementation.md) · [Analytics dashboard](analytics-dashboard/README.md)
+[English](README.md) · [日本語](README.ja.md) · [Implementation guide](docs/implementation.md) · [Analytics dashboard](analytics-dashboard/README.md)
 
 An independent Android example for course playback with Bitmovin Player. Select
 a lesson, search its timed transcript, change subtitle language, and resume a

@@ -1,5 +1,7 @@
 # Recorded checks
 
+[English](validation.md) · [日本語](validation.ja.md)
+
 These checks were run on 28 October 2026 with Player Android 3.172.0 and its
 integrated Analytics collector 3.35.2. Device playback used the reference's
 self-authored media and the Player license configured locally. Credentials,

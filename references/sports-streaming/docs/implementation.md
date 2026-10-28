@@ -1,5 +1,7 @@
 # Implementing live events, clips and archives
 
+[English](implementation.md) · [日本語](implementation.ja.md)
+
 Use the [setup instructions](../README.md#requirements-and-configuration) before
 changing the Player integration. The Android application and the analysis Web
 application have separate configuration and execution paths.

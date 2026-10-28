@@ -1,5 +1,7 @@
 # Sports playback quality dashboard
 
+[English](README.md) · [日本語](README.ja.md)
+
 Query playback quality for this sports reference app and inspect local handoff records. The interface supports English and Japanese. Its server and static web interface run independently of the Android build.
 
 ## Setup

@@ -1,9 +1,15 @@
 # Recorded checks
 
+[English](validation.md) · [日本語](validation.ja.md)
+
 These checks were run on 28 October 2026 with Player Android 3.172.0 and its
 integrated Analytics collector 3.35.2. The device run used locally configured
 demo licenses and this reference's self-authored fixtures. Credentials, device
 serials, private origins and raw device logs are excluded.
+
+Guide screenshots were refreshed on 2026-10-29 using the baseball fixtures and
+the actual English/Japanese app UI. This refresh covers screen capture; the
+playback and Cast results below retain their original date and scope.
 
 ## Build and focused playback checks
 

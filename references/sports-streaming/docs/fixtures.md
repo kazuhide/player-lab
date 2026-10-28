@@ -1,5 +1,7 @@
 # Sports media fixtures
 
+[English](fixtures.md) · [日本語](fixtures.ja.md)
+
 The supplied media is self-authored: a baseball diamond, fielders, an animated
 pitch and hit, score, elapsed time and UTC label. It supplies live-event playback, clips and archives
 without requiring a cloud encoding account. See [Android setup](../README.md#requirements-and-configuration)

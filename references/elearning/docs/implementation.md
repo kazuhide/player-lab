@@ -1,5 +1,7 @@
 # Implementing the learning player
 
+[English](implementation.md) · [日本語](implementation.ja.md)
+
 Start with [setup](../README.md#configure-and-run-android). The Android application
 uses the integrated Bitmovin Player SDK; the optional analysis Web application
 reads Analytics through its own server.
