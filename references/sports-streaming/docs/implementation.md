@@ -44,6 +44,15 @@ same time basis. A negative `timeShift` value is an offset behind the live edge,
 not the number of seconds into an archive.
 
 Read the current seekable bounds immediately before dispatching a live seek.
+The call starts an asynchronous operation; an updated requested offset does not
+prove that the playback position has reached it. Wait for
+[`PlayerEvent.TimeShifted`](https://cdn.bitmovin.com/player/android/3/docs/player-core/com.bitmovin.player.api.event/-player-event/-time-shifted/index.html)
+and check the actual timestamp before a dependent action. For video on demand,
+the corresponding completion event is `PlayerEvent.Seeked`.
+For a new Source, `SourceEvent.Loaded` confirms loading but does not establish
+playback readiness. Bind `PlayerEvent.Ready`, the active Source, and the current
+request generation before checking a configured start position or issuing a
+dependent command.
 After a long pause, the requested media can have left that window. Offer a
 valid return position or the current live edge rather than silently pretending
 the expired position is available.

@@ -19,12 +19,15 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.bitmovin.player.api.source.Source
+import com.bitmovin.player.api.event.PlayerEvent
+import com.bitmovin.player.api.event.SourceEvent
 import com.playerlab.sportsstreaming.core.ArchivePosition
 import com.playerlab.sportsstreaming.core.ArchiveStatus
 import com.playerlab.sportsstreaming.core.AssetKind
 import com.playerlab.sportsstreaming.core.EventStatus
 import com.playerlab.sportsstreaming.core.EventStatusParser
 import com.playerlab.sportsstreaming.core.EventStatusUpdate
+import com.playerlab.sportsstreaming.core.PlaybackRequest
 import com.playerlab.sportsstreaming.core.StreamProtocol
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
@@ -79,9 +82,9 @@ class EnduranceTest {
                         assertTrue("A short fixture cannot qualify a normal-event run", durationMs >= 1_800_000L)
                         changedKeepScreenOn = activity.window.attributes.flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON == 0
                         if (changedKeepScreenOn) activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                        session.selectAsset(liveId, protocol)
                         activity.switchUiForTest(true)
                     }
+                    loadAndWait(scenario, recorder, liveId) { it.selectAsset(liveId, protocol) }
                     val repository = CatalogRepository(instrumentation.targetContext)
                     fun status(): EventStatusUpdate {
                         val text = runBlocking { repository.status(statusUrl) }
@@ -98,11 +101,10 @@ class EnduranceTest {
                     assertActualFramesAdvance(scenario, recorder)
 
                     waitUntil(scenario, recorder, 90_000) { it.player.maxTimeShift <= -20.0 }
-                    scenario.onActivity { it.playbackForTest().seekBy(-15.0) }
-                    waitUntil(scenario, recorder) { it.player.timeShift <= -10.0 }
+                    shiftLiveAndWait(scenario, recorder, toLive = false)
                     var pausedTime = 0.0
-                    scenario.onActivity { it.playbackForTest().player.pause(); pausedTime = it.playbackForTest().player.currentTime }
-                    waitUntil(scenario, recorder) { it.player.isPaused && !it.player.isPlaying }
+                    pauseAndWait(scenario, recorder)
+                    scenario.onActivity { pausedTime = it.playbackForTest().player.currentTime }
                     Thread.sleep(1_000)
                     scenario.onActivity {
                         assertEquals("A pause must retain playback position", pausedTime, it.playbackForTest().player.currentTime, 1.0)
@@ -114,13 +116,13 @@ class EnduranceTest {
                     var storedUtc = 0L
                     lateinit var pausedSource: Source
                     var pausedImpression: String? = null
+                    pauseAndWait(scenario, recorder)
                     scenario.onActivity {
                         val session = it.playbackForTest()
                         storedUtc = actualViewedUtcMs(session)
                         pausedSource = requireNotNull(session.player.source)
                         pausedImpression = session.snapshot().impressionId
                         assertNotNull("Analytics is required for actual impression continuity", pausedImpression)
-                        session.player.pause()
                     }
                     recorder.phase = "live-paused-until-expiry"
                     waitUntil(scenario, recorder) { it.state.value.activeAssetId == liveId && it.player.isPaused && !it.state.value.loadingSource }
@@ -145,7 +147,10 @@ class EnduranceTest {
                         val current = session.player.timeShift
                         assertTrue("Read finite current SDK live bounds before recovery", earliest.isFinite() && earliest < 0 && current.isFinite())
                         assertTrue(session.state.value.canControlPlayback)
-                        session.goLive()
+                    }
+                    shiftLiveAndWait(scenario, recorder, toLive = true)
+                    scenario.onActivity {
+                        val session = it.playbackForTest()
                         assertTrue("Seeking to live must not silently change pause intent", session.player.isPaused && !session.player.isPlaying)
                         session.player.play()
                     }
@@ -173,13 +178,10 @@ class EnduranceTest {
                             nextStatus = now + 2_000L
                             if (!endHold && observed.eventStatus == EventStatus.LIVE &&
                                 (observed.seekableUtcEndMs ?: 0L) - origin >= durationMs - 12_000L) {
-                                scenario.onActivity {
-                                    it.playbackForTest().seekBy(-15.0)
-                                }
-                                waitUntil(scenario, recorder) { it.player.timeShift <= -10.0 }
+                                shiftLiveAndWait(scenario, recorder, toLive = false)
+                                pauseAndWait(scenario, recorder)
                                 scenario.onActivity {
                                     val session = it.playbackForTest()
-                                    session.player.pause()
                                     heldSource = session.player.source
                                     heldImpression = session.snapshot().impressionId
                                     heldUtcMs = actualViewedUtcMs(session)
@@ -213,9 +215,9 @@ class EnduranceTest {
                     var mappedPosition = 0L
                     scenario.onActivity {
                         mappedPosition = (it.playbackForTest().state.value.archivePosition as ArchivePosition.Available).positionMs
-                        it.playbackForTest().continueInArchive()
                     }
                     recorder.phase = "archive-paused"
+                    loadAndWait(scenario, recorder, archiveId) { it.continueInArchive() }
                     waitUntil(scenario, recorder) {
                         it.state.value.activeAssetId == archiveId && !it.state.value.loadingSource && it.player.isPaused &&
                             !it.player.isPlaying && abs(it.player.currentTime * 1_000 - mappedPosition) <= 1_000
@@ -249,6 +251,94 @@ class EnduranceTest {
             }
         } finally {
             recorder.writeReceipt()
+        }
+    }
+
+    private fun shiftLiveAndWait(scenario: ActivityScenario<MainActivity>, recorder: Recorder, toLive: Boolean) {
+        var finished = false
+        var beforeUtcMs = 0L
+        var expectedSource: Source? = null
+        var expectedRequest: PlaybackRequest? = null
+        lateinit var session: PlaybackSession
+        val listener: (PlayerEvent.TimeShifted) -> Unit = {
+            if (session.player.source === expectedSource && session.coordinator.current == expectedRequest) finished = true
+        }
+        scenario.onActivity {
+            session = it.playbackForTest()
+            expectedSource = session.player.source
+            expectedRequest = session.coordinator.current
+            beforeUtcMs = actualViewedUtcMs(session)
+            assertTrue(session.state.value.canControlPlayback && session.player.isLive)
+            assertTrue("Read fresh finite SDK seek bounds before dispatch", session.player.maxTimeShift.isFinite() && session.player.maxTimeShift < 0)
+            session.player.on(PlayerEvent.TimeShifted::class, listener)
+            if (toLive) session.goLive() else session.seekBy(-15.0)
+        }
+        try {
+            waitUntil(scenario, recorder) {
+                finished && it.player.source === expectedSource && it.coordinator.current == expectedRequest &&
+                    (if (toLive) it.player.timeShift > -3.0 && actualViewedUtcMs(it) > beforeUtcMs + 10_000L
+                    else it.player.timeShift <= -10.0 && actualViewedUtcMs(it) < beforeUtcMs - 10_000L)
+            }
+        } finally {
+            scenario.onActivity { it.playbackForTest().player.off(PlayerEvent.TimeShifted::class, listener) }
+        }
+    }
+
+    private fun pauseAndWait(scenario: ActivityScenario<MainActivity>, recorder: Recorder) {
+        var finished = false
+        lateinit var session: PlaybackSession
+        var source: Source? = null
+        var request: PlaybackRequest? = null
+        val listener: (PlayerEvent.Paused) -> Unit = {
+            if (session.player.source === source && session.coordinator.current == request) finished = true
+        }
+        scenario.onActivity {
+            session = it.playbackForTest()
+            source = session.player.source
+            request = session.coordinator.current
+            assertTrue("Pause must start from actual playback", session.player.isPlaying)
+            session.player.on(PlayerEvent.Paused::class, listener)
+            session.player.pause()
+        }
+        try {
+            waitUntil(scenario, recorder) { finished && it.player.source === source && it.coordinator.current == request &&
+                it.player.isPaused && !it.player.isPlaying }
+        } finally {
+            scenario.onActivity { it.playbackForTest().player.off(PlayerEvent.Paused::class, listener) }
+        }
+    }
+
+    private fun loadAndWait(scenario: ActivityScenario<MainActivity>, recorder: Recorder, assetId: String,
+                            operation: (PlaybackSession) -> Unit) {
+        lateinit var session: PlaybackSession
+        var source: Source? = null
+        var request: PlaybackRequest? = null
+        var loaded = false
+        var ready = false
+        val loadedListener: (SourceEvent.Loaded) -> Unit = {
+            if (it.source === source && session.coordinator.current == request) loaded = true
+        }
+        val readyListener: (PlayerEvent.Ready) -> Unit = {
+            if (source != null && session.player.source === source && session.coordinator.current == request) ready = true
+        }
+        scenario.onActivity {
+            session = it.playbackForTest()
+            val previous = session.player.source
+            session.player.on(SourceEvent.Loaded::class, loadedListener)
+            session.player.on(PlayerEvent.Ready::class, readyListener)
+            operation(session)
+            source = requireNotNull(session.player.source)
+            request = requireNotNull(session.coordinator.current)
+            assertNotSame("A new Source must own this load", previous, source)
+        }
+        try {
+            waitUntil(scenario, recorder) { loaded && ready && it.player.source === source && source?.isActive == true &&
+                it.coordinator.current == request && it.state.value.activeAssetId == assetId && !it.state.value.loadingSource }
+        } finally {
+            scenario.onActivity {
+                it.playbackForTest().player.off(SourceEvent.Loaded::class, loadedListener)
+                it.playbackForTest().player.off(PlayerEvent.Ready::class, readyListener)
+            }
         }
     }
 
