@@ -1,0 +1,103 @@
+{
+  "source": "self-authored local FFmpeg development fixtures",
+  "ffmpegVersion": "9.0.2",
+  "note": "Generation, probing and sampled edited-video boundary checks only; Android, receiver and cloud results are recorded separately.",
+  "probeCheckedAt": "2026-10-28T05:03:07.123Z",
+  "timingNote": "AAC packets are measured separately. Stream-copy trimming follows compressed packet boundaries, so container/audio/video durations can differ; unverified video tails stay unmapped.",
+  "clockQualification": "Synthetic UTC is authored with the FFmpeg pts:gmtime render command and bound to the prepared source SHA; no OCR or device result is implied.",
+  "assets": [
+    {
+      "assetId": "EDU-FX-01",
+      "source": "self-authored local FFmpeg fixture",
+      "generatedAt": "2026-10-28T04:59:52.136Z",
+      "requestedDurationMs": 180000,
+      "measuredDurationMs": 180000,
+      "streams": [
+        {
+          "codec": "h264",
+          "type": "video",
+          "durationMs": 180000,
+          "startMs": 0
+        },
+        {
+          "codec": "aac",
+          "type": "audio",
+          "durationMs": 180000,
+          "startMs": 0,
+          "sampleRateHz": 48000,
+          "nominalPacketSamples": 1024,
+          "nominalPacketDurationMs": 21.333333333333332
+        }
+      ],
+      "sha256": "e46a00c27c486cf3d973517cc88a03e13941e65f8d43646b82690bb161b3db57",
+      "cloudJob": null,
+      "androidPlayback": null,
+      "receiverPlayback": null,
+      "renderUtcStartMs": null,
+      "renderMode": "number-line-v2",
+      "durationDifferenceMs": 0
+    },
+    {
+      "assetId": "EDU-FX-02",
+      "source": "self-authored local FFmpeg fixture",
+      "generatedAt": "2026-10-28T04:59:57.901Z",
+      "requestedDurationMs": 780000,
+      "measuredDurationMs": 780000,
+      "streams": [
+        {
+          "codec": "h264",
+          "type": "video",
+          "durationMs": 780000,
+          "startMs": 0
+        },
+        {
+          "codec": "aac",
+          "type": "audio",
+          "durationMs": 780000,
+          "startMs": 0,
+          "sampleRateHz": 48000,
+          "nominalPacketSamples": 1024,
+          "nominalPacketDurationMs": 21.333333333333332
+        }
+      ],
+      "sha256": "ea92b9e65e8845e67910fdcf34c36cc5f90a6164136e65832caf5383bfee3bb9",
+      "cloudJob": null,
+      "androidPlayback": null,
+      "receiverPlayback": null,
+      "renderUtcStartMs": null,
+      "renderMode": "number-line-v2",
+      "durationDifferenceMs": 0
+    },
+    {
+      "assetId": "EDU-FX-03",
+      "source": "self-authored local FFmpeg fixture",
+      "generatedAt": "2026-10-28T04:59:52.745Z",
+      "requestedDurationMs": 8000,
+      "measuredDurationMs": 8000,
+      "streams": [
+        {
+          "codec": "h264",
+          "type": "video",
+          "durationMs": 8000,
+          "startMs": 0
+        },
+        {
+          "codec": "aac",
+          "type": "audio",
+          "durationMs": 8000,
+          "startMs": 0,
+          "sampleRateHz": 48000,
+          "nominalPacketSamples": 1024,
+          "nominalPacketDurationMs": 21.333333333333332
+        }
+      ],
+      "sha256": "7de4b7ccc2bc3b3b1d7481f58ab4b207169eb4569789962e618f56d1a028209a",
+      "cloudJob": null,
+      "androidPlayback": null,
+      "receiverPlayback": null,
+      "renderUtcStartMs": null,
+      "renderMode": "number-line-v2",
+      "durationDifferenceMs": 0
+    }
+  ]
+}

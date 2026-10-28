@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="playback_problem" type="id" />
+    <item name="playback_problem_message" type="id" />
+    <item name="playback_retry" type="id" />
+    <item name="playback_library" type="id" />
+    <item name="learning_play" type="id" />
+    <item name="learning_position" type="id" />
+    <item name="learning_backward" type="id" />
+    <item name="learning_forward" type="id" />
+    <item name="learning_settings" type="id" />
+    <item name="learning_fullscreen" type="id" />
+</resources>
