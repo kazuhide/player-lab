@@ -1,0 +1,16 @@
+{
+  "cues": [
+    {
+      "startMs": 0,
+      "endMs": 3000,
+      "text": "Practice match.",
+      "language": "en"
+    },
+    {
+      "startMs": 10000,
+      "endMs": 14000,
+      "text": "Watch the elapsed-time display.",
+      "language": "en"
+    }
+  ]
+}

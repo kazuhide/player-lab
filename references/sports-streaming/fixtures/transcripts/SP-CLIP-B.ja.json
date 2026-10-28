@@ -1,0 +1,16 @@
+{
+  "cues": [
+    {
+      "startMs": 0,
+      "endMs": 3000,
+      "text": "練習用の試合映像です。",
+      "language": "ja"
+    },
+    {
+      "startMs": 10000,
+      "endMs": 14000,
+      "text": "経過時間の表示を確認します。",
+      "language": "ja"
+    }
+  ]
+}

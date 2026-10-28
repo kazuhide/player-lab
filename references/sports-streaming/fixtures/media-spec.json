@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "SP-ARCH-S",
+      "durationMs": 180000,
+      "subject": "sports",
+      "subtitles": [
+        "en",
+        "ja"
+      ]
+    },
+    {
+      "id": "SP-ARCH-EVENT",
+      "durationMs": 1800000,
+      "subject": "sports",
+      "subtitles": [
+        "en",
+        "ja"
+      ]
+    },
+    {
+      "id": "SP-CLIP-A",
+      "source": "SP-ARCH-S",
+      "startMs": 30000,
+      "durationMs": 20000,
+      "subtitles": [
+        "en",
+        "ja"
+      ]
+    },
+    {
+      "id": "SP-CLIP-B",
+      "source": "SP-ARCH-S",
+      "startMs": 80000,
+      "durationMs": 30000,
+      "subtitles": [
+        "en",
+        "ja"
+      ]
+    },
+    {
+      "id": "SP-ARCH-E",
+      "source": "SP-ARCH-S",
+      "durationMs": 120000,
+      "intervals": [
+        [
+          30000,
+          90000
+        ],
+        [
+          120000,
+          180000
+        ]
+      ],
+      "subtitles": [
+        "en",
+        "ja"
+      ]
+    }
+  ],
+  "live": [
+    {
+      "id": "SP-LIVE-S",
+      "archiveId": "SP-ARCH-S",
+      "eventId": "SP-EVENT-S",
+      "durationMs": 180000
+    },
+    {
+      "id": "SP-LIVE-EVENT",
+      "archiveId": "SP-ARCH-EVENT",
+      "eventId": "SP-EVENT-30",
+      "durationMs": 1800000
+    }
+  ]
+}

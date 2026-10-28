@@ -1,0 +1,16 @@
+{
+  "cues": [
+    {
+      "startMs": 0,
+      "endMs": 3000,
+      "text": "練習用のライブ映像です。",
+      "language": "ja"
+    },
+    {
+      "startMs": 30000,
+      "endMs": 34000,
+      "text": "ライブと見逃し再生の時刻を比べます。",
+      "language": "ja"
+    }
+  ]
+}

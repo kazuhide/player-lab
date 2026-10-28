@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "events": [
+    {
+      "id": "SP-EVENT-S",
+      "title": "Practice match short",
+      "titleJa": "練習試合 短縮版",
+      "status": "scheduled",
+      "archiveStatus": "not_ready",
+      "liveAssetId": "SP-LIVE-S",
+      "archiveAssetId": "SP-ARCH-S",
+      "statusUrl": "api/events/SP-EVENT-S"
+    },
+    {
+      "id": "SP-EVENT-30",
+      "title": "Practice match 30 min",
+      "titleJa": "練習試合 30分",
+      "status": "scheduled",
+      "archiveStatus": "not_ready",
+      "liveAssetId": "SP-LIVE-EVENT",
+      "archiveAssetId": "SP-ARCH-EVENT",
+      "statusUrl": "api/events/SP-EVENT-30"
+    }
+  ],
+  "assets": [
+    {
+      "id": "SP-ARCH-S",
+      "eventId": "SP-EVENT-S",
+      "videoId": "sports:SP-ARCH-S",
+      "title": "Practice replay",
+      "titleJa": "練習試合の録画",
+      "kind": "archive",
+      "streams": {
+        "hls": "SP-ARCH-S/hls/media.m3u8",
+        "dash": "SP-ARCH-S/dash/manifest.mpd"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/SP-ARCH-S.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/SP-ARCH-S.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "durationMs": 180000,
+      "utcStartMs": null,
+      "utcMappings": [],
+      "validatedAt": null,
+      "clipStartMs": null,
+      "clipEndMs": null,
+      "expectedDurationMs": 180000,
+      "durationBasis": "expected",
+      "measuredDurationMs": null,
+      "timingSource": null
+    },
+    {
+      "id": "SP-ARCH-EVENT",
+      "eventId": "SP-EVENT-30",
+      "videoId": "sports:SP-ARCH-EVENT",
+      "title": "Match replay",
+      "titleJa": "試合の録画",
+      "kind": "archive",
+      "streams": {
+        "hls": "SP-ARCH-EVENT/hls/media.m3u8",
+        "dash": "SP-ARCH-EVENT/dash/manifest.mpd"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/SP-ARCH-EVENT.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/SP-ARCH-EVENT.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "durationMs": 1800000,
+      "utcStartMs": null,
+      "utcMappings": [],
+      "validatedAt": null,
+      "clipStartMs": null,
+      "clipEndMs": null,
+      "expectedDurationMs": 1800000,
+      "durationBasis": "expected",
+      "measuredDurationMs": null,
+      "timingSource": null
+    },
+    {
+      "id": "SP-CLIP-A",
+      "eventId": "SP-EVENT-S",
+      "videoId": "sports:SP-CLIP-A",
+      "title": "Opening clip",
+      "titleJa": "序盤のクリップ",
+      "kind": "clip",
+      "streams": {
+        "hls": "SP-CLIP-A/hls/media.m3u8",
+        "dash": "SP-CLIP-A/dash/manifest.mpd"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/SP-CLIP-A.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/SP-CLIP-A.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "durationMs": 20000,
+      "utcStartMs": null,
+      "utcMappings": [],
+      "validatedAt": null,
+      "clipStartMs": 30000,
+      "clipEndMs": 50000,
+      "expectedDurationMs": 20000,
+      "durationBasis": "expected",
+      "measuredDurationMs": null,
+      "timingSource": null
+    },
+    {
+      "id": "SP-CLIP-B",
+      "eventId": "SP-EVENT-S",
+      "videoId": "sports:SP-CLIP-B",
+      "title": "Second clip",
+      "titleJa": "別の場面のクリップ",
+      "kind": "clip",
+      "streams": {
+        "hls": "SP-CLIP-B/hls/media.m3u8",
+        "dash": "SP-CLIP-B/dash/manifest.mpd"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/SP-CLIP-B.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/SP-CLIP-B.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "durationMs": 30000,
+      "utcStartMs": null,
+      "utcMappings": [],
+      "validatedAt": null,
+      "clipStartMs": 80000,
+      "clipEndMs": 110000,
+      "expectedDurationMs": 30000,
+      "durationBasis": "expected",
+      "measuredDurationMs": null,
+      "timingSource": null
+    },
+    {
+      "id": "SP-ARCH-E",
+      "eventId": "SP-EVENT-S",
+      "videoId": "sports:SP-ARCH-E",
+      "title": "Edited replay",
+      "titleJa": "編集済みの録画",
+      "kind": "archive",
+      "streams": {
+        "hls": "SP-ARCH-E/hls/media.m3u8",
+        "dash": "SP-ARCH-E/dash/manifest.mpd"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/SP-ARCH-E.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/SP-ARCH-E.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "durationMs": 120000,
+      "utcStartMs": null,
+      "utcMappings": [],
+      "validatedAt": null,
+      "clipStartMs": null,
+      "clipEndMs": null,
+      "expectedDurationMs": 120000,
+      "durationBasis": "expected",
+      "measuredDurationMs": null,
+      "timingSource": null
+    },
+    {
+      "id": "SP-LIVE-S",
+      "eventId": "SP-EVENT-S",
+      "videoId": "sports:SP-LIVE-S",
+      "title": "Short practice match",
+      "titleJa": "短い練習試合",
+      "kind": "live",
+      "streams": {
+        "hls": "SP-LIVE-S/hls/media.m3u8",
+        "dash": "SP-LIVE-S/dash/manifest.mpd"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/SP-LIVE-S.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/SP-LIVE-S.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "durationMs": null,
+      "utcStartMs": null,
+      "utcMappings": [],
+      "validatedAt": null,
+      "expectedDurationMs": 180000,
+      "durationBasis": null,
+      "measuredDurationMs": null,
+      "timingSource": null
+    },
+    {
+      "id": "SP-LIVE-EVENT",
+      "eventId": "SP-EVENT-30",
+      "videoId": "sports:SP-LIVE-EVENT",
+      "title": "Live match",
+      "titleJa": "試合のライブ配信",
+      "kind": "live",
+      "streams": {
+        "hls": "SP-LIVE-EVENT/hls/media.m3u8",
+        "dash": "SP-LIVE-EVENT/dash/manifest.mpd"
+      },
+      "subtitleTracks": [
+        {
+          "url": "subtitles/SP-LIVE-EVENT.en.vtt",
+          "language": "en",
+          "label": "English"
+        },
+        {
+          "url": "subtitles/SP-LIVE-EVENT.ja.vtt",
+          "language": "ja",
+          "label": "日本語"
+        }
+      ],
+      "durationMs": null,
+      "utcStartMs": null,
+      "utcMappings": [],
+      "validatedAt": null,
+      "expectedDurationMs": 1800000,
+      "durationBasis": null,
+      "measuredDurationMs": null,
+      "timingSource": null
+    }
+  ],
+  "scenarios": []
+}

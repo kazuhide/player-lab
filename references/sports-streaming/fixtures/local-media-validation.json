@@ -1,0 +1,203 @@
+{
+  "source": "self-authored local FFmpeg development fixtures",
+  "ffmpegVersion": "9.0.2",
+  "note": "Generation, probing and sampled edited-video boundary checks only; Android, receiver and cloud results are recorded separately.",
+  "probeCheckedAt": "2026-10-28T05:03:07.381Z",
+  "timingNote": "AAC packets are measured separately. Stream-copy trimming follows compressed packet boundaries, so container/audio/video durations can differ; unverified video tails stay unmapped.",
+  "clockQualification": "Synthetic UTC is authored with the FFmpeg pts:gmtime render command and bound to the prepared source SHA; no OCR or device result is implied.",
+  "assets": [
+    {
+      "assetId": "SP-ARCH-E",
+      "source": "self-authored local FFmpeg fixture",
+      "generatedAt": "2026-10-28T05:00:18.598Z",
+      "requestedDurationMs": 120000,
+      "measuredDurationMs": 120011,
+      "streams": [
+        {
+          "codec": "h264",
+          "type": "video",
+          "durationMs": 120005,
+          "startMs": 5
+        },
+        {
+          "codec": "aac",
+          "type": "audio",
+          "durationMs": 120011,
+          "startMs": 0,
+          "sampleRateHz": 48000,
+          "nominalPacketSamples": 1024,
+          "nominalPacketDurationMs": 21.333333333333332
+        }
+      ],
+      "sha256": "0f2d8246ffc035d8abc93716f1c6e743ffd79216ef289211104a8f420bea7ee5",
+      "cloudJob": null,
+      "androidPlayback": null,
+      "receiverPlayback": null,
+      "renderUtcStartMs": null,
+      "renderMode": "copied-noncontinuous-source-v1",
+      "sourceAssetId": "SP-ARCH-S",
+      "sourceIntervalsMs": [
+        [
+          30000,
+          90000
+        ],
+        [
+          120000,
+          180000
+        ]
+      ],
+      "sourceSha256": "979535e2f656f95e5f243e3e7cbb4aaa6678050d78021338d47c222a8c1d7aab",
+      "sourceUtcStartMs": 1793163588000,
+      "clockType": "synthetic-fixture-clock",
+      "durationDifferenceMs": 11
+    },
+    {
+      "assetId": "SP-ARCH-EVENT",
+      "source": "self-authored local FFmpeg fixture",
+      "generatedAt": "2026-10-28T05:00:17.922Z",
+      "requestedDurationMs": 1800000,
+      "measuredDurationMs": 1800000,
+      "streams": [
+        {
+          "codec": "h264",
+          "type": "video",
+          "durationMs": 1800000,
+          "startMs": 0
+        },
+        {
+          "codec": "aac",
+          "type": "audio",
+          "durationMs": 1800000,
+          "startMs": 0,
+          "sampleRateHz": 48000,
+          "nominalPacketSamples": 1024,
+          "nominalPacketDurationMs": 21.333333333333332
+        }
+      ],
+      "sha256": "e64d5a0c7c988cf51a48c47fa3f19605b8ed0ea040bc3f98d0236ade69a775ce",
+      "cloudJob": null,
+      "androidPlayback": null,
+      "receiverPlayback": null,
+      "renderUtcStartMs": 1793163588000,
+      "renderMode": "synthetic-sports-utc-v1",
+      "clockType": "synthetic-fixture-clock",
+      "clockExpression": "pts:gmtime:<renderUtcStartMs / 1000>",
+      "durationDifferenceMs": 0
+    },
+    {
+      "assetId": "SP-ARCH-S",
+      "source": "self-authored local FFmpeg fixture",
+      "generatedAt": "2026-10-28T04:59:54.712Z",
+      "requestedDurationMs": 180000,
+      "measuredDurationMs": 180000,
+      "streams": [
+        {
+          "codec": "h264",
+          "type": "video",
+          "durationMs": 180000,
+          "startMs": 0
+        },
+        {
+          "codec": "aac",
+          "type": "audio",
+          "durationMs": 180000,
+          "startMs": 0,
+          "sampleRateHz": 48000,
+          "nominalPacketSamples": 1024,
+          "nominalPacketDurationMs": 21.333333333333332
+        }
+      ],
+      "sha256": "979535e2f656f95e5f243e3e7cbb4aaa6678050d78021338d47c222a8c1d7aab",
+      "cloudJob": null,
+      "androidPlayback": null,
+      "receiverPlayback": null,
+      "renderUtcStartMs": 1793163588000,
+      "renderMode": "synthetic-sports-utc-v1",
+      "clockType": "synthetic-fixture-clock",
+      "clockExpression": "pts:gmtime:<renderUtcStartMs / 1000>",
+      "durationDifferenceMs": 0
+    },
+    {
+      "assetId": "SP-CLIP-A",
+      "source": "self-authored local FFmpeg fixture",
+      "generatedAt": "2026-10-28T05:00:18.186Z",
+      "requestedDurationMs": 20000,
+      "measuredDurationMs": 20011,
+      "streams": [
+        {
+          "codec": "h264",
+          "type": "video",
+          "durationMs": 20000,
+          "startMs": 5
+        },
+        {
+          "codec": "aac",
+          "type": "audio",
+          "durationMs": 20011,
+          "startMs": 0,
+          "sampleRateHz": 48000,
+          "nominalPacketSamples": 1024,
+          "nominalPacketDurationMs": 21.333333333333332
+        }
+      ],
+      "sha256": "8b8d684c2e407244d2020763abd12d818facce04735c89ca7b1915196718b52c",
+      "cloudJob": null,
+      "androidPlayback": null,
+      "receiverPlayback": null,
+      "renderUtcStartMs": 1793163618000,
+      "renderMode": "copied-continuous-source-utc-v1",
+      "sourceAssetId": "SP-ARCH-S",
+      "sourceIntervalsMs": [
+        [
+          30000,
+          50000
+        ]
+      ],
+      "sourceSha256": "979535e2f656f95e5f243e3e7cbb4aaa6678050d78021338d47c222a8c1d7aab",
+      "sourceUtcStartMs": 1793163588000,
+      "clockType": "synthetic-fixture-clock",
+      "durationDifferenceMs": 11
+    },
+    {
+      "assetId": "SP-CLIP-B",
+      "source": "self-authored local FFmpeg fixture",
+      "generatedAt": "2026-10-28T05:00:18.186Z",
+      "requestedDurationMs": 30000,
+      "measuredDurationMs": 30016,
+      "streams": [
+        {
+          "codec": "h264",
+          "type": "video",
+          "durationMs": 30000,
+          "startMs": 0
+        },
+        {
+          "codec": "aac",
+          "type": "audio",
+          "durationMs": 30016,
+          "startMs": 0,
+          "sampleRateHz": 48000,
+          "nominalPacketSamples": 1024,
+          "nominalPacketDurationMs": 21.333333333333332
+        }
+      ],
+      "sha256": "321fd38e2c471e026322043f71d1a1e24bf83fe3d3295b44eabb406f9f324e45",
+      "cloudJob": null,
+      "androidPlayback": null,
+      "receiverPlayback": null,
+      "renderUtcStartMs": 1793163668000,
+      "renderMode": "copied-continuous-source-utc-v1",
+      "sourceAssetId": "SP-ARCH-S",
+      "sourceIntervalsMs": [
+        [
+          80000,
+          110000
+        ]
+      ],
+      "sourceSha256": "979535e2f656f95e5f243e3e7cbb4aaa6678050d78021338d47c222a8c1d7aab",
+      "sourceUtcStartMs": 1793163588000,
+      "clockType": "synthetic-fixture-clock",
+      "durationDifferenceMs": 16
+    }
+  ]
+}

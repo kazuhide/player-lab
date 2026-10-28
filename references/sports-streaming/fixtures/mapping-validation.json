@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "source": "self-authored local media",
+  "verifiedAt": "2026-10-28T05:00:19.096Z",
+  "method": "Decoded video frame SHA-256 at retained interval boundaries; sampled, not exhaustive; audio is measured separately.",
+  "cloudJob": null,
+  "assets": [
+    {
+      "assetId": "SP-ARCH-E",
+      "sourceAssetId": "SP-ARCH-S",
+      "sourceSha256": "979535e2f656f95e5f243e3e7cbb4aaa6678050d78021338d47c222a8c1d7aab",
+      "sha256": "0f2d8246ffc035d8abc93716f1c6e743ffd79216ef289211104a8f420bea7ee5",
+      "intervals": [
+        [
+          30000,
+          90000
+        ],
+        [
+          120000,
+          180000
+        ]
+      ],
+      "boundaryChecks": [
+        {
+          "sourcePositionMs": 30000,
+          "archivePositionMs": 0,
+          "sourceFrameSha256": "12807b2d617d00ad62506adf2e83477ad3b4f8352daa6e91c17108f7bea54798",
+          "archiveFrameSha256": "12807b2d617d00ad62506adf2e83477ad3b4f8352daa6e91c17108f7bea54798",
+          "matches": true
+        },
+        {
+          "sourcePositionMs": 89960,
+          "archivePositionMs": 59960,
+          "sourceFrameSha256": "514cb8cdaafa1b3d25b5e447a61fc48b88b81c5d78000f7edd69d7ed03a6fc68",
+          "archiveFrameSha256": "514cb8cdaafa1b3d25b5e447a61fc48b88b81c5d78000f7edd69d7ed03a6fc68",
+          "matches": true
+        },
+        {
+          "sourcePositionMs": 120000,
+          "archivePositionMs": 60000,
+          "sourceFrameSha256": "efa28bd0580099e5a69accd262841b1f141b9da1b691a2a9361f36f2cf8b6360",
+          "archiveFrameSha256": "efa28bd0580099e5a69accd262841b1f141b9da1b691a2a9361f36f2cf8b6360",
+          "matches": true
+        },
+        {
+          "sourcePositionMs": 179960,
+          "archivePositionMs": 119960,
+          "sourceFrameSha256": "fdd0c180c7fed95fe6d15c8940e73c944de50319dab0adea60f9e23731d9fdde",
+          "archiveFrameSha256": "fdd0c180c7fed95fe6d15c8940e73c944de50319dab0adea60f9e23731d9fdde",
+          "matches": true
+        }
+      ],
+      "positionToleranceMs": 40,
+      "unmappedTailMs": 5
+    }
+  ]
+}
