@@ -70,8 +70,10 @@ class DeviceToolsTest(unittest.TestCase):
         calls, code, summary = self.run_fake(fail_core=False)
         self.assertEqual(0, code)
         self.assertTrue(summary["success"])
-        self.assertEqual(34, sum(result["passed"] for result in summary["results"]))
+        self.assertEqual(52, sum(result["passed"] for result in summary["results"]))
         self.assertEqual({"mandatory-hls", "mandatory-dash"}, {result["name"] for result in summary["results"] if result["name"].startswith("mandatory-")})
+        self.assertEqual({"review-regressions-hls", "review-regressions-dash"}, {result["name"] for result in summary["results"] if result["name"].startswith("review-regressions-")})
+        self.assertEqual({"shared-captions-hls", "shared-captions-dash"}, {result["name"] for result in summary["results"] if result["name"].startswith("shared-captions-")})
         remote = [shlex.split(command[-1]) for command in calls if "shell" in command]
         for index, command in enumerate(remote):
             if "prepare" in command:
@@ -119,6 +121,8 @@ class DeviceToolsTest(unittest.TestCase):
                     output = instrumentation(6, failed=fail_core)
                 elif name.startswith("ownership-"): output = instrumentation(3)
                 elif name.startswith("mandatory-"): output = instrumentation(6)
+                elif name.startswith("review-regressions-"): output = instrumentation(7)
+                elif name.startswith("shared-captions-"): output = instrumentation(2)
                 elif name.startswith("checkpoint-") and "force-stop" not in name: output = instrumentation(1)
                 else: output = ""
                 return subprocess.CompletedProcess(command, 0, output)

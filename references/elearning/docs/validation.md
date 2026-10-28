@@ -9,17 +9,20 @@ device serials, private delivery origins and raw device logs are excluded.
 
 | Check | Conditions | Result |
 | --- | --- | --- |
-| Android build and lint | JDK 21; own Gradle wrapper; debug app and test APK | Successful; no lint errors |
-| Android unit tests | Playback plans, learner state, resume encoding, captions and diagnostics | 20 passed |
+| Independent Android build and lint | Only this reference; JDK 21; own wrapper; no parent files or configuration | Build, lint and app/test APK compilation passed; generated license fields empty |
+| Android unit tests | Playback plans, learner state, resume/checkpoint validation, captions and diagnostics | 24 passed |
 | Fixture publisher tests | Input contracts, media timing and HTTP delivery limits | 33 passed |
 | Device-driver tests | Exact-device arguments, JUnit execution and restart phases | 8 passed |
-| Physical HLS | Pixel 11 Pro, Android 17 | 17 passed; no failures or skips |
-| Physical DASH | Same device and application build | 17 passed; no failures or skips |
-| Guide captures | Separate English and Japanese app UI; native content-only capture | Both passed |
+| Emulator HLS | Android API 36.1; complete suite on the frozen app/test APKs | 26 passed; no failures or skips |
+| Emulator DASH | Same emulator and frozen app/test APKs | 26 passed; no failures or skips |
+| Physical HLS | Pixel 11 Pro, Android 17; cloud VOD core, ownership, restart and English/Japanese paused captions | 12 passed; no failures or skips |
+| Physical DASH | Same physical device and frozen app/test APKs | 12 passed; no failures or skips |
+| Guide captures | Separate English/Japanese app UI; course, standard and learning views; system bars excluded | Both capture cases passed; six actual PNGs |
+| Tablet layout | English/Japanese; portrait 800 dp and landscape 1,280 dp; caption-size bounds and real controls | Four cases passed; viewport restored afterward |
 | Dashboard tests and build | Node.js 24.19.0; fixed queries and localhost server | 21 passed; build check successful |
 | Dashboard browser checks | English/Japanese; 320–1,440 px viewports | Controls, tables and charts rendered without page errors |
 
-The physical suite checks lesson selection, transcript seeking with captions
+The complete device suite checks lesson selection, transcript seeking with captions
 off, external and manifest-registered captions, natural and manual lesson
 transitions, learner isolation, repeated UI switching, and real video frames.
 It also checks caption HTTP/format failures and retry, missing media recovery,
@@ -32,9 +35,12 @@ restoration in a different process after the user-visible resume action. It
 tests the last successful checkpoint, not an arbitrary unsaved instant.
 
 Accessibility checks inspect real labels, focus, visible bounds and touch
-targets. They do not measure spoken screen-reader output. The physical media
-origin for this run was a local VOD harness reached through USB forwarding;
-these results do not establish a cloud delivery path.
+targets. They do not measure spoken screen-reader output. The complete emulator suite uses a local media publisher through the emulator's
+host-network address. Physical cloud VOD playback uses completed encoded media
+and canonical side-loaded caption companions through a byte-preserving
+loopback gateway reached by USB forwarding.
+It does not establish direct-CDN playback, cloud Live recording, or registered
+HLS subtitles where the cloud master has no subtitle rendition.
 
 ## Analytics query example
 

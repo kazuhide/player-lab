@@ -42,7 +42,7 @@ class CoreLearningTest {
             if (delivery == CaptionDelivery.MANIFEST) setCaptionDelivery(delivery)
             startLesson(id, play = play)
         } }
-        await(scenario, "Lesson did not become ready") { it.activeItem?.lesson?.id == id && it.player.duration.isFinite() && it.player.duration > 0 }
+        await(scenario, "Lesson did not become ready") { it.activeItem?.lesson?.id == id && it.player.duration.isFinite() && it.player.duration > 0 && it.playbackReady }
     }
 
     @Test fun subtitlesOffLeavesTimedTranscriptSearchAndSeekAvailable(): Unit = launch().use { scenario ->
@@ -66,13 +66,15 @@ class CoreLearningTest {
 
     @Test fun naturalPlaylistTransitionKeepsRateAndClearsUnavailableCaption(): Unit = launch().use { scenario ->
         start(scenario, "EDU-FX-02", autoAdvance = true)
+        var seekSetup = ""
         scenario.onActivity { activity -> activity.sessionForTest().apply {
+            seekSetup = "controlReady=$playbackReady duration=${player.duration} positionMs=$positionMs"
             setSpeed(1.5f)
             setSubtitle(SubtitlePreference(true, "ja"))
             seek(778_000)
             player.play()
         } }
-        await(scenario, "Playlist did not naturally advance to the summary") { it.activeItem?.lesson?.id == "EDU-FX-03" && it.player.duration in 7.0..9.0 }
+        await(scenario, "Playlist did not naturally advance to the summary; seekSetup=$seekSetup") { it.activeItem?.lesson?.id == "EDU-FX-03" && it.player.duration in 7.0..9.0 && it.playbackReady }
         scenario.onActivity { activity -> activity.sessionForTest().apply {
             assertEquals(StartOrigin.PLAYLIST, activeItem?.origin)
             assertEquals(1.5f, player.playbackSpeed, 0f)
@@ -85,8 +87,12 @@ class CoreLearningTest {
 
     @Test fun autoAdvanceOffStopsAtTheSelectedMiddleLesson(): Unit = launch().use { scenario ->
         start(scenario, "EDU-FX-02")
-        scenario.onActivity { it.sessionForTest().apply { seek(779_000); player.play() } }
-        await(scenario, "Single lesson did not finish") { it.diagnostics.entries().any { entry -> entry.kind == DiagnosticKind.PLAYBACK_FINISHED } }
+        var seekSetup = ""
+        scenario.onActivity { it.sessionForTest().apply {
+            seekSetup = "controlReady=$playbackReady duration=${player.duration} positionMs=$positionMs"
+            seek(779_000); player.play()
+        } }
+        await(scenario, "Single lesson did not finish; seekSetup=$seekSetup") { it.diagnostics.entries().any { entry -> entry.kind == DiagnosticKind.PLAYBACK_FINISHED } }
         scenario.onActivity { it.sessionForTest().apply {
             assertEquals("EDU-FX-02", activeItem?.lesson?.id)
             assertFalse(player.isPlaying)
@@ -130,7 +136,7 @@ class CoreLearningTest {
         } }
         await(scenario, "Learner A checkpoint was not retained") { it.learner == Learner.A && !it.progressLoading && (it.resumes["EDU-FX-02"]?.positionMs ?: -1) in 753_000..755_000 }
         scenario.onActivity { it.sessionForTest().startLesson("EDU-FX-02", resume = true, play = false) }
-        await(scenario, "Explicit resume did not restore 12:34") { it.player.duration > 0 && it.positionMs in 753_000..755_000 }
+        await(scenario, "Explicit resume did not restore 12:34") { it.player.duration > 0 && it.positionMs in 753_000..755_000 && it.playbackReady }
         scenario.onActivity { it.sessionForTest().apply {
             assertEquals(1.5f, player.playbackSpeed, 0f)
             assertEquals("ja", preferences.subtitle.language)

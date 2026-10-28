@@ -40,7 +40,7 @@ class ProcessDeathCheckpointTest {
             setFormat(format())
             startLesson("EDU-FX-02", play = false)
         } }
-        await(scenario, "Exercises or caption tracks did not load") { it.player.duration in 779.0..781.0 && it.player.source?.availableSubtitleTracks?.size == 2 }
+        await(scenario, "Exercises or caption tracks did not load") { it.player.duration in 779.0..781.0 && it.player.source?.availableSubtitleTracks?.size == 2 && it.playbackReady }
         scenario.onActivity { activity -> activity.sessionForTest().apply {
             setSpeed(1.5f)
             setSubtitle(SubtitlePreference(true, "ja"))
@@ -81,7 +81,7 @@ class ProcessDeathCheckpointTest {
                 startLesson("EDU-FX-02", resume = true, play = false)
             } }
             await(scenario, "Explicit resume did not restore 12:34 in the new process") {
-                it.player.duration > 0 && it.positionMs in 753_000..755_000 && it.player.source?.selectedSubtitleTrack?.language == "ja"
+                it.player.duration > 0 && it.positionMs in 753_000..755_000 && it.player.source?.selectedSubtitleTrack?.language == "ja" && it.playbackReady
             }
             scenario.onActivity { activity -> activity.sessionForTest().apply {
                 assertEquals(1.5f, player.playbackSpeed, 0f)

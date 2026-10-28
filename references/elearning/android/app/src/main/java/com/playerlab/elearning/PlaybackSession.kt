@@ -62,6 +62,8 @@ class PlaybackSession(application: Application) : AndroidViewModel(application),
     val errorCode get() = engine.errorCode
     val subtitleRenderer get() = engine.subtitleRenderer
     val activeCueCount get() = engine.activeCueCount
+    val playbackReady get() = engine.playbackReady
+    val resumeOutsideDuration get() = engine.resumeOutsideDuration
     var captionIssue: PlaybackIssue? = null
         private set
     var uiMode: UiMode
@@ -151,6 +153,7 @@ class PlaybackSession(application: Application) : AndroidViewModel(application),
     }
     fun seek(positionMs: Long) = engine.seek(positionMs)
     fun returnToCourse() {
+        viewState.fullscreen = false
         engine.pause()
         engine.saveCurrent()
         autoAdvanceDraft = preferences.autoAdvance
@@ -161,7 +164,7 @@ class PlaybackSession(application: Application) : AndroidViewModel(application),
         val item = activeItem ?: return
         ownedFault = OwnedTestFault.NONE
         val retryPreferences = if (captionIssue != null) preferences.copy(subtitle = preferences.subtitle.copy(enabled = true)) else preferences
-        val saved = ResumeRecord(learner, item.lesson.id, positionMs, retryPreferences, System.currentTimeMillis())
+        val saved = ResumeRecord(learner, item.lesson.id, engine.checkpointPositionMs, retryPreferences, System.currentTimeMillis())
             .takeIf { it.canResume(item.lesson.durationMs) }
         val plan = PlaybackPlan.create(requireNotNull(catalog), learner, courseId, item.lesson.id, format, retryPreferences, item.origin, saved, captionDelivery)
         val playing = player.isPlaying || errorCode != null
@@ -169,6 +172,7 @@ class PlaybackSession(application: Application) : AndroidViewModel(application),
         engine.load(plan, media, playing)
         changed()
     }
+    fun restartFromBeginning() = engine.restartFromBeginning()
     fun switchLearner(value: Learner) {
         if (value == learner) return
         engine.saveCurrent()

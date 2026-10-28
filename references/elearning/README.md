@@ -93,6 +93,10 @@ choose to resume or start again. Selecting another learner starts a separate
 Player and Analytics session. Local resume data is not a learning-completion
 record or a service synchronized across devices.
 
+If a lesson was replaced with a shorter file, a saved position outside its
+actual duration offers a restart or return to the course. It does not silently
+jump to the end or overwrite the saved position while loading.
+
 The supplied course contains self-authored number-line lessons: a short lesson,
 a longer exercise with a 12:34 checkpoint, and a subtitle-free summary. HLS and
 DASH use the same lesson IDs. The [fixture notes](docs/fixtures.md) explain their
@@ -110,6 +114,8 @@ With the generated media reachable from a licensed test device, run the device
 suite against that exact device. The driver builds the APKs, checks that the
 JUnit methods are executable, and runs both delivery formats. It also force
 stops this application between saving and verifying the process-restart state.
+The complete suite also requires the Analytics license to check real impression
+continuity; the application itself can run with Analytics disabled.
 
 ```sh
 cd android

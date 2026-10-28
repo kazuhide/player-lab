@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity() {
     private var rendering = false
     private var inspector: EventInspector? = null
     private var saveFailureShown = false
+    private var appliedFullscreen: Boolean? = null
     private val audioRouteReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) session.onAudioRouteLost()
@@ -101,14 +102,14 @@ class MainActivity : ComponentActivity() {
             }
         })
         render()
-        if (session.viewState.fullscreen) setFullscreen(true)
     }
 
     override fun attachBaseContext(newBase: Context) {
         val language = GuideLocaleOverride.language
         val scale = GuideLocaleOverride.fontScale
         val localized = if (BuildConfig.DEBUG && (language != null || scale != null)) {
-            val config = Configuration(newBase.resources.configuration).apply {
+            // Override only appearance; orientation and size must follow the replacement Activity.
+            val config = Configuration().apply {
                 language?.let { setLocale(java.util.Locale.forLanguageTag(it)) }
                 scale?.let { fontScale = it }
             }
@@ -138,7 +139,13 @@ class MainActivity : ComponentActivity() {
             if (learner.text.toString() != session.learner.name) learner.text = session.learner.name
             learner.contentDescription = getString(R.string.learner, session.learner.name)
             back.visibility = if (session.screen == AppScreen.LESSON) View.VISIBLE else View.GONE
-            header.visibility = if (session.viewState.fullscreen) View.GONE else View.VISIBLE
+            val fullscreen = session.screen == AppScreen.LESSON && session.viewState.fullscreen
+            header.visibility = if (fullscreen) View.GONE else View.VISIBLE
+            if (appliedFullscreen != fullscreen) {
+                appliedFullscreen = fullscreen
+                val controller = WindowCompat.getInsetsController(window, window.decorView)
+                if (fullscreen) controller.hide(WindowInsetsCompat.Type.systemBars()) else controller.show(WindowInsetsCompat.Type.systemBars())
+            }
             courseScreen?.update()
             lessonScreen?.update()
             inspector?.update()
@@ -174,8 +181,6 @@ class MainActivity : ComponentActivity() {
     }
     private fun setFullscreen(enabled: Boolean) {
         session.viewState.fullscreen = enabled
-        val controller = WindowCompat.getInsetsController(window, window.decorView)
-        if (enabled) controller.hide(WindowInsetsCompat.Type.systemBars()) else controller.show(WindowInsetsCompat.Type.systemBars())
         render()
     }
 

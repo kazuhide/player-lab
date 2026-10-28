@@ -24,6 +24,7 @@ import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.source.Source
+import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
@@ -82,6 +83,10 @@ class PlayerEngine(context: Context, learner: Learner) {
         private set
     private var activeSource: Source? = null
     private val itemsBySource = IdentityHashMap<Source, PlannedLesson>()
+    private var checkpoint = PlaybackCheckpoint(0)
+    private var readyObserved = false
+    private var startPending = false
+    private var startSeekPending = false
     private var expectedSubtitleId: String? = null
     private var playWhenReady = false
     private var preparing = false
@@ -93,9 +98,13 @@ class PlayerEngine(context: Context, learner: Learner) {
         private set
     var errorCode: String? = null
         private set
+    var resumeOutsideDuration = false
+        private set
+    val playbackReady get() = checkpoint.isReady && errorCode == null
     private val activeCues = java.util.Collections.newSetFromMap(IdentityHashMap<Cue, Boolean>())
     val activeCueCount get() = activeCues.size
     val positionMs get() = player.currentTime.takeIf { it.isFinite() && it >= 0 }?.times(1000)?.toLong() ?: 0L
+    val checkpointPositionMs get(): Long { checkMainThread(); sampleCurrentPosition(); return checkpoint.positionMs }
 
     init {
         checkMainThread()
@@ -103,20 +112,30 @@ class PlayerEngine(context: Context, learner: Learner) {
         player.on(SourceEvent.Load::class) { loads++ }
         player.on(SourceEvent.Loaded::class) {
             observer?.diagnostic(DiagnosticKind.SOURCE_LOADED)
-            if (it.source == player.source) applyPreferences()
+            if (it.source === player.source) { applyPreferences(); prepareActiveSource() }
             observer?.changed()
         }
         player.on(PlayerEvent.Ready::class) {
             if (activeSource != null && player.source !== activeSource) return@on
+            readyObserved = true
             applyPreferences()
-            preparing = false
-            if (playWhenReady) { playWhenReady = false; player.play() }
+            prepareActiveSource()
             observer?.changed()
         }
+        player.on(SourceEvent.DurationChanged::class) { prepareActiveSource(); observer?.changed() }
         player.on(PlayerEvent.Seek::class) { seeks++; observer?.diagnostic(DiagnosticKind.SEEK) }
-        player.on(PlayerEvent.Seeked::class) { observer?.changed() }
+        player.on(PlayerEvent.Seeked::class) {
+            if (it.to.source === activeSource && player.source === activeSource && errorCode == null && !resumeOutsideDuration) {
+                if (startSeekPending) { startSeekPending = false; finishStart() }
+                checkpoint.sample(it.to.time, it.to.source.duration)
+            }
+            observer?.changed()
+        }
+        player.on(PlayerEvent.TimeChanged::class) { sampleCurrentPosition() }
         player.on(PlayerEvent.FrameAboutToBeRendered::class) { frames++ }
         player.on(PlayerEvent.Error::class) {
+            readyObserved = false
+            checkpoint.unavailable()
             activeCues.clear()
             errorCode = it.code.value.toString()
             observer?.issue(PlaybackIssue(PlaybackIssueKind.MEDIA_ERROR, it.code.value, activeItem?.lesson?.id))
@@ -131,7 +150,11 @@ class PlayerEngine(context: Context, learner: Learner) {
             activeCues.remove(it.cue)
             observer?.diagnostic(DiagnosticKind.CUE_EXIT)
         }
-        player.on(PlayerEvent.Play::class) { observer?.diagnostic(DiagnosticKind.PLAY); observer?.changed() }
+        player.on(PlayerEvent.Play::class) {
+            if (resumeOutsideDuration) player.pause()
+            observer?.diagnostic(DiagnosticKind.PLAY)
+            observer?.changed()
+        }
         player.on(PlayerEvent.Paused::class) { saveCurrent(); observer?.diagnostic(DiagnosticKind.PAUSE); observer?.changed() }
         player.on(PlayerEvent.Active::class) { observer?.diagnostic(DiagnosticKind.SESSION_ACTIVE) }
         player.on(PlayerEvent.Inactive::class) { observer?.diagnostic(DiagnosticKind.SESSION_INACTIVE) }
@@ -149,9 +172,13 @@ class PlayerEngine(context: Context, learner: Learner) {
             itemsBySource[event.to]?.let { item ->
                 activeSource = event.to
                 activeItem = item
+                checkpoint = PlaybackCheckpoint(item.startPositionMs)
+                startPending = true
+                startSeekPending = false
+                resumeOutsideDuration = false
                 preparing = true
                 applyPreferences()
-                preparing = false
+                prepareActiveSource()
                 observer?.lessonChanged(item)
                 captionIssues[event.to]?.let { observer?.issue(it.copy(currentSource = true)) }
             }
@@ -181,7 +208,11 @@ class PlayerEngine(context: Context, learner: Learner) {
         saveCurrent()
         preferences = plan.preferences
         preparing = true
+        readyObserved = false
         errorCode = null
+        resumeOutsideDuration = false
+        startPending = true
+        startSeekPending = false
         requestGeneration++
         captionOwners.clear()
         captionIssues.clear()
@@ -192,11 +223,17 @@ class PlayerEngine(context: Context, learner: Learner) {
         val sources = plan.items.map { item ->
             val lesson = item.lesson
             val registered = plan.format == StreamFormat.HLS && plan.captionDelivery == CaptionDelivery.MANIFEST
-            val path = fault.mediaPath ?: if (registered && lesson.subtitleTracks.isNotEmpty()) requireNotNull(lesson.hlsWithSubtitles) else lesson.streams.getValue(plan.format)
+            val path = when {
+                fault == OwnedTestFault.SHORTER_MEDIA -> "EDU-FX-03/" + if (plan.format == StreamFormat.HLS) "hls/media.m3u8" else "dash/manifest.mpd"
+                fault.mediaPath != null -> fault.mediaPath
+                registered && lesson.subtitleTracks.isNotEmpty() -> requireNotNull(lesson.hlsWithSubtitles)
+                else -> lesson.streams.getValue(plan.format)
+            }
             val config = SourceConfig.Builder(media.resolve(path),
                 if (plan.format == StreamFormat.HLS) SourceType.Hls else SourceType.Dash)
                 .setTitle(lesson.title)
-                .setOptions(SourceOptions(startOffset = item.startPositionMs / 1000.0))
+                // Validate the selected offset against the actual loaded duration before seeking.
+                .setOptions(SourceOptions(startOffset = 0.0))
                 .setSubtitleTracks(if (registered) emptyList() else lesson.subtitleTracks.map { SubtitleTrack(url = media.resolve(if (it.language == "en") fault.subtitlePath ?: it.url else it.url), label = it.label,
                     id = "${lesson.id}-${it.language}", language = it.language, mimeType = "text/vtt") })
                 .build()
@@ -206,12 +243,23 @@ class PlayerEngine(context: Context, learner: Learner) {
                     track.url?.let { captionOwners[it] = CaptionOwner(requestGeneration, source, lesson.id) }
                 }
                 source.reportPublicIssues(lesson.id) { issue -> reportIssue(source, issue) }
+                source.on(SourceEvent.SubtitleTracksChanged::class) {
+                    // Track discovery can finish after Ready and Loaded. Reapply only to this active Source.
+                    val reconcile = {
+                        if (!closed && source === activeSource && source === player.source) {
+                            applyPreferences()
+                            observer?.changed()
+                        }
+                    }
+                    if (Looper.myLooper() == Looper.getMainLooper()) reconcile() else captionMain.post { reconcile() }
+                }
             }
         }
         itemsBySource.clear()
         sources.zip(plan.items).forEach { (source, item) -> itemsBySource[source] = item }
         activeSource = sources.first()
         activeItem = plan.items.first()
+        checkpoint = PlaybackCheckpoint(plan.items.first().startPositionMs)
         observer?.lessonChanged(plan.items.first())
         if (plan.isPlaylist) player.load(PlaylistConfig(sources)) else player.load(sources.single())
         observer?.diagnostic(if (analyticsEnabled) DiagnosticKind.ANALYTICS_ENABLED else DiagnosticKind.ANALYTICS_SKIPPED)
@@ -227,7 +275,11 @@ class PlayerEngine(context: Context, learner: Learner) {
         if (closed || !itemsBySource.containsKey(source)) return
         if (issue.kind in setOf(PlaybackIssueKind.SUBTITLE_LOAD_WARNING, PlaybackIssueKind.SUBTITLE_PARSE_WARNING,
                 PlaybackIssueKind.SUBTITLE_HTTP_FAILURE, PlaybackIssueKind.SUBTITLE_INVALID_FORMAT)) captionIssues[source] = issue
-        if (issue.kind == PlaybackIssueKind.MEDIA_ERROR && source === activeSource) errorCode = requireNotNull(issue.sdkCode).toString()
+        if (issue.kind == PlaybackIssueKind.MEDIA_ERROR && source === activeSource) {
+            readyObserved = false
+            checkpoint.unavailable()
+            errorCode = requireNotNull(issue.sdkCode).toString()
+        }
         observer?.issue(issue.copy(currentSource = source === activeSource))
         observer?.changed()
     }
@@ -253,15 +305,66 @@ class PlayerEngine(context: Context, learner: Learner) {
     fun seek(positionMs: Long) {
         checkMainThread()
         val source = player.source ?: return
+        if (source !== activeSource || !playbackReady) return
         val duration = source.duration.takeIf { it.isFinite() && it > 0 } ?: return
         val seconds = positionMs / 1000.0
         if (seconds < 0 || seconds >= duration) return
+        seekSource(source, seconds)
+    }
+
+    private fun seekSource(source: Source, seconds: Double) {
         if (preferences.autoAdvance) player.playlist.seek(source, seconds) else player.seek(seconds)
+    }
+
+    private fun prepareActiveSource() {
+        checkMainThread()
+        val source = activeSource ?: return
+        val item = activeItem ?: return
+        if (!readyObserved || !startPending || errorCode != null || source !== player.source || source.loadingState != LoadingState.Loaded) return
+        val duration = source.duration.takeIf { it.isFinite() && it > 0 } ?: return
+        startPending = false
+        if (item.startPositionMs >= duration * 1000) {
+            resumeOutsideDuration = true
+            return
+        }
+        if (item.startPositionMs > 0) {
+            startSeekPending = true
+            seekSource(source, item.startPositionMs / 1000.0)
+        } else finishStart()
+    }
+
+    private fun finishStart() {
+        checkpoint.ready()
+        preparing = false
+        sampleCurrentPosition()
+        if (playWhenReady) { playWhenReady = false; player.play() }
+    }
+
+    fun restartFromBeginning() {
+        checkMainThread()
+        if (!resumeOutsideDuration || activeSource !== player.source || errorCode != null) return
+        val source = requireNotNull(activeSource)
+        if (!source.duration.isFinite() || source.duration <= 0) return
+        resumeOutsideDuration = false
+        activeItem = requireNotNull(activeItem).copy(startPositionMs = 0)
+        itemsBySource[source] = requireNotNull(activeItem)
+        checkpoint = PlaybackCheckpoint(0)
+        finishStart()
+        saveCurrent()
+        observer?.changed()
+    }
+
+    private fun sampleCurrentPosition() {
+        val source = activeSource ?: return
+        if (source === player.source && source.isActive && source.loadingState == LoadingState.Loaded && errorCode == null) {
+            checkpoint.sample(player.currentTime, source.duration)
+        }
     }
 
     fun pause() { checkMainThread(); playWhenReady = false; player.pause() }
     fun saveCurrent() {
-        if (player.source === activeSource && activeSource != null) activeItem?.let { observer?.saveRequested(it.lesson, positionMs, preferences) }
+        checkMainThread()
+        if (activeSource != null) activeItem?.let { observer?.saveRequested(it.lesson, checkpointPositionMs, preferences) }
     }
     fun snapshot(playerViews: Int, subtitleViews: Int) = PlaybackSnapshot(
         System.identityHashCode(player), System.identityHashCode(player.source), player.currentTime, player.duration,

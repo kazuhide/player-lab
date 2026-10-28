@@ -9,6 +9,16 @@ import re
 import shutil
 import subprocess
 
+EXPECTED_TEST_COUNTS = {
+    "CoreLearningTest": 6,
+    "GuideScreenshotTest": 1,
+    "MandatoryBehaviorTest": 6,
+    "ProcessDeathCheckpointTest": 1,
+    "ReviewRegressionTest": 7,
+    "SharedCaptionTest": 2,
+    "UiOwnershipTest": 3,
+}
+
 
 def inspect(output: str) -> tuple[int, list[str]]:
     count, invalid = 0, []
@@ -33,15 +43,18 @@ def main() -> int:
     classes = sorted(args.classes_dir.rglob("*Test.class"))
     if not classes or not args.javap:
         parser.error("Compile debug Android tests first and provide a JDK with javap")
-    count, invalid = 0, []
+    count, invalid, actual_counts = 0, [], {}
     for path in classes:
         # Do not print javap's constant pool: app-specific license values can be inlined in test bytecode.
         result = subprocess.run([args.javap, "-p", "-s", "-v", str(path)], text=True, capture_output=True, timeout=30)
         if result.returncode:
             raise RuntimeError(f"javap failed for {path.name} (exit {result.returncode})")
         found, errors = inspect(result.stdout)
+        actual_counts[path.stem] = found
         count += found
         invalid.extend(f"{path.stem}: {error}" for error in errors)
+    if actual_counts != EXPECTED_TEST_COUNTS:
+        invalid.append(f"Expected test counts {EXPECTED_TEST_COUNTS}; found {actual_counts}")
     if count == 0 or invalid:
         print("Invalid JUnit 4 test signatures:")
         for error in invalid:

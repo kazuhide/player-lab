@@ -75,6 +75,7 @@ class LessonScreen(
     private fun setMode(mode: UiMode) { session.uiMode = mode; update() }
     fun update() {
         surface.show(session.uiMode)
+        surface.playbackBlocked = !session.playbackReady
         surface.fullscreen = session.viewState.fullscreen
         controls.visibility = if (session.uiMode == UiMode.LEARNING && (!searching || session.viewState.fullscreen)) View.VISIBLE else View.GONE
         controls.update()

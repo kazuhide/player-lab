@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="resume_outside_actual_duration">保存した位置が動画の範囲外です。最初から再生してください。</string>
     <string name="app_name">数直線の学習</string>
     <string name="default_ui">標準UI</string>
     <string name="learning_ui">学習UI</string>

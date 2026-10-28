@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="resume_outside_actual_duration">The saved position is outside this video. Start over to continue.</string>
     <string name="app_name">Number line lessons</string>
     <string name="default_ui">Standard UI</string>
     <string name="learning_ui">Learning UI</string>

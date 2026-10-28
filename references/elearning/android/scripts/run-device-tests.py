@@ -113,6 +113,8 @@ class DeviceRun:
             self.instrument(f"core-{format_name}", "CoreLearningTest", 6, format_name)
             self.instrument(f"ownership-{format_name}", "UiOwnershipTest", 3, format_name)
             self.instrument(f"mandatory-{format_name}", "MandatoryBehaviorTest", 6, format_name)
+            self.instrument(f"review-regressions-{format_name}", "ReviewRegressionTest", 7, format_name)
+            self.instrument(f"shared-captions-{format_name}", "SharedCaptionTest", 2, format_name)
             self.instrument(f"checkpoint-prepare-{format_name}", "ProcessDeathCheckpointTest", 1, format_name, processDeathPhase="prepare")
             self.force_stop(f"checkpoint-external-force-stop-{format_name}")
             self.instrument(f"checkpoint-verify-{format_name}", "ProcessDeathCheckpointTest", 1, format_name, processDeathPhase="verify")

@@ -15,6 +15,7 @@ internal fun hasWebVttSignature(body: ByteArray): Boolean {
 }
 enum class OwnedTestFault(val mediaPath: String? = null, val subtitlePath: String? = null) {
     NONE,
+    SHORTER_MEDIA,
     MEDIA_404(mediaPath = "missing/hls/master.m3u8"),
     SUBTITLE_404(subtitlePath = "subtitles/absent.vtt"),
     MALFORMED_VTT(subtitlePath = "subtitles/malformed.vtt"),

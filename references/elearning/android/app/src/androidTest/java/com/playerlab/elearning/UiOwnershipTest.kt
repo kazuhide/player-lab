@@ -70,7 +70,7 @@ class UiOwnershipTest {
         assertEquals(before.loads, after.loads)
         assertEquals(before.seeks, after.seeks)
         assertFalse(after.playing)
-        assertEquals(0, after.subtitleViews)
+        assertEquals(1, after.subtitleViews)
     }
 
     @Test fun repeatedSwitchAndRotationLeaveOneOwner() = launch().use { scenario ->
@@ -83,7 +83,7 @@ class UiOwnershipTest {
         assertEquals(before.sourceIdentity, after.sourceIdentity)
         assertEquals(before.loads, after.loads)
         assertEquals(1, after.playerViews)
-        assertEquals(0, after.subtitleViews)
+        assertEquals(1, after.subtitleViews)
         assertFalse(after.destroyed)
     }
 }

@@ -32,11 +32,25 @@ create an Analytics impression.
 
 Detach the Player from the old `PlayerView` before destroying that View. The
 Player's lifetime belongs to the application owner, not a temporary display
-View. Native subtitle display uses one SDK `SubtitleView`; hide it while the
-standard Web UI renders subtitles. Keeping the native renderer subscribed while
-hidden lets an active subtitle remain available when switching mid-cue. The
-renderer belongs to the Player owner and uses the application context, so it
-can be reparented after rotation without retaining the old Activity.
+View. Both interfaces use one application-owned SDK `SubtitleView`.
+`UiConfig.WebUi.supplementalCssLocation` hides only the HTML subtitle overlay;
+the standard playback controls and track selection remain available.
+
+A new HTML UI did not redisplay an already-active cue while playback was
+paused in the Android 3.172.0 checks. Keeping one subscribed native renderer
+preserves that cue without reloading, seeking or toggling the subtitle track.
+The renderer uses the application context and is reparented after Activity
+recreation. A retiring surface can detach or restyle it only while it still
+owns that View, so late cleanup cannot affect the new surface.
+
+Caption text uses a fixed size scaled with the application's font setting.
+A fraction of the whole renderer height made captions too large in a tall,
+letterboxed tablet pane. Placement uses `SubtitleView.setBottomPaddingFraction`. Authored cue
+positioning is still honored; this does not force every caption above every
+control. Padding the SDK's wrapper View instead clipped actual caption glyphs
+in the device checks. Separate English and Japanese checks verify current cue
+pixels, no duplicate HTML captions, actual standard Play/Pause touch, and
+paused continuity through both UI changes and Activity recreation.
 
 The native renderer is cleared on the actual `PlaybackFinished` event: the
 tested SDK can leave the final caption visible without a final `CueExit`.
@@ -65,10 +79,23 @@ the transcript data for search timestamps. Device checks compare actual cue
 delivery and rendered captions against the playback clock, including gaps and
 end of media.
 
+Seeking is asynchronous. An updated position or still-visible caption can
+belong to different stages of the seek. Before checking paused captions through
+rotation or a UI change, the device tests wait for the target Source's `Seeked`,
+the expected cue payload and actual rendered caption pixels. Accepting the old
+caption's pixels would give a misleading setup result.
+
 Subtitle-off is an explicit preference. Do not substitute a default language
 when loading a new lesson or navigating through the transcript. Reacquire a
 preferred language from the new Source's tracks because track IDs belong to
 that Source.
+
+Available subtitle tracks can arrive after `Loaded` and `Ready`. In the device
+checks, those initial callbacks could see an empty track list, followed by
+`SourceEvent.SubtitleTracksChanged`. Applying a preference only during initial
+loading therefore left captions unselected. The engine also reconciles the
+stored preference when that event belongs to the active Source, preserving an
+explicit off setting and ignoring changes from a replaced or preloaded Source.
 
 ### Caption errors
 
@@ -108,6 +135,22 @@ Save periodically during playback and when pausing, changing lessons or leaving
 the foreground. A forced process termination can only recover the last
 successful save. If saved media has changed and the position is outside its
 duration, offer an explicit restart rather than silently clamping it.
+
+Catalog durations can become stale when a lesson is replaced. This application
+therefore loads the selected Source paused at zero, waits for both Player
+readiness and the loaded Source's actual duration, and validates the saved
+offset before issuing a seek. Playback starts only after that initial seek
+completes. An offset at or beyond the actual end leaves playback blocked and
+offers **Start over** or **Lessons**; the saved position remains intact until the
+learner chooses a restart.
+
+[`PlaybackCheckpoint`](../android/app/src/main/java/com/playerlab/elearning/PlaybackCheckpoint.kt)
+keeps the selected or last usable position while loading or after an error.
+An unavailable SDK clock must not be converted to a new zero checkpoint.
+Retry uses this retained position. Once the active Source is ready, real
+playback and seek events update the checkpoint; an intentional seek to zero
+is valid. Native touch, keyboard and accessibility slider changes all use the
+same guarded seek operation.
 
 Opening a saved resume restores that lesson's saved preferences. Ordinary
 manual and natural lesson transitions inherit the current subtitle and speed

@@ -54,6 +54,7 @@ class MandatoryBehaviorTest {
         scenario.onActivity { activity -> activity.sessionForTest().apply {
             state = "positionMs=$positionMs duration=${player.duration} playing=${player.isPlaying} " +
                 "subtitle=${player.source?.selectedSubtitleTrack?.language} tracks=${player.source?.availableSubtitleTracks?.size} " +
+                "captionIssue=${captionIssue?.kind} captionPreference=${preferences.subtitle} diagnostics=${diagnostics.entries().map { it.kind }} " +
                 "activeCueCount=$activeCueCount renderer=${subtitleRenderer.width}x${subtitleRenderer.height} renderedPixels=${renderedCaptionPixels(activity)}"
         } }
         fail("$message; $state")
@@ -70,7 +71,7 @@ class MandatoryBehaviorTest {
             startLesson("EDU-FX-01", play = play)
             activity.setUiMode(UiMode.LEARNING)
         } }
-        if (ready) await(scenario, "Owned lesson did not load") { it.sessionForTest().player.duration in 179.0..181.0 }
+        if (ready) await(scenario, "Owned lesson did not load") { it.sessionForTest().let { s -> s.player.duration in 179.0..181.0 && s.playbackReady } }
     }
 
     private fun click(scenario: ActivityScenario<MainActivity>, id: Int) {
@@ -78,6 +79,33 @@ class MandatoryBehaviorTest {
             val view = requireNotNull(activity.findViewById<View>(id))
             assertTrue("Recovery action must be visible and enabled", view.isShown && view.isEnabled)
             assertTrue(view.performClick())
+        }
+    }
+
+    private fun seekToRenderedMultilineCue(scenario: ActivityScenario<MainActivity>, positionMs: Long) {
+        var completed = false
+        var intendedCueEntered = false
+        var source: com.bitmovin.player.api.source.Source? = null
+        val seeked: (PlayerEvent.Seeked) -> Unit = {
+            if (it.to.source === source && kotlin.math.abs(it.to.time * 1000 - positionMs) < 100) completed = true
+        }
+        val entered: (PlayerEvent.CueEnter) -> Unit = { if (marker(it.cue.styledText) == "MULTILINE") intendedCueEntered = true }
+        scenario.onActivity { activity -> activity.sessionForTest().apply {
+            source = requireNotNull(player.source)
+            player.on(PlayerEvent.Seeked::class, seeked)
+            player.on(PlayerEvent.CueEnter::class, entered)
+            seek(positionMs)
+        } }
+        try {
+            await(scenario, "The completed seek did not render the intended current cue") {
+                completed && intendedCueEntered && it.sessionForTest().positionMs in (positionMs - 100)..(positionMs + 2_000) &&
+                    it.sessionForTest().activeCueCount > 0 && renderedCaptionPixels(it) > 0
+            }
+        } finally {
+            scenario.onActivity { it.sessionForTest().player.apply {
+                off(PlayerEvent.Seeked::class, seeked)
+                off(PlayerEvent.CueEnter::class, entered)
+            } }
         }
     }
 
@@ -141,10 +169,7 @@ class MandatoryBehaviorTest {
             await(scenario, "Caption retry did not restore the selected English track") {
                 it.sessionForTest().let { s -> s.captionIssue == null && s.player.source?.selectedSubtitleTrack?.language == "en" && s.player.isPlaying }
             }
-            scenario.onActivity { it.sessionForTest().seek(10_300) }
-            await(scenario, "The recovered subtitle track did not deliver an actual cue") {
-                it.sessionForTest().activeCueCount > 0 && renderedCaptionPixels(it) > 0
-            }
+            seekToRenderedMultilineCue(scenario, 10_300)
         }
     }
 
@@ -193,10 +218,7 @@ class MandatoryBehaviorTest {
                 scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                 await(scenario, "Portrait configuration did not arrive") { it.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT }
                 start(scenario, play = true)
-                scenario.onActivity { it.sessionForTest().seek(10_500) }
-                await(scenario, "Paused continuity setup has no rendered cue") {
-                    it.sessionForTest().activeCueCount > 0 && renderedCaptionPixels(it) > 0
-                }
+                seekToRenderedMultilineCue(scenario, 10_500)
                 var before: PlaybackSnapshot? = null
                 var renderer = 0
                 scenario.onActivity { activity -> activity.sessionForTest().apply {
@@ -267,8 +289,8 @@ class MandatoryBehaviorTest {
         try {
             launch().use { scenario ->
                 start(scenario, play = true)
-                scenario.onActivity { it.sessionForTest().seek(10_500) }
-                await(scenario, "Large-font scene or caption did not lay out") { it.resources.configuration.fontScale == 2f && renderedCaptionPixels(it) > 0 }
+                seekToRenderedMultilineCue(scenario, 10_500)
+                scenario.onActivity { assertEquals(2f, it.resources.configuration.fontScale, 0f) }
                 scenario.onActivity { activity ->
                     val ids = listOf(R.id.learning_play, R.id.learning_position, R.id.learning_backward,
                         R.id.learning_forward, R.id.learning_settings, R.id.learning_fullscreen)

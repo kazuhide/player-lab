@@ -35,13 +35,20 @@ class LearningControls(context: Context, private val session: PlaybackSession, s
         })
         slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar) { dragging = true }
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {}
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                // Keyboard and accessibility actions do not start or finish a touch drag.
+                if (fromUser && !dragging) seekToProgress(progress)
+            }
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 dragging = false
-                val duration = session.player.duration
-                if (duration.isFinite() && duration > 0) session.seek((seekBar.progress / 1000.0 * duration * 1000).toLong())
+                seekToProgress(seekBar.progress)
             }
         })
+    }
+
+    private fun seekToProgress(progress: Int) {
+        val duration = session.player.duration
+        if (duration.isFinite() && duration > 0) session.seek((progress / 1000.0 * duration * 1000).toLong())
     }
 
     fun update() {
@@ -55,8 +62,8 @@ class LearningControls(context: Context, private val session: PlaybackSession, s
             play.contentDescription = context.getString(if (session.player.isPlaying) R.string.pause else R.string.play)
         }
         full.contentDescription = context.getString(if (session.viewState.fullscreen) R.string.exit_fullscreen else R.string.fullscreen)
-        slider.isEnabled = duration > 0 && session.errorCode == null
-        play.isEnabled = duration > 0 && session.errorCode == null
+        slider.isEnabled = duration > 0 && session.playbackReady
+        play.isEnabled = duration > 0 && session.playbackReady
         if (!dragging) slider.progress = if (duration > 0) (session.positionMs * 1000 / duration).toInt() else 0
     }
 }
