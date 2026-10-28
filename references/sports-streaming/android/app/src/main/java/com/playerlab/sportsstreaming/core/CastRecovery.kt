@@ -37,7 +37,7 @@ class CastRecovery {
     }
     fun observe(id: String, assetId: String, positionMs: Long?): Boolean {
         if (id != sessionId || connection !in setOf(CastConnection.CONNECTED, CastConnection.RECONNECTING)) return false
-        if (assetId.isBlank() || positionMs == null || positionMs < 0) return false
+        if (assetId.isBlank() || (positionMs != null && positionMs < 0)) return false
         lastObservedAssetId = assetId
         lastObservedPositionMs = positionMs
         return true

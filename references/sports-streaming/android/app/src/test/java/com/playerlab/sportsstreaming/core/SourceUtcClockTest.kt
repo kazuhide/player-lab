@@ -56,4 +56,16 @@ class SourceUtcClockTest {
             .copy(relativeOffsetSeconds = -epochSeconds)))
         assertEquals(origin + 107_742, clock.read(sample(107.742, live = false, offset = 0.0, tick = 1_250)))
     }
+    @Test fun receiverClockOutsideTheVerifiedEventCannotPretendToBeItsAuthoredUtc() {
+        val actualOrigin = 1_793_163_588_000L
+        val value = UtcClockSample("source", "cast:receiver:1", 39.130, 1_793_189_858.202, true,
+            actualOrigin, 1_000, verifiedUtcEndMs = actualOrigin + 1_800_000)
+        assertNull(SourceUtcClock("source").read(value))
+    }
+    @Test fun aRetainedFinalizedClockCannotEscapeTheVerifiedEventEnd() {
+        val clock = SourceUtcClock("source")
+        assertEquals(origin + 45_000, clock.read(sample(45.0).copy(verifiedUtcEndMs = origin + 60_000)))
+        assertEquals(origin + 45_000, clock.read(sample(45.0, false, 0.0, 1_250).copy(verifiedUtcEndMs = origin + 60_000)))
+        assertNull(clock.read(sample(61.0, false, 0.0, 17_000).copy(verifiedUtcEndMs = origin + 60_000)))
+    }
 }

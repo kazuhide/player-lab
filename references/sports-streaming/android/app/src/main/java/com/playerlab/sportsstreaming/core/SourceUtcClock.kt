@@ -7,6 +7,7 @@ data class UtcClockSample(
     val sourceToken: String, val destination: String, val positionSeconds: Double,
     val absoluteOffsetSeconds: Double, val sdkLive: Boolean, val verifiedUtcStartMs: Long?,
     val elapsedRealtimeMs: Long, val playbackSpeed: Double = 1.0, val relativeOffsetSeconds: Double = 0.0,
+    val verifiedUtcEndMs: Long? = null,
 )
 
 /** A Source's verified relative-to-UTC transform survives its final live-to-VoD classification. */
@@ -31,9 +32,11 @@ class SourceUtcClock(private val sourceToken: String) {
             finalizationRejected = false
         }
         val origin = sample.verifiedUtcStartMs ?: return null
+        val end = sample.verifiedUtcEndMs
+        if (end != null && end < origin) return null
         if (!sample.positionSeconds.isFinite() || sample.elapsedRealtimeMs < 0) return null
         val absolute = (sample.positionSeconds + sample.absoluteOffsetSeconds) * 1_000.0
-        if (absolute.isFinite() && absolute >= origin && absolute < Long.MAX_VALUE.toDouble()) {
+        if (absolute.isFinite() && absolute >= origin && absolute < Long.MAX_VALUE.toDouble() && (end == null || absolute <= end)) {
             if (sample.sdkLive) lastLive = sample
             return absolute.roundToLong()
         }
@@ -52,6 +55,6 @@ class SourceUtcClock(private val sourceToken: String) {
             finalizedOffset = previous.absoluteOffsetSeconds - previous.relativeOffsetSeconds
         }
         val mapped = (sample.positionSeconds + sample.relativeOffsetSeconds + requireNotNull(finalizedOffset)) * 1_000.0
-        return mapped.takeIf { it.isFinite() && it >= origin && it < Long.MAX_VALUE.toDouble() }?.roundToLong()
+        return mapped.takeIf { it.isFinite() && it >= origin && it < Long.MAX_VALUE.toDouble() && (end == null || it <= end) }?.roundToLong()
     }
 }

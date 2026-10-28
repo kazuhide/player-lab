@@ -31,6 +31,16 @@ class CastRecoveryTest {
         assertEquals(40_000L, state.localResumePosition())
         assertTrue(state.needsLocalReturnChoice)
     }
+    @Test fun aConfirmedNewAssetWithUnknownTimeCannotReuseThePreviousAssetsPosition() {
+        val state = CastRecovery()
+        state.connecting("session-a"); state.connected("session-a")
+        assertTrue(state.observe("session-a", "SP-CLIP-B", 40_000))
+        assertTrue(state.observe("session-a", "SP-LIVE-EVENT", null))
+        assertEquals("SP-LIVE-EVENT", state.lastObservedAssetId)
+        assertNull(state.localResumePosition())
+        assertFalse(state.observe("stale-session", "SP-CLIP-B", 40_000))
+        assertNull(state.localResumePosition())
+    }
     @Test fun reconnectingDoesNotSelectLocalPlayback() {
         val state = CastRecovery()
         state.connecting("session-a")

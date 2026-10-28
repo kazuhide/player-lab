@@ -9,6 +9,8 @@ import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
+import com.google.android.gms.cast.framework.media.MediaQueue
+import java.security.MessageDigest
 import com.playerlab.sportsstreaming.core.CastConnection
 import com.playerlab.sportsstreaming.core.ReceiverIdentityParser
 
@@ -37,6 +39,12 @@ class CastController(
     private val callback = object : RemoteMediaClient.Callback() {
         override fun onStatusUpdated() { statusRevision++; observe() }
         override fun onMetadataUpdated() = observe()
+    }
+    private val queueCallback = object : MediaQueue.Callback() {
+        override fun mediaQueueChanged() = observe()
+        override fun itemsReloaded() = observe()
+        override fun itemsUpdatedAtIndexes(indexes: IntArray) = observe()
+        override fun itemsRemovedAtIndexes(indexes: IntArray) = observe()
     }
     private val listener = object : SessionManagerListener<CastSession> {
         override fun onSessionStarting(session: CastSession) {
@@ -90,6 +98,7 @@ class CastController(
         boundId = id
         client = session.remoteMediaClient
         client?.registerCallback(callback)
+        client?.mediaQueue?.registerCallback(queueCallback)
         notify(CastConnection.CONNECTED)
         observe()
     }
@@ -106,16 +115,40 @@ class CastController(
             .put("matchingRouteCount", routes?.size ?: JSONObject.NULL)
             .put("authorizedReceiverPresent", expectedReceiver?.let { name -> routes?.any { it.name == name } } ?: JSONObject.NULL)
     }
+    fun queueDiagnostics(): JSONObject {
+        val snapshot = queueSnapshot() ?: return JSONObject()
+        return JSONObject().put("itemCount", snapshot.count).put("headCached", snapshot.headCached)
+            .put("headContentSha256", snapshot.headContentId?.let { value ->
+                MessageDigest.getInstance("SHA-256").digest(value.toByteArray()).joinToString("") { "%02x".format(it) }
+            } ?: JSONObject.NULL)
+    }
+    fun queueSnapshot(): ReceiverQueueSnapshot? {
+        val queue = client?.takeIf { boundSession?.isConnected == true }?.mediaQueue ?: return null
+        val count = queue.itemCount
+        val head = if (count > 0) queue.getItemAtIndex(0, false) else null
+        return ReceiverQueueSnapshot(count, head != null, head?.media?.contentId)
+    }
+    fun refreshStoppedQueueOnce() {
+        val current = client?.takeIf { boundSession?.isConnected == true } ?: return
+        val queue = current.mediaQueue
+        if (queue.itemCount > 0 && queue.getItemAtIndex(0, false) == null) queue.getItemAtIndex(0)
+        current.requestStatus()
+    }
     fun refresh() = observe()
     private fun observe() {
         val session = boundSession ?: return
         if (!session.isConnected) return
         val currentClient = client ?: return
+        val queue = currentClient.mediaQueue
+        val queueCount = queue.itemCount
+        // Passive cache inspection must not trigger another item fetch while the SDK owns its load.
+        val head = if (queueCount > 0) queue.getItemAtIndex(0, false) else null
         val media = currentClient.mediaStatus
         val id = boundId ?: return
         if (media == null) {
             onMedia(ReceiverObservation(id, "", null, false, false, null, null, false,
-                null, null, statusRevision, mediaPresent = false, queueItemCount = currentClient.mediaQueue.itemCount))
+                null, null, statusRevision, mediaPresent = false, queueItemCount = queueCount,
+                queueHeadCached = head != null, queueHeadContentId = head?.media?.contentId))
             return
         }
         val contentId = media.mediaInfo?.contentId ?: ""
@@ -124,13 +157,24 @@ class CastController(
         val playing = media.playerState == MediaStatus.PLAYER_STATE_PLAYING
         val paused = media.playerState == MediaStatus.PLAYER_STATE_PAUSED
         onMedia(ReceiverObservation(id, contentId,
-            media.streamPosition.takeIf { (playing || paused) && it >= 0 }, playing, paused,
+            currentClient.approximateStreamPosition.takeIf { (playing || paused) && it >= 0 }, playing, paused,
             media.playerState, media.idleReason,
             media.mediaInfo?.streamType == MediaInfo.STREAM_TYPE_LIVE,
             identity.mediaSessionId, identity.sourceLoadToken, statusRevision,
-            mediaPresent = true, queueItemCount = currentClient.mediaQueue.itemCount))
+            mediaPresent = true, queueItemCount = queueCount, queueHeadCached = head != null,
+            queueHeadContentId = head?.media?.contentId,
+            seekableStartMs = media.liveSeekableRange?.let { currentClient.approximateLiveSeekableRangeStart },
+            seekableEndMs = media.liveSeekableRange?.let { currentClient.approximateLiveSeekableRangeEnd },
+            startAbsoluteTimeMs = media.mediaInfo?.startAbsoluteTime?.takeIf { it >= 0 },
+            reportedPositionMs = media.streamPosition.takeIf { it >= 0 },
+            reportedSeekableStartMs = media.liveSeekableRange?.startTime,
+            reportedSeekableEndMs = media.liveSeekableRange?.endTime,
+            customStartAbsoluteSeconds = (media.customData?.opt("startAbsoluteTime") as? Number)?.toDouble()?.takeIf { it.isFinite() && it >= 0 }))
     }
-    private fun detachClient() { client?.unregisterCallback(callback); client = null }
+    private fun detachClient() {
+        client?.mediaQueue?.unregisterCallback(queueCallback)
+        client?.unregisterCallback(callback); client = null
+    }
     override fun close() { detachClient(); manager?.removeSessionManagerListener(listener, CastSession::class.java) }
 }
 
@@ -139,4 +183,10 @@ data class ReceiverObservation(
     val playerState: Int?, val idleReason: Int?, val live: Boolean,
     val mediaSessionId: Long?, val sourceLoadToken: String?,
     val statusRevision: Long, val mediaPresent: Boolean, val queueItemCount: Int,
+    val queueHeadCached: Boolean = false, val queueHeadContentId: String? = null,
+    val seekableStartMs: Long? = null, val seekableEndMs: Long? = null,
+    val startAbsoluteTimeMs: Long? = null,
+    val reportedPositionMs: Long? = null, val reportedSeekableStartMs: Long? = null, val reportedSeekableEndMs: Long? = null,
+    val customStartAbsoluteSeconds: Double? = null,
 )
+data class ReceiverQueueSnapshot(val count: Int, val headCached: Boolean, val headContentId: String?)

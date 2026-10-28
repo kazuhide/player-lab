@@ -2,6 +2,7 @@ package com.playerlab.sportsstreaming
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.fragment.app.DialogFragment
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -14,6 +15,11 @@ import com.playerlab.sportsstreaming.core.ArchiveStatus
 import com.playerlab.sportsstreaming.core.AssetKind
 import com.playerlab.sportsstreaming.core.StreamProtocol
 import com.bitmovin.player.api.event.PlayerEvent
+import com.bitmovin.player.api.source.Source
+import com.playerlab.sportsstreaming.core.PlaybackRequest
+import com.playerlab.sportsstreaming.core.ArchivePosition
+import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,6 +28,9 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class CastPlaybackTest {
     @Test fun receiverReportsClipLiveArchiveAndPausedState() {
+        runReceiverSequence(unknownMappingRecovery = false)
+    }
+    internal fun runReceiverSequence(unknownMappingRecovery: Boolean) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val arguments = InstrumentationRegistry.getArguments()
         val receiver = requireNotNull(arguments.getString("receiverName")) { "Explicit authorized receiverName is required" }
@@ -29,15 +38,39 @@ class CastPlaybackTest {
         val base = requireNotNull(arguments.getString("mediaBaseUrl")) { "A receiver-reachable mediaBaseUrl is required" }
         val protocol = StreamProtocol.valueOf(arguments.getString("protocol", "HLS").uppercase())
         val vodOnly = arguments.getString("vodOnly", "false").toBooleanStrict()
-        instrumentation.sendStatus(0, Bundle().apply { putString("castQualificationScope", if (vodOnly) "prepared-vod-only" else "live-dvr-and-vod") })
+        require(!unknownMappingRecovery || !vodOnly)
+        instrumentation.sendStatus(0, Bundle().apply { putString("castQualificationScope",
+            if (unknownMappingRecovery) "unknown-utc-explicit-recovery" else if (vodOnly) "prepared-vod-only" else "live-dvr-and-vod") })
         val clipA = arguments.getString("clipAssetId", "SP-CLIP-A")
         val clipB = arguments.getString("secondClipAssetId", "SP-CLIP-B")
-        val live = arguments.getString("liveAssetId", "SP-LIVE-EVENT")
+        val live = if (unknownMappingRecovery) "SP-LIVE-S" else arguments.getString("liveAssetId", "SP-LIVE-EVENT")
         val archive = arguments.getString("archiveAssetId", "SP-ARCH-S")
         val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java).putExtra("mediaBaseUrl", base)
         ActivityScenario.launch<MainActivity>(intent).use { scenario ->
+            var heldUnknownSource: Source? = null
+            var heldUnknownLoadCount = -1
+            var changedKeepScreenOn = false
             try {
                 waitUntil(scenario, 30_000) { !it.playbackForTest().state.value.loadingCatalog && it.playbackForTest().state.value.catalog != null }
+                if (unknownMappingRecovery) {
+                    var statusUrl = ""
+                    scenario.onActivity {
+                        changedKeepScreenOn = it.window.attributes.flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON == 0
+                        if (changedKeepScreenOn) it.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        val catalog = requireNotNull(it.playbackForTest().state.value.catalog)
+                        statusUrl = requireNotNull(catalog.event(catalog.asset(live)?.eventId)?.statusUrl)
+                    }
+                    val repository = CatalogRepository(instrumentation.targetContext)
+                    val deadline = System.nanoTime() + 120_000_000_000L
+                    while (true) {
+                        val status = JSONObject(runBlocking { repository.status(statusUrl) })
+                        assertEquals("live", status.getString("status"))
+                        if (!status.isNull("seekableUtcStartMs") && !status.isNull("seekableUtcEndMs") &&
+                            status.getLong("seekableUtcEndMs") - status.getLong("seekableUtcStartMs") >= 58_000) break
+                        assertTrue("The receiver needs an actually published DVR window before loading", System.nanoTime() < deadline)
+                        Thread.sleep(500)
+                    }
+                }
                 scenario.onActivity { activity ->
                     val state = activity.playbackForTest().state.value
                     if (activity.playbackForTest().player.isCasting) assertEquals("Existing receiver is not authorized", receiver, state.castName)
@@ -126,15 +159,69 @@ class CastPlaybackTest {
                     waitForReceiver(scenario, live, receiver)
                     waitUntil(scenario, 60_000) { it.playbackForTest().player.isLive && it.playbackForTest().player.maxTimeShift <= -20.0 }
                     var livePosition = 0L
+                    var source: Source? = null
+                    var request: PlaybackRequest? = null
+                    var mediaSession: Long? = null
+                    var revision = 0L
                     scenario.onActivity {
-                        livePosition = requireNotNull(it.playbackForTest().receiverEvidenceForTest().positionMs)
-                        it.playbackForTest().seekBy(-15.0)
+                        val activeSession = it.playbackForTest()
+                        source = activeSession.player.source; request = activeSession.coordinator.current
+                        val before = activeSession.receiverEvidenceForTest()
+                        mediaSession = before.mediaSessionId; revision = before.statusRevision
+                        livePosition = requireNotNull(before.rawCafPositionMs)
+                        activeSession.seekBy(-15.0)
                     }
                     waitUntil(scenario) {
-                        val proof = it.playbackForTest().receiverEvidenceForTest()
-                        proof.assetId == live && proof.positionMs != null && proof.positionMs < livePosition - 10_000
+                        val session = it.playbackForTest(); val proof = session.receiverEvidenceForTest()
+                        session.player.source === source && session.coordinator.current == request &&
+                            proof.mediaSessionId == mediaSession && proof.statusRevision > revision && proof.assetId == live &&
+                            proof.rawCafPositionMs?.let { position -> position < livePosition - 10_000 } == true
                     }
-                    scenario.onActivity { it.playbackForTest().goLive() }
+                    reportDiagnostics(scenario, receiver)
+                    scenario.onActivity {
+                        val session = it.playbackForTest(); val proof = session.receiverEvidenceForTest()
+                        assertTrue("The actual receiver must be behind its own live edge", requireNotNull(proof.rawCafSeekableEndMs) - requireNotNull(proof.rawCafPositionMs) > 10_000)
+                        revision = proof.statusRevision
+                        session.goLive()
+                    }
+                    waitUntil(scenario) {
+                        val session = it.playbackForTest(); val proof = session.receiverEvidenceForTest()
+                        val end = proof.rawCafSeekableEndMs; val position = proof.rawCafPositionMs
+                        session.player.source === source && session.coordinator.current == request &&
+                            proof.mediaSessionId == mediaSession && proof.statusRevision > revision && proof.assetId == live &&
+                            proof.playing == true && end != null && position != null && end - position in 0..3_000 &&
+                            session.player.timeShift > -3.0
+                    }
+                    reportDiagnostics(scenario, receiver)
+                    if (unknownMappingRecovery) {
+                        val repository = CatalogRepository(instrumentation.targetContext)
+                        var statusUrl = ""; var durationMs = 0L
+                        scenario.onActivity {
+                            val catalog = requireNotNull(it.playbackForTest().state.value.catalog)
+                            val event = requireNotNull(catalog.event(catalog.asset(live)?.eventId))
+                            statusUrl = requireNotNull(event.statusUrl)
+                            durationMs = requireNotNull(catalog.asset(event.archiveAssetId)?.durationMs)
+                            assertTrue("Use the real short event for this recovery check", durationMs in 120_000..240_000)
+                        }
+                        fun status() = JSONObject(runBlocking { repository.status(statusUrl) })
+                        val first = status()
+                        assertTrue("Join early enough to hold a point before the event ends",
+                            first.getLong("mediaUtcNow") - first.getLong("utcStartMs") < durationMs - 60_000)
+                        val deadline = System.nanoTime() + 240_000_000_000L
+                        while (true) {
+                            val observed = status()
+                            assertEquals("live", observed.getString("status"))
+                            if (observed.getLong("mediaUtcNow") - observed.getLong("utcStartMs") >= durationMs - 12_000) break
+                            assertTrue("The publisher must advance naturally", System.nanoTime() < deadline)
+                            Thread.sleep(500)
+                        }
+                        scenario.onActivity { it.playbackForTest().player.pause() }
+                        waitUntil(scenario) { it.playbackForTest().receiverEvidenceForTest().paused == true }
+                        scenario.onActivity {
+                            heldUnknownSource = it.playbackForTest().player.source
+                            heldUnknownLoadCount = it.playbackForTest().loadCount
+                        }
+                    }
                 }
                 val archiveDeadline = System.nanoTime() + 240_000_000_000L
                 var ready = false
@@ -148,8 +235,76 @@ class CastPlaybackTest {
                     if (!ready) Thread.sleep(5_000)
                 }
                 assertTrue("Archive did not become ready in real time", ready)
-                scenario.onActivity { it.playbackForTest().selectAsset(archive, protocol) }
+                var utcHandoffRows = 0
+                if (unknownMappingRecovery) {
+                    waitUntil(scenario) { it.playbackForTest().state.value.selectedEvent?.archiveStatus == ArchiveStatus.READY }
+                    waitUntil(scenario) { it.playbackForTest().state.value.isLive == it.playbackForTest().player.isLive }
+                    scenario.onActivity {
+                        val session = it.playbackForTest()
+                        val source = session.player.source; val count = session.loadCount
+                        assertSame("Event end must not silently replace the held live Source", heldUnknownSource, source)
+                        assertEquals(heldUnknownLoadCount, count)
+                        assertFalse("Event end must retain non-playing intent", session.receiverEvidenceForTest().playing == true)
+                        assertFalse(session.desiredPlaying)
+                        assertNull("The default receiver must not invent an authored UTC mapping", session.viewedUtcForCurrentSource())
+                        assertTrue(session.state.value.archivePosition is ArchivePosition.Unknown)
+                        utcHandoffRows = utcHandoffCount(session)
+                        session.continueInArchive()
+                        assertSame("An unavailable current-position transition must keep the live Source", source, session.player.source)
+                        assertEquals(count, session.loadCount)
+                        assertEquals(utcHandoffRows, utcHandoffCount(session))
+                        session.continueInArchive(fromStart = true)
+                    }
+                } else if (!vodOnly) {
+                    var from = 0L; var revision = 0L; var mediaId: Long? = null
+                    var liveSource: Source? = null; var liveRequest: PlaybackRequest? = null
+                    scenario.onActivity {
+                        val session = it.playbackForTest(); val proof = session.receiverEvidenceForTest()
+                        from = requireNotNull(proof.rawCafPositionMs); revision = proof.statusRevision; mediaId = proof.mediaSessionId
+                        liveSource = session.player.source; liveRequest = session.coordinator.current
+                        session.seekBy(-15.0)
+                    }
+                    waitUntil(scenario) {
+                        val session = it.playbackForTest(); val proof = session.receiverEvidenceForTest()
+                        session.player.source === liveSource && session.coordinator.current == liveRequest &&
+                            proof.mediaSessionId == mediaId && proof.statusRevision > revision &&
+                            proof.rawCafPositionMs?.let { value -> value < from - 10_000 } == true
+                    }
+                }
+                if (!unknownMappingRecovery) {
+                    scenario.onActivity {
+                        // Exercise the same immediate source change possible after the standard SDK UI's live action.
+                        if (!vodOnly) it.playbackForTest().player.timeShift(0.0)
+                        it.playbackForTest().selectAsset(archive, protocol)
+                    }
+                }
                 waitForReceiver(scenario, archive, receiver)
+                var archivePosition = 0L; var archiveMediaId: Long? = null
+                scenario.onActivity {
+                    val proof = it.playbackForTest().receiverEvidenceForTest()
+                    archivePosition = requireNotNull(proof.positionMs); archiveMediaId = proof.mediaSessionId
+                    if (unknownMappingRecovery) {
+                        assertTrue("An explicit start must actually begin near zero", archivePosition in 0..1_000)
+                        assertEquals("An explicit start is not a UTC-preserving handoff", utcHandoffRows, utcHandoffCount(it.playbackForTest()))
+                    }
+                }
+                Thread.sleep(1_500)
+                waitUntil(scenario) {
+                    val proof = it.playbackForTest().receiverEvidenceForTest()
+                    proof.assetId == archive && proof.mediaSessionId == archiveMediaId && proof.playing == true &&
+                        proof.positionMs?.let { value -> value > archivePosition + 500 } == true
+                }
+                if (unknownMappingRecovery) scenario.onActivity {
+                    val records = it.playbackForTest().handoffs.exportJson()
+                    java.io.File(instrumentation.targetContext.filesDir, "receiver-continuation").apply { mkdirs() }
+                        .resolve("${protocol.name.lowercase()}-records.json").writeText(records)
+                    instrumentation.sendStatus(0, Bundle().apply {
+                        putString("receiverContinuationResult", JSONObject().put("protocol", protocol.name)
+                            .put("utcMapping", "unknown").put("currentPositionRejected", true)
+                            .put("explicitStartVerified", true).put("utcHandoffRowsAdded", 0)
+                            .put("receiverQoe", JSONObject.NULL).toString())
+                    })
+                }
                 scenario.onActivity { it.playbackForTest().toggleCasting() }
                 waitUntil(scenario) {
                     !it.playbackForTest().player.isCasting && !it.playbackForTest().player.isPlaying &&
@@ -162,9 +317,14 @@ class CastPlaybackTest {
                         it.playbackForTest().disconnectCasting()
                     }
                     it.playbackForTest().player.pause()
+                    if (changedKeepScreenOn) it.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 }
             }
         }
+    }
+    private fun utcHandoffCount(session: PlaybackSession): Int {
+        val records = JSONObject(session.handoffs.exportJson()).getJSONArray("records")
+        return (0 until records.length()).count { records.getJSONObject(it).getString("transition") == "live-to-archive" }
     }
     private fun reportDiagnostics(scenario: ActivityScenario<MainActivity>, receiver: String) {
         scenario.onActivity { activity ->
@@ -179,8 +339,9 @@ class CastPlaybackTest {
         waitUntil(scenario, 60_000) {
             val session = it.playbackForTest()
             val proof = session.receiverEvidenceForTest()
+            val position = if (session.state.value.catalog?.asset(asset)?.kind == AssetKind.LIVE) proof.rawCafPositionMs else proof.positionMs
             session.player.isCasting && session.state.value.castName == receiver && proof.assetId == asset &&
-                proof.positionMs != null && proof.playing == true
+                position != null && proof.playing == true
         }
     }
     private fun waitUntil(scenario: ActivityScenario<MainActivity>, timeoutMs: Long = 45_000, predicate: (MainActivity) -> Boolean) {
