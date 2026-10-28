@@ -69,4 +69,17 @@ class ReceiverLoadIntentTest {
         assertEquals(ReceiverTransport.PLAY, intent.observe(request, true, false, true))
         assertEquals(ReceiverTransport.PLAY, intent.dispatch(request, true, false, true))
     }
+    @Test fun reconnectDuringLoadRebindsTheRequestedIntentAndRejectsTheOldGeneration() {
+        val initial = ReceiverLoadIntent(request, false)
+        initial.observe(request, true, true, false)
+        val connected = request.copy(generation = 5)
+        val rebound = initial.rebind(connected)
+        assertEquals(connected, rebound.request)
+        assertFalse(rebound.playWhenReady)
+        assertNull(rebound.observe(request, true, true, false))
+        assertEquals(ReceiverTransport.PAUSE, rebound.observe(connected, true, true, false))
+        assertEquals(ReceiverTransport.PAUSE, rebound.dispatch(connected, true, true, false))
+        assertNull(rebound.observe(connected, true, false, true))
+        assertTrue(rebound.fulfilled)
+    }
 }

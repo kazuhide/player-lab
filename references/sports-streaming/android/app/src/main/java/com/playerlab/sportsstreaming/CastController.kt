@@ -10,6 +10,7 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.playerlab.sportsstreaming.core.CastConnection
+import com.playerlab.sportsstreaming.core.ReceiverIdentityParser
 
 /** Observes CAF only. Bitmovin Player remains the sole owner of media load and transport commands. */
 class CastController(
@@ -29,9 +30,12 @@ class CastController(
     private var client: RemoteMediaClient? = null
     private var boundId: String? = null
     private var generation = 0L
+    var statusRevision = 0L
+        private set
     val sessionId get() = boundId
+    val isConnected get() = boundSession?.isConnected == true
     private val callback = object : RemoteMediaClient.Callback() {
-        override fun onStatusUpdated() = observe()
+        override fun onStatusUpdated() { statusRevision++; observe() }
         override fun onMetadataUpdated() = observe()
     }
     private val listener = object : SessionManagerListener<CastSession> {
@@ -106,15 +110,25 @@ class CastController(
     private fun observe() {
         val session = boundSession ?: return
         if (!session.isConnected) return
-        val media = client?.mediaStatus ?: return
+        val currentClient = client ?: return
+        val media = currentClient.mediaStatus
         val id = boundId ?: return
-        val contentId = media.mediaInfo?.contentId ?: return
+        if (media == null) {
+            onMedia(ReceiverObservation(id, "", null, false, false, null, null, false,
+                null, null, statusRevision, mediaPresent = false, queueItemCount = currentClient.mediaQueue.itemCount))
+            return
+        }
+        val contentId = media.mediaInfo?.contentId ?: ""
+        // toJson is a public CAF API; the protocol carries its receiver-assigned mediaSessionId.
+        val identity = ReceiverIdentityParser.parse(media.toJson())
         val playing = media.playerState == MediaStatus.PLAYER_STATE_PLAYING
         val paused = media.playerState == MediaStatus.PLAYER_STATE_PAUSED
         onMedia(ReceiverObservation(id, contentId,
             media.streamPosition.takeIf { (playing || paused) && it >= 0 }, playing, paused,
             media.playerState, media.idleReason,
-            media.mediaInfo?.streamType == MediaInfo.STREAM_TYPE_LIVE))
+            media.mediaInfo?.streamType == MediaInfo.STREAM_TYPE_LIVE,
+            identity.mediaSessionId, identity.sourceLoadToken, statusRevision,
+            mediaPresent = true, queueItemCount = currentClient.mediaQueue.itemCount))
     }
     private fun detachClient() { client?.unregisterCallback(callback); client = null }
     override fun close() { detachClient(); manager?.removeSessionManagerListener(listener, CastSession::class.java) }
@@ -122,5 +136,7 @@ class CastController(
 
 data class ReceiverObservation(
     val sessionId: String, val contentId: String, val positionMs: Long?, val playing: Boolean, val paused: Boolean,
-    val playerState: Int, val idleReason: Int, val live: Boolean,
+    val playerState: Int?, val idleReason: Int?, val live: Boolean,
+    val mediaSessionId: Long?, val sourceLoadToken: String?,
+    val statusRevision: Long, val mediaPresent: Boolean, val queueItemCount: Int,
 )

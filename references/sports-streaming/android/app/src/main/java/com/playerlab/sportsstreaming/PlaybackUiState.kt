@@ -28,6 +28,7 @@ data class PlaybackUiState(
     val canReturnOriginal: Boolean = false,
     val notice: PlaybackNotice = PlaybackNotice.NONE,
     val errorCode: Int? = null,
+    val sourceFailed: Boolean = false,
     val castConnection: CastConnection = CastConnection.DISCONNECTED,
     val castName: String? = null,
     val needsLocalReturnChoice: Boolean = false,
@@ -35,9 +36,10 @@ data class PlaybackUiState(
 ) {
     val selectedEvent get() = catalog?.event(selectedEventId)
     val activeAsset get() = catalog?.asset(activeAssetId)
-    val canControlPlayback get() = acceptsPlaybackCommands && activeAssetId != null && !loadingSource && errorCode == null
-    val canSeekBack get() = canControlPlayback && if (isLive) earliestTimeShiftSeconds < timeShiftSeconds - 0.1 else (positionMs ?: 0) > 0
-    val canSeekForward get() = canControlPlayback && if (isLive) timeShiftSeconds < -0.1 else
+    val canControlPlayback get() = acceptsPlaybackCommands && activeAssetId != null && !loadingSource && errorCode == null && !sourceFailed
+    val hasUsableSeekTimeline get() = activeAsset?.kind != AssetKind.LIVE || isLive
+    val canSeekBack get() = canControlPlayback && hasUsableSeekTimeline && if (isLive) earliestTimeShiftSeconds < timeShiftSeconds - 0.1 else (positionMs ?: 0) > 0
+    val canSeekForward get() = canControlPlayback && hasUsableSeekTimeline && if (isLive) timeShiftSeconds < -0.1 else
         positionMs != null && durationMs != null && positionMs < durationMs
     val acceptsPlaybackCommands get() = !needsLocalReturnChoice &&
         castConnection !in setOf(CastConnection.CONNECTING, CastConnection.RECONNECTING)

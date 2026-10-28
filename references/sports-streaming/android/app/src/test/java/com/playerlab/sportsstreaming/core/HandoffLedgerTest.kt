@@ -25,6 +25,18 @@ class HandoffLedgerTest {
         assertFalse(confirmed.getBoolean("positionAdvanced"))
         assertEquals(45_500, confirmed.getLong("positionMs"))
     }
+    @Test fun readyStoppedSourceConfirmsNonPlayingIntentWithoutInventingPausedState() {
+        val ledger = HandoffLedger()
+        val id = ledger.begin("SP-EVENT-S", "live-to-archive", "sports:SP-ARCH-E", 90_272, false, 1_000_000)
+        assertFalse(ledger.observe(id, "sports:SP-ARCH-E", 90_272, false, false, false))
+        assertFalse(ledger.observe(id, "sports:SP-ARCH-E", 90_272, true, false, true, readyStopped = true))
+        assertFalse(ledger.observe(id, "sports:SP-ARCH-E", 90_272, false, false, false, readyStopped = true, observedAtMs = 1_000))
+        assertFalse(ledger.observe(id, "sports:SP-ARCH-E", 90_272, false, false, false, readyStopped = true, observedAtMs = 1_000))
+        assertTrue(ledger.observe(id, "sports:SP-ARCH-E", 90_272, false, false, false, readyStopped = true, observedAtMs = 1_250))
+        val confirmed = JSONObject(ledger.exportJson()).getJSONArray("records").getJSONObject(0).getJSONObject("confirmed")
+        assertFalse(confirmed.getBoolean("playWhenReady"))
+        assertFalse(confirmed.getBoolean("positionAdvanced"))
+    }
     @Test fun wrongAssetOrNonAdvancingPlaybackNeverConfirmsSuccess() {
         val ledger = HandoffLedger()
         val id = ledger.begin("SP-EVENT-S", "cast", "sports:SP-CLIP-A", 10_000, true, 1_000_000)

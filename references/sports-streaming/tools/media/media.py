@@ -913,7 +913,7 @@ class Handler(SimpleHTTPRequestHandler):
                                    "seekableUtcStartMs": seekable[0], "seekableUtcEndMs": seekable[1], "observedAt": utc(observed_ms)})
         if route.startswith(("subtitles/", "transcripts/")):
             allowed = {entry["id"] for entry in spec.get("assets", [])} | set(live)
-            if route not in {"subtitles/malformed.vtt", "subtitles/overlap.en.vtt"} and (not re.fullmatch(r"(?:subtitles|transcripts)/[A-Z0-9-]+(?:\.(?:en|ja))?\.(?:vtt|json)", route) or route.split("/")[1].split(".")[0] not in allowed):
+            if route not in {"subtitles/malformed.vtt", "subtitles/overlap.en.vtt", "subtitles/SP-CLIP-A.eof-test.en.vtt"} and (not re.fullmatch(r"(?:subtitles|transcripts)/[A-Z0-9-]+(?:\.(?:en|ja))?\.(?:vtt|json)", route) or route.split("/")[1].split(".")[0] not in allowed):
                 return self.send_error(404)
             return self.send_file(FIXTURES, route, "text/vtt; charset=utf-8" if route.endswith(".vtt") else "application/json; charset=utf-8")
         if route.startswith("prepared/"):

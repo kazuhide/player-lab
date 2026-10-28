@@ -13,6 +13,7 @@ import androidx.test.uiautomator.Until
 import com.playerlab.sportsstreaming.core.ArchiveStatus
 import com.playerlab.sportsstreaming.core.AssetKind
 import com.playerlab.sportsstreaming.core.StreamProtocol
+import com.bitmovin.player.api.event.PlayerEvent
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,7 +43,20 @@ class CastPlaybackTest {
                     if (activity.playbackForTest().player.isCasting) assertEquals("Existing receiver is not authorized", receiver, state.castName)
                     activity.playbackForTest().selectAsset(clipA, protocol)
                 }
-                waitUntil(scenario) { it.playbackForTest().player.isPlaying }
+                waitUntil(scenario) { it.playbackForTest().state.value.canControlPlayback && it.playbackForTest().player.isPlaying }
+                var actualPaused = false
+                var pausedPositionMs = 0L
+                lateinit var initialSession: PlaybackSession
+                val pausedListener: (PlayerEvent.Paused) -> Unit = { actualPaused = true }
+                scenario.onActivity {
+                    initialSession = it.playbackForTest()
+                    initialSession.player.on(PlayerEvent.Paused::class, pausedListener)
+                    initialSession.player.pause()
+                }
+                try {
+                    waitUntil(scenario) { actualPaused && it.playbackForTest().player.isPaused && !it.playbackForTest().player.isPlaying }
+                    scenario.onActivity { pausedPositionMs = (it.playbackForTest().player.currentTime * 1_000).toLong() }
+                } finally { scenario.onActivity { it.playbackForTest().player.off(PlayerEvent.Paused::class, pausedListener) } }
                 reportDiagnostics(scenario, receiver)
                 scenario.onActivity {
                     assertTrue("Remote control must be enabled", it.playbackForTest().player.config.remoteControlConfig.isCastEnabled)
@@ -63,7 +77,35 @@ class CastPlaybackTest {
                     assertNotNull("Authorized receiver was not found; no other receiver will be selected", exact)
                     exact.click()
                 }
+                waitUntil(scenario, 60_000) {
+                    val session = it.playbackForTest()
+                    val proof = session.receiverEvidenceForTest()
+                    session.player.isCasting && session.state.value.castName == receiver && proof.assetId == clipA &&
+                        proof.mediaSessionId != null && proof.paused == true && proof.playing == false &&
+                        proof.positionMs?.let { position -> kotlin.math.abs(position - pausedPositionMs) <= 1_000 } == true
+                }
+                scenario.onActivity { it.playbackForTest().player.play() }
                 waitForReceiver(scenario, clipA, receiver)
+                var previousLoadId: Long? = null
+                scenario.onActivity {
+                    previousLoadId = it.playbackForTest().receiverEvidenceForTest().mediaSessionId
+                    assertNotNull("Receiver confirmation needs its actual media-session identity", previousLoadId)
+                    it.playbackForTest().selectAsset(clipA, protocol)
+                }
+                waitForReceiver(scenario, clipA, receiver)
+                scenario.onActivity {
+                    val current = it.playbackForTest().receiverEvidenceForTest().mediaSessionId
+                    assertNotNull(current)
+                    assertNotEquals("Same-URL selection must confirm a new actual receiver load", previousLoadId, current)
+                    previousLoadId = current
+                    it.playbackForTest().selectAsset(clipB, protocol)
+                    it.playbackForTest().selectAsset(clipA, protocol)
+                }
+                waitForReceiver(scenario, clipA, receiver)
+                scenario.onActivity {
+                    assertNotEquals("Rapid A-to-B-to-A must not reuse the old A status", previousLoadId,
+                        it.playbackForTest().receiverEvidenceForTest().mediaSessionId)
+                }
                 scenario.onActivity { it.playbackForTest().selectAsset(clipB, protocol) }
                 reportDiagnostics(scenario, receiver)
                 waitForReceiver(scenario, clipB, receiver)

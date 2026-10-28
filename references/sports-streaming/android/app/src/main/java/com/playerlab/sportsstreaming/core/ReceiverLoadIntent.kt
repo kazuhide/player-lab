@@ -4,6 +4,8 @@ enum class ReceiverTransport { PLAY, PAUSE }
 
 /** A remote load can complete after an immediate transport command; apply intent to its actual target. */
 class ReceiverLoadIntent(val request: PlaybackRequest, val playWhenReady: Boolean) {
+    fun rebind(current: PlaybackRequest): ReceiverLoadIntent =
+        if (current == request) this else ReceiverLoadIntent(current, playWhenReady)
     var fulfilled = false
         private set
     var commandSent = false

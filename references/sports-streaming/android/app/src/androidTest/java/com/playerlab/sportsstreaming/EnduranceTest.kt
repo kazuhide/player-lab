@@ -166,6 +166,9 @@ class EnduranceTest {
                     var heldSource: Source? = null
                     var heldImpression: String? = null
                     var heldUtcMs = 0L
+                    var heldRawSeconds = 0.0
+                    var heldRelativeSeconds = 0.0
+                    var heldUtcRelativeOriginSeconds = 0.0
                     var endHold = false
                     var endedProcessing = false
                     var archiveReady = false
@@ -184,7 +187,16 @@ class EnduranceTest {
                                     val session = it.playbackForTest()
                                     heldSource = session.player.source
                                     heldImpression = session.snapshot().impressionId
-                                    heldUtcMs = actualViewedUtcMs(session)
+                                    heldRawSeconds = session.player.currentTime
+                                    val absoluteOffset = session.player.playbackTimeOffsetToAbsoluteTime
+                                    val relativeOffset = session.player.playbackTimeOffsetToRelativeTime
+                                    val directSdkUtc = (heldRawSeconds + absoluteOffset) * 1_000.0
+                                    assertTrue("The held reference must come directly from the live SDK timeline", directSdkUtc.isFinite() && directSdkUtc >= origin)
+                                    heldUtcMs = directSdkUtc.roundToLong()
+                                    heldRelativeSeconds = heldRawSeconds + relativeOffset
+                                    heldUtcRelativeOriginSeconds = absoluteOffset - relativeOffset
+                                    assertEquals(heldUtcMs.toDouble(), actualViewedUtcMs(session).toDouble(), 1.0)
+                                    SdkClockSnapshot.capture(session, "endurance-before")
                                     assertNotNull("Analytics is required for actual impression continuity", heldImpression)
                                 }
                                 recorder.phase = "end-paused"
@@ -194,9 +206,16 @@ class EnduranceTest {
                                 assertTrue("The final DVR position must be held before the event ends", endHold)
                                 scenario.onActivity {
                                     val session = it.playbackForTest()
+                                    SdkClockSnapshot.capture(session, "endurance-after")
                                     assertSame("Event end must not reload the Source", heldSource, session.player.source)
                                     assertEquals(heldImpression, session.snapshot().impressionId)
                                     assertTrue("Event end must preserve pause", session.player.isPaused && !session.player.isPlaying)
+                                    val relativeNow = session.player.currentTime + session.player.playbackTimeOffsetToRelativeTime
+                                    assertEquals("Finalization must preserve the independently held SDK-relative coordinate", heldRelativeSeconds, relativeNow, 1.0)
+                                    if (protocol == StreamProtocol.HLS)
+                                        assertEquals("The observed HLS raw coordinate must remain continuous", heldRawSeconds, session.player.currentTime, 1.0)
+                                    assertEquals("Independent pre-end SDK offsets and fresh relative time must preserve UTC", heldUtcMs.toDouble(),
+                                        (relativeNow + heldUtcRelativeOriginSeconds) * 1_000.0, 1_000.0)
                                     val currentUtcMs = actualViewedUtcMs(session)
                                     assertTrue("Event end must retain the viewed UTC position", abs(currentUtcMs - heldUtcMs) <= 1_000L)
                                 }
@@ -219,10 +238,15 @@ class EnduranceTest {
                     recorder.phase = "archive-paused"
                     loadAndWait(scenario, recorder, archiveId) { it.continueInArchive() }
                     waitUntil(scenario, recorder) {
-                        it.state.value.activeAssetId == archiveId && !it.state.value.loadingSource && it.player.isPaused &&
+                        it.state.value.activeAssetId == archiveId && !it.state.value.loadingSource && !it.desiredPlaying &&
                             !it.player.isPlaying && abs(it.player.currentTime * 1_000 - mappedPosition) <= 1_000
                     }
+                    Thread.sleep(1_000)
                     scenario.onActivity {
+                        assertFalse("A ready archive must retain the requested non-playing intent", it.playbackForTest().player.isPlaying)
+                        assertFalse(it.playbackForTest().desiredPlaying)
+                        assertEquals(mappedPosition.toDouble(), it.playbackForTest().player.currentTime * 1_000, 1_000.0)
+                        SdkClockSnapshot.capture(it.playbackForTest(), "endurance-archive-ready")
                         assertNotSame(heldSource, it.playbackForTest().player.source)
                         val archiveImpression = it.playbackForTest().snapshot().impressionId
                         assertNotNull("Archive playback must have an actual impression", archiveImpression)
@@ -345,8 +369,10 @@ class EnduranceTest {
     private fun actualViewedUtcMs(session: PlaybackSession): Long {
         val origin = requireNotNull(session.state.value.activeAsset?.utcStartMs)
         val absolute = (session.player.currentTime + session.player.playbackTimeOffsetToAbsoluteTime) * 1_000.0
-        assertTrue("Read the SDK's current absolute media timestamp without a cached UI sample", absolute.isFinite() && absolute >= origin)
-        return absolute.roundToLong()
+        val mapped = requireNotNull(session.viewedUtcForCurrentSource()) { "The current Source must have a verified UTC transform" }
+        if (absolute.isFinite() && absolute >= origin)
+            assertEquals("A valid direct SDK timestamp must match the fresh mapped timestamp", absolute, mapped.toDouble(), 1.0)
+        return mapped
     }
 
     private fun waitUntil(scenario: ActivityScenario<MainActivity>, recorder: Recorder, timeoutMs: Long = 45_000L,
@@ -471,6 +497,8 @@ class EnduranceTest {
                     .put("positionMs", current.position.takeIf { it.isFinite() }?.let { (it * 1_000).toLong() } ?: JSONObject.NULL)
                     .put("eventStatus", state.selectedEvent?.status?.name ?: JSONObject.NULL)
                     .put("archiveStatus", state.selectedEvent?.archiveStatus?.name ?: JSONObject.NULL)
+                    .put("sdkAbsoluteOffsetSeconds", session.player.playbackTimeOffsetToAbsoluteTime.takeIf { it.isFinite() } ?: JSONObject.NULL)
+                    .put("freshMappedUtcMs", session.viewedUtcForCurrentSource() ?: JSONObject.NULL)
                     .put("diagnosticEntries", session.diagnostics.entries.size).put("handoffEntries", session.handoffs.size)
             }
             if (playing && now - lastFrameMs >= 15_000L) {

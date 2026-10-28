@@ -5,31 +5,75 @@ integrated Analytics collector 3.35.2. The device run used locally configured
 demo licenses and this reference's self-authored fixtures. Credentials, device
 serials, private origins and raw device logs are excluded.
 
-## Build and device playback
+## Build and focused playback checks
 
 | Check | Conditions | Result |
 | --- | --- | --- |
 | Independent Android build | Only this reference's files; no parent application or `.env`; JDK 21 | Build, lint and app/test APK compilation passed; generated license fields empty |
-| Android unit tests | Availability, request identity, UTC mapping, Cast intent and handoff records | 53 passed |
-| Fixture publisher tests | Media contracts, source clocks, HTTP delivery and bounds | 33 passed |
+| Android unit tests | Availability, request identity, UTC mapping, Cast intent, readiness and handoff records | 87 passed |
+| Fixture publisher tests | Media contracts, source clocks, fixed caption sidecars, HTTP delivery and bounds | 35 passed |
 | Device-driver tests | Exact device, actual JUnit counts, installed APK identity and capture transfer | 18 passed |
-| Physical HLS | Pixel 11 Pro, Android 17; ownership, workflow, Cast and guide captures | 13 passed; no failures or skips |
-| Physical DASH | Same device and frozen app/test APKs | 13 passed; no failures or skips |
-| Cast receiver | Explicitly selected Pixel Tablet; HLS and DASH | Actual remote asset, position and play/pause state observed |
-| Guide captures | Separate English/Japanese UI; portrait/landscape; standard/sports UI | All captures passed; system bars excluded |
+| Focused HLS | Pixel 11 Pro, Android 17; caption lifecycle, short event finalization, rotation and picture-in-picture | Four checks passed |
+| Focused DASH | Android API 36.1 emulator; same integration plus ownership/control changes | Seven checks passed |
 | Analysis Web | Node.js 24.19.0; fixed queries and localhost server | 26 tests passed; build check passed |
 | Analysis browser | English/Japanese; 320–1,440 px viewports | Controls, tables and charts rendered without page errors |
 
-The ownership tests exercise paused and playing UI changes, actual video pixels,
-caption glyphs, speed, Source and impression identity, rotation and fullscreen.
-The workflow tests check source-selection behavior, current seekable bounds and
-live/archive availability. Capture cases are included in the protocol totals.
+The focused checks confirm natural caption rendering, clearing at actual end of
+media, replay, fatal-source recovery, Source-bound UTC conversion and paused
+intent during an edited-archive handoff. A newly loaded VOD Source can be Ready
+without having started: both SDK `isPlaying` and `isPaused` can be false. The
+app confirms its non-playing intent through source readiness and a stable
+actual position, retaining the raw SDK flags separately. An explicit Play must
+then advance that Source's clock.
 
-The Cast checks read actual CAF media status. They check clip changes,
-pause/resume, Live rewind, return to the live edge, archive playback and
-disconnect recovery. A connected receiver application alone is insufficient.
-These results do not establish receiver-side Analytics collection or receiver
-playback-quality metrics.
+Complete device/receiver and event-duration checks use the commands below.
+Their receipts bind each app/test APK and preserve the observed execution
+counts, outcomes and media conditions. Source inspection and compilation do
+not establish receiver playback or receiver-side Analytics collection.
+
+## Playback clocks at event finalization
+
+A separate controlled Web check used Player 8.281.0 and Chrome 156.0.8078.73.
+The same 180-second presentation changed from live to finite without another
+Source load. HLS used MPEG-TS with program-date-time tags; DASH used fragmented
+MP4 with an availability-start-time anchor. Playback was paused before the
+manifest change and remained paused afterward.
+
+| Web protocol | Default/absolute time before and after finalization, seconds | Relative time before and after, seconds | Duration |
+| --- | --- | --- | --- |
+| HLS | 1793181047.315292, unchanged | 120.219292, unchanged | `Infinity` → 180 |
+| DASH | 1793181052.031333, unchanged | 120.025000, unchanged | `Infinity` → 180 |
+
+Both cases kept the Player and Source, recorded one `SourceLoaded` event, and
+reported `isLive() == false` after finalization. The finalized seekable ranges
+retained their Unix origin. These observations support the Web-specific API
+explanation; they do not establish Android, Cast or other HLS packaging behavior.
+See the [API comparison and handoff rules](implementation.md#playback-position-and-unix-time).
+
+The Android publisher finalized only its retained 60-second manifest window;
+the Web check above finalized the full 180-second presentation. Their different
+finite durations are fixture policies, not a measured SDK duration difference.
+
+A physical Android 3.172.0 DASH probe retained the same Source, impression,
+request and paused frame through the short event's end. Its raw representation
+changed even though the SDK-relative coordinate remained continuous:
+
+| Android DASH property | Before finalization | After finalization |
+| --- | --- | --- |
+| `currentTime`, seconds | 1793163695.741 | 107.742 |
+| `playbackTimeOffsetToAbsoluteTime`, seconds | 0 | 0 |
+| `playbackTimeOffsetToRelativeTime`, seconds | −1793163588 | 0 |
+| SDK-relative coordinate, seconds | 107.741 | 107.742 |
+| Duration, seconds | `Infinity` | 59.999 |
+| Seekable range, seconds | 0–0 while live | 0–59.999 |
+
+The retained paused coordinate is not a valid target in the newly advertised
+seekable range. The presentation had a sliding window; its finite duration is
+not a promise that an earlier buffered frame was rebased to that window's zero.
+Read fresh bounds for any seek. An explicit seek invalidates a retained UTC
+transform unless the SDK supplies a newly valid absolute mapping. This
+observation establishes the API transition, not success of an archive handoff
+or a full event-duration test.
 
 ## Event duration and source preparation
 

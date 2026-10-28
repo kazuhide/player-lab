@@ -5,6 +5,11 @@
 An independent Android example for live events, clips and recorded archives with
 Bitmovin Player. Compare the SDK's standard Web UI with native sports controls,
 return from a clip to the live stream, and continue into a prepared archive.
+A finalized live Source does not necessarily acquire a zero-based clock.
+Web and Android also expose different time APIs. See the
+[clock comparison](docs/implementation.md#playback-position-and-unix-time)
+for Unix time, relative positions and archive handoff conditions.
+
 Google Cast uses the SDK's remote-control integration.
 
 The application, Gradle wrapper, configuration, fixtures, media publisher and

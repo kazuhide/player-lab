@@ -130,6 +130,18 @@ class HttpPublicationTests(unittest.TestCase):
         self.assertEqual(self.get('/ARC/source.mp4')[0], 404)
         self.assertEqual(self.get('/prepared/ARC/source.mp4')[0], 200)
 
+    def test_fixed_eof_sidecar_is_served_without_widening_subtitle_paths(self):
+        folder = self.fixtures / 'subtitles'
+        folder.mkdir(exist_ok=True)
+        data = b'WEBVTT\n\n00:00:10.000 --> 00:00:30.000\nWatch the elapsed-time display.\n'
+        (folder / 'SP-CLIP-A.eof-test.en.vtt').write_bytes(data)
+        status, headers, body = self.get('/subtitles/SP-CLIP-A.eof-test.en.vtt')
+        self.assertEqual(status, 200)
+        self.assertEqual(body, data)
+        self.assertTrue(headers['Content-Type'].startswith('text/vtt'))
+        self.assertEqual(self.get('/subtitles/SP-CLIP-A.eof-test.en.vtt', method='HEAD')[2], b'')
+        self.assertEqual(self.get('/subtitles/SP-CLIP-A.other-test.en.vtt')[0], 404)
+
     def test_symlinked_media_is_not_served_even_when_target_is_public(self):
         segment = self.folder / 'hls/seg-00001.m4s'
         segment.unlink(); segment.symlink_to(self.folder / 'source.mp4')
@@ -296,9 +308,15 @@ class HttpPublicationTests(unittest.TestCase):
 
 
 class FixtureIntegrityTests(unittest.TestCase):
+    def test_eof_sidecar_changes_only_the_existing_cue_end(self):
+        canonical = (media.FIXTURES / 'subtitles/SP-CLIP-A.en.vtt').read_bytes()
+        overrun = (media.FIXTURES / 'subtitles/SP-CLIP-A.eof-test.en.vtt').read_bytes()
+        self.assertEqual(canonical.count(b'00:00:14.000'), 1)
+        self.assertEqual(overrun, canonical.replace(b'00:00:14.000', b'00:00:30.000'))
+
     def test_canonical_transcript_and_language_outputs_agree(self):
         for path in (media.FIXTURES / 'subtitles').glob('*.vtt'):
-            if path.name in ['overlap.en.vtt', 'malformed.vtt']:
+            if path.name in ['overlap.en.vtt', 'malformed.vtt', 'SP-CLIP-A.eof-test.en.vtt']:
                 continue
             language = path.name.split('.')[-2]
             identifier = path.name.split('.')[0]

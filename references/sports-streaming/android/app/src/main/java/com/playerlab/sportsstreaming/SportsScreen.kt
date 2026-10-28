@@ -39,8 +39,8 @@ import java.util.Locale
             Text(state.selectedEvent?.localizedTitle(japanese) ?: stringResource(R.string.app_name),
                 maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleLarge)
         }, actions = {
-            IconButton(onClick = {
-                if (state.castConnection == CastConnection.CONNECTED || session.player.isCasting) castControls = true else onCast()
+            IconButton(enabled = state.canControlPlayback || state.castConnection != CastConnection.DISCONNECTED || session.player.isCasting, onClick = {
+                if (state.castConnection != CastConnection.DISCONNECTED || session.player.isCasting) castControls = true else onCast()
             }) { Icon(Icons.Outlined.Cast, stringResource(R.string.cast)) }
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.options)) }

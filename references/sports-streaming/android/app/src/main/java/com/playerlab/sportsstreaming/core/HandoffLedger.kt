@@ -13,7 +13,7 @@ enum class HandoffFailure(val wireValue: String) {
 private data class HandoffRecord(
     val requestId: String, val requestedAtMs: Long, val eventId: String, val transition: String,
     val expected: RequestedPosition, var candidate: ConfirmedPosition? = null, var confirmed: ConfirmedPosition? = null,
-    var failure: HandoffFailure? = null,
+    var failure: HandoffFailure? = null, var candidateObservedAtMs: Long? = null,
 )
 private data class RequestedPosition(val videoId: String, val positionMs: Long?, val playWhenReady: Boolean)
 private data class ConfirmedPosition(val videoId: String, val positionMs: Long, val playWhenReady: Boolean, val advancing: Boolean)
@@ -38,18 +38,26 @@ class HandoffLedger {
     }
 
     fun observe(requestId: String, videoId: String?, positionMs: Long?, isPlaying: Boolean,
-                isPaused: Boolean, advancing: Boolean): Boolean {
+                isPaused: Boolean, advancing: Boolean, readyStopped: Boolean = false,
+                observedAtMs: Long = System.nanoTime() / 1_000_000L): Boolean {
         val record = records.firstOrNull { it.requestId == requestId } ?: return false
         if (record.failure != null) return false
         if (record.confirmed != null) return true
         val target = record.expected.positionMs ?: return false
         val expected = HandoffExpectation(record.expected.videoId, target, record.expected.playWhenReady)
         if (record.candidate == null && expected.matchesPosition(videoId, positionMs) &&
-            (if (record.expected.playWhenReady) isPlaying else isPaused && !isPlaying)) {
+            (if (record.expected.playWhenReady) isPlaying else (isPaused || readyStopped) && !isPlaying)) {
             record.candidate = ConfirmedPosition(videoId!!, positionMs!!, record.expected.playWhenReady, false)
+            record.candidateObservedAtMs = observedAtMs
         }
         val candidate = record.candidate ?: return false
         if (!record.expected.playWhenReady) {
+            if (isPlaying || !expected.matchesPosition(videoId, positionMs)) return false
+            if (!isPaused) {
+                val elapsed = observedAtMs - (record.candidateObservedAtMs ?: return false)
+                if (!readyStopped || isPlaying || videoId != candidate.videoId || positionMs == null ||
+                    elapsed < 200 || kotlin.math.abs(positionMs - candidate.positionMs) > 250) return false
+            }
             record.confirmed = candidate
             return true
         }

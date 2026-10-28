@@ -14,7 +14,15 @@ impression.
 
 [`PlayerSurfaceHost`](../android/app/src/main/java/com/playerlab/sportsstreaming/PlayerSurfaceHost.kt)
 attaches one `PlayerView` at a time. Standard mode uses the SDK's Web UI; sports
-mode disables that UI and uses native controls with one subtitle renderer.
+mode disables that UI and uses native controls. Both modes share one
+application-owned SDK `SubtitleView`; supplemental CSS hides only the HTML
+caption overlay. Replacing the HTML controls otherwise failed to redisplay an
+already-active paused cue. The shared renderer preserves it without a Source
+reload, seek or subtitle-track toggle. Its lifetime belongs to the retained
+Player owner, with the application context; a retiring surface can detach it
+only while it still owns the View. Caption text follows the application's font
+scale rather than the height of a letterboxed tablet pane. Placement uses the renderer's bottom-padding
+API and honors authored cue positions. It does not pad the SDK wrapper View.
 Detach the Player before calling `onPause`, `onStop` or `onDestroy` on a replaced
 View; these lifecycle methods forward to its attached Player. Repeated UI changes must
 not load media, seek back to a saved position or attach additional listeners.
@@ -53,6 +61,9 @@ For a new Source, `SourceEvent.Loaded` confirms loading but does not establish
 playback readiness. Bind `PlayerEvent.Ready`, the active Source, and the current
 request generation before checking a configured start position or issuing a
 dependent command.
+The app keeps local controls unavailable until both milestones belong to that
+Source. A late load/ready event cannot clear a failed-source state. Cast uses
+its bound receiver acknowledgement instead, as described below.
 After a long pause, the requested media can have left that window. Offer a
 valid return position or the current live edge rather than silently pretending
 the expired position is available.
@@ -76,6 +87,69 @@ For a continuous archive, map verified media UTC to the archive's relative
 position. An edited archive requires explicit UTC intervals and offsets. A
 removed interval, an unknown mapping and an out-of-range position are different
 conditions. None implies a start at zero.
+Resolve the currently selected archive against a fresh Source-bound SDK
+timestamp when dispatching the handoff. A position shown for another archive
+is only a preview; its offset cannot be reused for an edited target.
+
+### Playback position and Unix time
+
+A finite duration does not imply that the SDK rebased its playback clock to zero.
+Keep the media coordinate, the Unix timestamp and an archive offset separate.
+The APIs also differ between Web and Android:
+
+| SDK and state | Current-time API | Absolute-time conversion |
+| --- | --- | --- |
+| Web | `getCurrentTime()` defaults to `TimeMode.AbsoluteTime`. `TimeMode.RelativeTime` is explicit. | A live Source can retain its Unix origin after becoming finite. Read `getSeekableRange()` before choosing a seek target. |
+| Android: live HLS | `currentTime` is relative. | Add `playbackTimeOffsetToAbsoluteTime` to a fresh `currentTime`, in seconds. |
+| Android: live DASH or Smooth Streaming | `currentTime` is a Unix timestamp. | The same offset API provides the conversion; do not add the event's start timestamp again. |
+| Android: live Cast | `currentTime` is relative, regardless of delivery format. | Reacquire the offset for that remote playback; a local Source's conversion is not a receiver clock. |
+| Android: VOD | `currentTime` is documented as a relative position. There is no `TimeMode` overload. | Do not assume that the preceding live offset remains available after finalization. |
+
+These are separate SDK contracts, not interchangeable property names. See the
+[Web current-time API](https://cdn.bitmovin.com/player/web/8/docs/interfaces/core.playerapi.html#getcurrenttime),
+[Web time modes](https://cdn.bitmovin.com/player/web/8/docs/enums/Core.TimeMode.html),
+[Android current time](https://cdn.bitmovin.com/player/android/3.172.0/docs/player-core/com.bitmovin.player.api/-player/current-time.html)
+and [Android absolute-time offset](https://cdn.bitmovin.com/player/android/3.172.0/docs/player-core/com.bitmovin.player.api/-player/playback-time-offset-to-absolute-time.html).
+An offset of zero is a value, not evidence that the API failed. The meaning of
+`currentTime + offset` must be checked against the Source's known time basis.
+
+In the controlled Android HLS ending, the raw playback position remained
+unchanged while the same Source became finite. In DASH, the raw value changed
+from Unix time to a relative coordinate, and both conversion offsets became
+zero. The previous conversion no longer produced the expected Unix timestamp;
+this does not mean that all SDK time information disappeared.
+
+[`SourceUtcClock`](../android/app/src/main/java/com/playerlab/sportsstreaming/core/SourceUtcClock.kt)
+uses both offsets from the same live SDK snapshot. Each offset is applied once
+to a directly provided SDK value:
+
+```text
+relative position = currentTime + playbackTimeOffsetToRelativeTime
+UTC origin = playbackTimeOffsetToAbsoluteTime - playbackTimeOffsetToRelativeTime
+Unix time = relative position + verified UTC origin
+```
+
+The app prefers a fresh valid SDK absolute mapping. A retained origin is bound
+to the Source, destination and request and is usable only after an observed
+live-to-finalized transition with a continuous SDK-relative coordinate. A
+replaced Source, destination change, unknown origin or unproved rebase leaves
+the position unknown. An explicit seek after finalization invalidates that
+retained transform unless the SDK supplies a newly valid absolute mapping.
+The app never substitutes the device's wall clock or a cached UI position.
+
+Finalizing the current manifest and loading a prepared archive are different
+operations. The archive is a new Source with its own relative timeline; map a
+verified media UTC through its explicit intervals. A Web result does not qualify
+the Android implementation, and local playback does not qualify Cast. The
+[validation results](validation.md) identify the SDK version, protocol and
+actual device used for each check.
+
+An unplayed VOD Source can be `Ready` while both `isPlaying` and `isPaused`
+are false. The application treats that as a settled non-playing intent only
+for the current loaded/ready Source and request, after its actual target
+position remains stable across separate observations. Handoff records retain
+the raw SDK flags; the app does not emit or invent a Paused event. Remote Cast
+confirmation still requires the receiver's actual playing or paused state.
 
 Keep the viewer's play/pause intent when loading the prepared Source. Confirm
 the actual resulting asset and position, and whether playback progresses or
@@ -117,6 +191,19 @@ uses `player.castVideo()` to open the SDK's route chooser. The SDK owns source
 loads and transport commands. [`CastController`](../android/app/src/main/java/com/playerlab/sportsstreaming/CastController.kt)
 observes Google Cast Framework status; it does not issue a second media load.
 
+Remote readiness is destination-specific. Android 3.172.0 did not emit another
+local `PlayerEvent.Ready` for a same-URL receiver reload, even when the actual
+receiver had loaded the new token/media session and was paused. The app therefore
+requires the exact Cast session, Source load token and `mediaSessionId`, plus
+an actual playable receiver status. Metadata-only, buffering, idle and failed
+states cannot establish readiness. This does not synthesize a local SDK event
+or reuse a previous Source's ready state.
+
+A same-URL reload first unloads through the SDK and waits for an observed remote
+stop belonging to that request and connection. An already-cached idle state or
+a natural end cannot acknowledge this stop. A timeout leaves an explicit failure
+and allows recovery; it does not send a second, independently owned CAF load.
+
 A remote source load is asynchronous. Calling `player.play()` immediately after
 `player.load(source)` can control the previous receiver item before the new
 load, whose autoplay setting may differ. This app retains the requested
@@ -125,11 +212,23 @@ reports that target item as playing or paused,
 [`ReceiverLoadIntent`](../android/app/src/main/java/com/playerlab/sportsstreaming/core/ReceiverLoadIntent.kt)
 issues a needed transport command once and waits for the resulting status.
 Status for an older source or operation cannot complete that request.
+Each Source includes a random, non-secret load identifier in
+[`SourceConfig.metadata`](https://cdn.bitmovin.com/player/android/3/docs/player-core/com.bitmovin.player.api.source/-source-config/metadata.html).
+The receiver status must return that identifier together with its actual
+[`mediaSessionId`](https://developers.google.com/cast/docs/media/messages#MediaStatus)
+and Cast session. A matching URL alone cannot distinguish a new load from an
+earlier playback of the same stream. Missing identity remains unconfirmed.
+This Source metadata is separate from Analytics `customData`, which stays empty.
 Dispatch is posted to the main queue after the receiver callback returns, so
 the SDK can finish updating its own playback state. The queued operation checks
 the Source, request generation, session and receiver item again before calling
 `player.play()` or `player.pause()`. Calling a transport method still does not
 confirm that the receiver applied it.
+If reconnecting changes the app's request generation while a load is pending,
+the pending intent is rebound to that generation without changing the requested
+Source or play/pause intent. A receiver load error stays latched for that Source
+until an explicit new load; a later status cannot re-enable its controls or
+erase an existing SDK error code.
 
 An explicit disconnect calls `BitmovinCastManager.getInstance().disconnect()`.
 Closing a route dialog is not a confirmed disconnection. Local playback stays

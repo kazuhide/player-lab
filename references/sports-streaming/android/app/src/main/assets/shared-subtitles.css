@@ -1,0 +1,2 @@
+/* The application-owned SDK SubtitleView renders captions in both control layouts. */
+.bmpui-ui-subtitle-overlay { display: none !important; }

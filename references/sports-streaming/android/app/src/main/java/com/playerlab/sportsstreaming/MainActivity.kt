@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         BitmovinCastManager.getInstance().updateContext(this)
         playback = ViewModelProvider(this)[PlaybackSession::class.java]
         if (BuildConfig.DEBUG) intent.getStringExtra("mediaBaseUrl")?.let(playback::overrideMediaBaseForDebug)
-        surface = PlayerSurfaceHost(this, playback.player)
+        surface = PlayerSurfaceHost(this, playback.player, playback.subtitleRenderer)
         val pip = DefaultPictureInPictureHandler(this, playback.player)
         surface.configureHandlers(object : FullscreenHandler {
             override val isFullscreen get() = fullscreen

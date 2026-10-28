@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.api.analytics.AnalyticsPlayerConfig
@@ -36,11 +37,17 @@ import com.bitmovin.player.casting.BitmovinCastManager
 import org.json.JSONObject
 import com.google.android.gms.cast.MediaStatus
 import java.security.MessageDigest
+import java.util.UUID
 
 class PlaybackSession(application: Application) : AndroidViewModel(application) {
     val player: Player = Player(application, PlayerConfig(key = BuildConfig.PLAYER_LICENSE_KEY),
         if (BuildConfig.ANALYTICS_LICENSE_KEY.isBlank()) AnalyticsPlayerConfig.Disabled
         else AnalyticsPlayerConfig.Enabled(AnalyticsConfig(BuildConfig.ANALYTICS_LICENSE_KEY)))
+    val subtitleRenderer = SubtitleView(application).apply {
+        setPlayer(player)
+        setUserDefaultStyle()
+        setUserDefaultTextSize()
+    }
     private val repository = CatalogRepository(application)
     private val mutableState = MutableStateFlow(PlaybackUiState())
     val state = mutableState.asStateFlow()
@@ -61,11 +68,17 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
     private var lastReceiverUtcMs: Long? = null
     private var lastReceiverPosition: Long? = null
     private var pendingRemoteLoad: RemoteLoad? = null
+    private var pendingRemoteReplacement: RemoteReplacement? = null
     private var lastReceiverObservation: ReceiverObservation? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     private var lastTransportDispatch: JSONObject? = null
+    private var lastRemoteLoadDispatch: JSONObject? = null
     private var receiverEvidence = ReceiverEvidence(null, null, null, null, 0)
     private var activeSource: Source? = null
+    private var activeSourceRequest: PlaybackRequest? = null
+    private var receiverLoadGuard: ReceiverLoadGuard? = null
+    private var sourceReadiness: SourceReadiness? = null
+    private var sourceUtcClock: SourceUtcClock? = null
     private var screenActive = true
     internal var desiredPlaying = false
     var loadCount = 0
@@ -75,24 +88,42 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
 
     init {
         player.on(PlayerEvent.Error::class) {
+            subtitleRenderer.setPlayer(null)
+            sourceReadiness?.fail()
             lastErrorCode = it.code.value
             diagnostics.add("player-error", "code=${it.code.value}")
-            mutableState.update { current -> current.copy(notice = PlaybackNotice.MEDIA_FAILED, errorCode = it.code.value, loadingSource = false) }
+            mutableState.update { current -> current.copy(notice = PlaybackNotice.MEDIA_FAILED, errorCode = it.code.value, sourceFailed = true, loadingSource = false) }
         }
         player.on(SourceEvent.Loaded::class) {
             if (it.source !== activeSource) return@on
             diagnostics.add("source-loaded", coordinator.current?.assetId ?: "debug-source")
-            if (pendingRemoteLoad == null) mutableState.update { current -> current.copy(loadingSource = false) }
+            sourceReadiness?.onLoaded(requireNotNull(receiverLoadGuard).loadToken, coordinator.current)
+            finishSourceReadiness()
         }
-        player.on(PlayerEvent.Play::class) { if (pendingRemoteLoad == null) desiredPlaying = true }
+        player.on(PlayerEvent.Ready::class) {
+            diagnostics.add("source-ready-event", "current=${player.source === activeSource}:active=${activeSource?.isActive}:request=${activeSourceRequest == coordinator.current}")
+            if (activeSource == null || player.source !== activeSource || activeSourceRequest != coordinator.current) return@on
+            sourceReadiness?.onReady(requireNotNull(receiverLoadGuard).loadToken, coordinator.current)
+            finishSourceReadiness()
+        }
+        player.on(PlayerEvent.Play::class) {
+            if (pendingRemoteLoad == null) desiredPlaying = true
+        }
         player.on(PlayerEvent.Paused::class) { if (pendingRemoteLoad == null) desiredPlaying = false }
+        player.on(PlayerEvent.Seek::class) {
+            if (player.source === activeSource && activeSourceRequest == coordinator.current &&
+                state.value.activeAsset?.kind == AssetKind.LIVE && !player.isLive)
+                sourceUtcClock?.invalidateAfterUnmappedSeek()
+        }
         player.on(PlayerEvent.PlaybackFinished::class) {
+            subtitleRenderer.setPlayer(player)
             if (state.value.activeAsset?.kind == AssetKind.CLIP && state.value.selectedEvent?.status == EventStatus.LIVE) returnToLive(false)
         }
         castController = CastController(application, ::onCastConnection, ::onReceiverMedia) {
             mutableState.update { it.copy(notice = PlaybackNotice.CAST_FAILED) }
         }
         player.on(PlayerEvent.CastStopped::class) {
+            if (pendingRemoteReplacement != null && castController?.isConnected == true) return@on
             activeCastId?.let { id -> onCastConnection(CastConnection.DISCONNECTED, id, null) }
         }
         player.on(PlayerEvent.CastTimeUpdated::class) { castController?.refresh() }
@@ -153,14 +184,15 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
             title = asset.title, subtitleTracks = asset.subtitleTracks.mapIndexed { index, caption ->
                 SubtitleTrack(caption.url, mimeType = "text/vtt", label = caption.label,
                     id = "caption-$index-${caption.language}", language = caption.language)
-            }, options = SourceOptions(startMs?.let { it / 1_000.0 }, TimelineReferencePoint.Start))
+            }, options = SourceOptions(startMs?.let { it / 1_000.0 }, TimelineReferencePoint.Start),
+            metadata = newSourceMetadata())
         mutableState.update { it.copy(activeAssetId = asset.id, selectedEventId = asset.eventId,
             protocol = chosenProtocol, loadingSource = true, notice = PlaybackNotice.NONE,
             archiveTargetId = if (asset.eventId == it.selectedEventId) it.archiveTargetId else null,
-            errorCode = null, viewedUtcMs = null, archivePosition = ArchivePosition.Unknown) }
+            errorCode = null, sourceFailed = false, viewedUtcMs = null, archivePosition = ArchivePosition.Unknown) }
         loadSource(config, asset.videoId, asset.title, playWhenReady)
         diagnostics.add("load-requested", "${request.generation}:${asset.id}:${request.destination.substringBefore(':')}")
-        if (player.isCasting) {
+        if (player.isCasting || state.value.castConnection == CastConnection.CONNECTED) {
             val position = startMs ?: if (asset.kind == AssetKind.LIVE) null else 0L
             val record = handoffs.begin(asset.eventId, "cast", asset.videoId, position, playWhenReady)
             pendingHandoff = PendingHandoff(request, activeSource ?: return, record, asset.videoId)
@@ -185,21 +217,25 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         updatePlaybackState()
     }
     fun seekBy(deltaSeconds: Double) {
-        if (!state.value.canControlPlayback || player.source == null) return
+        if (!state.value.canControlPlayback || !state.value.hasUsableSeekTimeline || player.source == null ||
+            (state.value.activeAsset?.kind == AssetKind.LIVE && !player.isLive)) return
         if (player.isLive) {
             val target = LiveSeekController { LiveWindow(player.maxTimeShift, player.timeShift) }.seekBy(deltaSeconds)
             player.timeShift(target)
         } else {
             val range = player.source?.seekableRange ?: return
             if (!range.start.isFinite() || !range.end.isFinite() || range.end <= range.start) return
+            if (state.value.activeAsset?.kind == AssetKind.LIVE) sourceUtcClock?.invalidateAfterUnmappedSeek()
             player.seek((player.currentTime + deltaSeconds).coerceIn(range.start, range.end))
         }
     }
     fun goLive() { if (state.value.canControlPlayback && player.isLive) player.timeShift(0.0) }
     fun seekTo(positionMs: Long) {
-        if (state.value.canControlPlayback && !player.isLive && player.source != null) {
+        if (state.value.canControlPlayback && state.value.hasUsableSeekTimeline && state.value.activeAsset?.kind != AssetKind.LIVE &&
+            !player.isLive && player.source != null) {
             val range = player.source?.seekableRange ?: return
             if (range.start.isFinite() && range.end.isFinite() && range.end > range.start) {
+                if (state.value.activeAsset?.kind == AssetKind.LIVE) sourceUtcClock?.invalidateAfterUnmappedSeek()
                 player.seek((positionMs / 1_000.0).coerceIn(range.start, range.end))
             }
         }
@@ -210,10 +246,24 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         val source = player.source ?: return
         if (source.availableSubtitleTracks.any { it.id == id }) source.setSubtitleTrack(id)
     }
-    fun clearNotice() { mutableState.update { it.copy(notice = PlaybackNotice.NONE, errorCode = null) } }
+    fun clearNotice() { mutableState.update { it.copy(notice = PlaybackNotice.NONE) } }
+
+    private fun newSourceMetadata() = mapOf(SOURCE_LOAD_TOKEN_METADATA_KEY to UUID.randomUUID().toString())
+    private fun finishSourceReadiness() {
+        if (sourceReadiness?.isReady == true && pendingRemoteLoad == null && !state.value.sourceFailed)
+            mutableState.update { it.copy(loadingSource = false) }
+    }
 
     private fun loadSource(config: SourceConfig, videoId: String, title: String, playWhenReady: Boolean) {
         checkMainThread()
+        subtitleRenderer.setPlayer(player)
+        val previousSource = activeSource ?: player.source
+        val loadToken = requireNotNull(config.metadata?.get(SOURCE_LOAD_TOKEN_METADATA_KEY))
+        receiverLoadGuard = ReceiverLoadGuard(loadToken)
+        sourceUtcClock = SourceUtcClock(loadToken)
+        activeSourceRequest = coordinator.current
+        sourceReadiness = SourceReadiness(loadToken, activeSourceRequest)
+        mutableState.update { it.copy(sourceFailed = false, errorCode = null, loadingSource = true) }
         activeSource = Source(config, AnalyticsSourceConfig.Enabled(SourceMetadata(videoId = videoId, title = title)))
         loadCount++
         lastErrorCode = null
@@ -221,21 +271,80 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         val source = activeSource!!
         source.on(SourceEvent.Error::class) {
             if (activeSource !== source) return@on
+            subtitleRenderer.setPlayer(null)
+            sourceReadiness?.fail()
             lastErrorCode = it.code.value
             pendingHandoff?.let { pending -> handoffs.fail(pending.recordId, HandoffFailure.LOAD_FAILED) }
             diagnostics.add("source-error", "code=${it.code.value}")
-            mutableState.update { current -> current.copy(notice = PlaybackNotice.MEDIA_FAILED, errorCode = it.code.value, loadingSource = false) }
+            mutableState.update { current -> current.copy(notice = PlaybackNotice.MEDIA_FAILED, errorCode = it.code.value, sourceFailed = true, loadingSource = false) }
         }
-        val remote = player.isCasting
+        val remote = player.isCasting || state.value.castConnection == CastConnection.CONNECTED
         pendingRemoteLoad = if (remote) coordinator.current?.let { RemoteLoad(source, ReceiverLoadIntent(it, playWhenReady)) } else null
-        player.load(source)
-        if (!remote) {
-            if (playWhenReady) player.play() else player.pause()
+        if (remote) {
+            val request = coordinator.current ?: return
+            replaceRemoteSource(source, request, previousSource)
+            return
         }
+        player.load(source)
+        if (playWhenReady) player.play() else player.pause()
+    }
+    private fun replaceRemoteSource(source: Source, request: PlaybackRequest, previousSource: Source?) {
+        val connection = activeCastId ?: run { failRemoteReplacement(source, request); return }
+        val existing = pendingRemoteReplacement
+        if (existing != null && existing.connectionId == connection) {
+            existing.source = source
+            existing.request = request
+            return
+        }
+        val previousToken = previousSource?.config?.metadata?.get(SOURCE_LOAD_TOKEN_METADATA_KEY)
+        val previousMediaId = lastReceiverObservation?.takeIf {
+            it.sessionId == connection && it.sourceLoadToken == previousToken
+        }?.mediaSessionId
+        val revision = castController?.statusRevision ?: 0L
+        val waiting = RemoteReplacement(connection, source, request,
+            ReceiverStopGate(connection, previousMediaId, previousToken, revision, SystemClock.elapsedRealtime()))
+        pendingRemoteReplacement = waiting
+        lastRemoteLoadDispatch = JSONObject().put("castingBeforeUnload", player.isCasting)
+            .put("assetId", request.assetId).put("stopAfterRevision", revision).put("stopConfirmed", false)
+        player.unload()
+        lastRemoteLoadDispatch?.put("castingAfterUnload", player.isCasting)
+        mainHandler.postDelayed({
+            if (pendingRemoteReplacement === waiting && waiting.gate.expired(SystemClock.elapsedRealtime()))
+                failRemoteReplacement(waiting.source, waiting.request)
+        }, 20_000)
+    }
+    private fun failRemoteReplacement(source: Source, request: PlaybackRequest) {
+        if (source !== activeSource || !coordinator.isCurrent(request)) return
+        pendingRemoteReplacement = null
+        pendingRemoteLoad = null
+        sourceReadiness?.fail()
+        pendingHandoff?.takeIf { it.source === source }?.let { handoffs.fail(it.recordId, HandoffFailure.LOAD_FAILED) }
+        pendingHandoff = null
+        mutableState.update { it.copy(sourceFailed = true, loadingSource = false, notice = PlaybackNotice.MEDIA_FAILED) }
+        diagnostics.add("receiver-replacement-failed", request.assetId)
+    }
+    private fun observeRemoteStop(observed: ReceiverObservation): Boolean {
+        val waiting = pendingRemoteReplacement ?: return false
+        val proof = ReceiverStopProof(observed.sessionId, observed.statusRevision, observed.mediaSessionId,
+            observed.sourceLoadToken, observed.playerState == MediaStatus.PLAYER_STATE_IDLE &&
+                observed.idleReason == MediaStatus.IDLE_REASON_CANCELED,
+            !observed.mediaPresent && observed.queueItemCount == 0)
+        if (!waiting.dispatchPosted && waiting.gate.accepts(proof, coordinator.current, waiting.request, SystemClock.elapsedRealtime())) {
+            waiting.dispatchPosted = true
+            mainHandler.post {
+                if (pendingRemoteReplacement !== waiting || waiting.source !== activeSource || !coordinator.isCurrent(waiting.request) ||
+                    castController?.isConnected != true || activeCastId != waiting.connectionId || state.value.sourceFailed) return@post
+                pendingRemoteReplacement = null
+                lastRemoteLoadDispatch?.put("stopConfirmed", true)?.put("stopObservedRevision", observed.statusRevision)
+                player.load(waiting.source)
+                lastRemoteLoadDispatch?.put("castingAfterLoad", player.isCasting)
+            }
+        }
+        return true
     }
     fun load(url: String, videoId: String, type: SourceType, subtitleUrl: String? = null) {
         val captions = subtitleUrl?.let { listOf(SubtitleTrack(it, mimeType = "text/vtt", label = "English", id = "test-en", language = "en")) }.orEmpty()
-        loadSource(SourceConfig(url, type, subtitleTracks = captions), videoId, videoId, true)
+        loadSource(SourceConfig(url, type, subtitleTracks = captions, metadata = newSourceMetadata()), videoId, videoId, true)
     }
     private fun startStatusPolling(request: PlaybackRequest) {
         statusJob?.cancel()
@@ -306,9 +415,7 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         val matches = source != null && source === activeSource
         val isLive = matches && player.isLive
         val raw = player.currentTime
-        val absolute = (raw + player.playbackTimeOffsetToAbsoluteTime) * 1_000.0
-        val utc = if (matches && asset?.kind == AssetKind.LIVE && absolute.isFinite() &&
-            asset.utcStartMs != null && absolute >= asset.utcStartMs) absolute.roundToLong() else null
+        val utc = viewedUtcForCurrentSource()
         val position = if (!matches || !raw.isFinite()) null else if (isLive) {
             if (utc != null && asset?.utcStartMs != null) utc - asset.utcStartMs else null
         } else (raw * 1_000).roundToLong().coerceAtLeast(0)
@@ -331,8 +438,31 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
     fun setArchiveTarget(assetId: String) {
         val asset = state.value.catalog?.asset(assetId) ?: return
         if (asset.kind == AssetKind.ARCHIVE && asset.eventId == state.value.selectedEventId) {
-            mutableState.update { it.copy(archiveTargetId = assetId) }
+            val position = archivePositionAtDispatch(asset)
+            mutableState.update { it.copy(archiveTargetId = assetId, archivePosition = position) }
         }
+    }
+    private fun archivePositionAtDispatch(archive: MediaAsset): ArchivePosition =
+        ArchiveContinuation.resolve(archive.mapping, coordinator.current) {
+            val current = state.value
+            val source = activeSource
+            val matches = source != null && player.source === source && activeSourceRequest == coordinator.current &&
+                current.activeAsset?.kind == AssetKind.LIVE && !current.loadingSource && !current.sourceFailed &&
+                (!player.isCasting || lastReceiverObservation?.let { receiverMatches(it, source) } == true)
+            val utc = if (matches) viewedUtcForCurrentSource() else null
+            SourceUtcReading(activeSourceRequest, matches, utc)
+        }
+    internal fun viewedUtcForCurrentSource(): Long? {
+        val current = state.value
+        val source = activeSource ?: return null
+        val token = receiverLoadGuard?.loadToken ?: return null
+        val request = activeSourceRequest ?: return null
+        if (player.source !== source || request != coordinator.current || current.activeAsset?.kind != AssetKind.LIVE ||
+            current.loadingSource || current.sourceFailed) return null
+        if (player.isCasting && lastReceiverObservation?.let { receiverMatches(it, source) } != true) return null
+        return sourceUtcClock?.read(UtcClockSample(token, "${request.destination}:${request.generation}",
+            player.currentTime, player.playbackTimeOffsetToAbsoluteTime, player.isLive, current.activeAsset?.utcStartMs,
+            SystemClock.elapsedRealtime(), player.playbackSpeed.toDouble(), player.playbackTimeOffsetToRelativeTime))
     }
     fun setAutoContinue(enabled: Boolean) { mutableState.update { it.copy(autoContinue = enabled) } }
     fun continueInArchive(fromStart: Boolean = false) {
@@ -341,7 +471,12 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         if (current.activeAsset?.kind != AssetKind.LIVE || event.archiveStatus != ArchiveStatus.READY ||
             !current.acceptsPlaybackCommands) return
         val archive = current.catalog?.asset(current.archiveTargetId ?: event.archiveAssetId) ?: return
-        val position = if (fromStart) 0L else (current.archivePosition as? ArchivePosition.Available)?.positionMs ?: return
+        val resolved = archivePositionAtDispatch(archive)
+        if (!fromStart && resolved !is ArchivePosition.Available) {
+            mutableState.update { it.copy(archivePosition = resolved) }
+            return
+        }
+        val position = if (fromStart) 0L else (resolved as ArchivePosition.Available).positionMs
         val play = if (fromStart) true else desiredPlaying
         val recordId = handoffs.begin(event.id, "live-to-archive", archive.videoId, position, play)
         selectAsset(archive.id, startMs = position, playWhenReady = play)
@@ -353,8 +488,10 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         val current = state.value
         val event = current.selectedEvent ?: return
         val request = coordinator.current ?: return
+        val archive = current.catalog?.asset(current.archiveTargetId ?: event.archiveAssetId)
+        val position = archive?.let(::archivePositionAtDispatch) ?: ArchivePosition.Unknown
         if (current.activeAsset?.kind == AssetKind.LIVE &&
-            EventPlaybackState(event.status, event.archiveStatus).shouldAutoContinue(current.autoContinue, current.archivePosition) &&
+            EventPlaybackState(event.status, event.archiveStatus).shouldAutoContinue(current.autoContinue, position) &&
             current.acceptsPlaybackCommands && coordinator.claimHandoff(request)) continueInArchive()
     }
     fun returnToLive(originalPosition: Boolean) {
@@ -393,14 +530,18 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         val position = state.value.positionMs ?: return
         val advanced = pending.lastPositionMs?.let { position > it } ?: false
         pending.lastPositionMs = position
-        if (handoffs.observe(pending.recordId, pending.videoId, position, player.isPlaying, player.isPaused, advanced)) {
+        val readyStopped = sourceReadiness?.localSdkReady == true && activeSource === pending.source &&
+            activeSourceRequest == pending.request && !state.value.loadingSource && !desiredPlaying && !player.isPlaying
+        if (handoffs.observe(pending.recordId, pending.videoId, position, player.isPlaying, player.isPaused, advanced,
+                readyStopped = readyStopped, observedAtMs = SystemClock.elapsedRealtime())) {
             diagnostics.add("handoff-confirmed", pending.request.assetId)
             pendingHandoff = null
         }
     }
     fun toggleCasting() {
         checkMainThread()
-        if (player.isCasting) { disconnectCasting(); return }
+        if (player.isCasting || state.value.castConnection != CastConnection.DISCONNECTED) { disconnectCasting(); return }
+        if (!state.value.canControlPlayback) return
         if (player.source == null || !player.isCastAvailable) {
             mutableState.update { it.copy(notice = PlaybackNotice.CAST_FAILED) }; return
         }
@@ -428,10 +569,22 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
             .put("observedPositionMs", receiverEvidence.positionMs ?: JSONObject.NULL)
             .put("observedPlaying", receiverEvidence.playing ?: JSONObject.NULL)
             .put("observedPaused", receiverEvidence.paused ?: JSONObject.NULL)
+            .put("sourceFailed", state.value.sourceFailed)
+            .put("sourceSdkReady", sourceReadiness?.localSdkReady ?: false)
+            .put("sourcePlaybackReady", sourceReadiness?.isReady ?: false)
+            .put("sourceReceiverPlayable", sourceReadiness?.receiverPlayable ?: false)
+            .put("sdkSourceMatchesActive", player.source != null && player.source === activeSource)
+            .put("sourceReadinessEvents", org.json.JSONArray(diagnostics.entries.filter { it.event == "source-ready-event" }.takeLast(4).map { it.detail }))
+            .put("receiverMediaSessionId", lastReceiverObservation?.mediaSessionId ?: JSONObject.NULL)
+            .put("receiverBoundMediaSessionId", receiverLoadGuard?.mediaSessionId ?: JSONObject.NULL)
+            .put("receiverSourceTokenPresent", lastReceiverObservation?.sourceLoadToken != null)
+            .put("receiverSourceTokenMatches", lastReceiverObservation?.sourceLoadToken != null &&
+                lastReceiverObservation?.sourceLoadToken == receiverLoadGuard?.loadToken)
             .put("pendingPlayIntent", pendingRemoteLoad?.intent?.playWhenReady ?: JSONObject.NULL)
             .put("transportCommandSent", pendingRemoteLoad?.intent?.commandSent ?: JSONObject.NULL)
             .put("transportCommandQueued", pendingRemoteLoad?.intent?.commandQueued ?: JSONObject.NULL)
             .put("lastTransportDispatch", lastTransportDispatch ?: JSONObject.NULL)
+            .put("lastRemoteLoadDispatch", lastRemoteLoadDispatch ?: JSONObject.NULL)
             .put("receiverPlayerState", lastReceiverObservation?.playerState ?: JSONObject.NULL)
             .put("receiverIdleReason", lastReceiverObservation?.idleReason ?: JSONObject.NULL)
             .put("receiverContentMatches", lastReceiverObservation?.let { sameContent(activeSource?.config?.url, it.contentId) } ?: JSONObject.NULL)
@@ -445,6 +598,7 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         val asset = current.activeAsset ?: return
         val request = coordinator.current ?: return
         val source = activeSource ?: return
+        if (pendingHandoff?.source === source) return
         val record = handoffs.begin(asset.eventId, "cast", asset.videoId, current.positionMs, desiredPlaying)
         pendingHandoff = PendingHandoff(request, source, record, asset.videoId)
     }
@@ -477,29 +631,57 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
                 pendingHandoff?.let { handoffs.fail(it.recordId, HandoffFailure.DISCONNECTED) }
                 pendingHandoff = null
                 pendingRemoteLoad = null
+                pendingRemoteReplacement = null
                 activeCastId = null
                 coordinator.changeDestination("local:awaiting-choice")
                 if (castRecovery.needsLocalReturnChoice || player.isCasting) player.pause()
             }
         }
         diagnostics.add("cast-state", connection.name.lowercase())
+        if (connection != CastConnection.DISCONNECTED && player.source === activeSource) {
+            val previous = activeSourceRequest
+            activeSourceRequest = coordinator.current
+            sourceReadiness?.rebind(previous, activeSourceRequest)
+            val pending = pendingRemoteLoad
+            val request = coordinator.current
+            if (pending != null && request != null && pending.intent.request != request)
+                pendingRemoteLoad = pending.copy(intent = pending.intent.rebind(request))
+            if (request != null) pendingRemoteReplacement?.takeIf { it.source === activeSource }?.request = request
+        }
         mutableState.update { it.copy(castConnection = connection, castName = name,
+            loadingSource = connection != CastConnection.DISCONNECTED && activeSource != null &&
+                (sourceReadiness?.isReady != true || pendingRemoteLoad != null || pendingRemoteReplacement != null),
             needsLocalReturnChoice = castRecovery.needsLocalReturnChoice) }
     }
     private fun onReceiverMedia(observation: ReceiverObservation) {
         checkMainThread()
         if (observation.sessionId != activeCastId || state.value.castConnection != CastConnection.CONNECTED) return
         lastReceiverObservation = observation
+        if (observeRemoteStop(observation)) return
         val asset = state.value.activeAsset ?: return
         val source = activeSource ?: return
-        if (!sameContent(source.config.url, observation.contentId)) return
-        val rawPosition = observation.positionMs ?: run {
-            if (observation.playerState == MediaStatus.PLAYER_STATE_IDLE && observation.idleReason == MediaStatus.IDLE_REASON_ERROR) {
-                mutableState.update { it.copy(notice = PlaybackNotice.MEDIA_FAILED, errorCode = null, loadingSource = false) }
+        val guard = receiverLoadGuard ?: return
+        val request = activeSourceRequest ?: return
+        val contentMatches = sameContent(source.config.url, observation.contentId)
+        if (observation.playerState == MediaStatus.PLAYER_STATE_IDLE && observation.idleReason == MediaStatus.IDLE_REASON_ERROR) {
+            if (guard.fail(coordinator.current, request, activeCastId, observation.sessionId,
+                    observation.mediaSessionId, observation.sourceLoadToken, contentMatches)) {
+                sourceReadiness?.fail()
+                mutableState.update { it.copy(notice = PlaybackNotice.MEDIA_FAILED, sourceFailed = true, loadingSource = false) }
+                pendingHandoff?.takeIf { it.source === source && it.request == request }?.let {
+                    handoffs.fail(it.recordId, HandoffFailure.LOAD_FAILED)
+                }
+                pendingHandoff = null
+                pendingRemoteLoad = null
                 diagnostics.add("receiver-error", "idleReason=${observation.idleReason}:${asset.id}")
             }
             return
         }
+        if (state.value.sourceFailed || !receiverMatches(observation, source)) return
+        val rawPosition = observation.positionMs ?: run {
+            return
+        }
+        sourceReadiness?.onReceiverPlayable(guard.loadToken, coordinator.current)
         pendingRemoteLoad?.takeIf { it.source === source }?.let { pending ->
             if (pending.intent.observe(coordinator.current, true, observation.playing, observation.paused) != null) {
                 // SDK receiver-state processing must finish before its public transport API changes that state.
@@ -524,7 +706,8 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         lastReceiverUtcMs = utc
         val advanced = lastReceiverPosition?.let { position > it } ?: false
         lastReceiverPosition = position
-        receiverEvidence = ReceiverEvidence(asset.id, position, observation.playing, observation.paused, receiverEvidence.samples + 1)
+        receiverEvidence = ReceiverEvidence(asset.id, position, observation.playing, observation.paused,
+            receiverEvidence.samples + 1, observation.mediaSessionId)
         mutableState.update { it.copy(positionMs = position, viewedUtcMs = utc, isPlaying = observation.playing,
             isPaused = observation.paused, loadingSource = pendingRemoteLoad != null) }
         val pending = pendingHandoff
@@ -536,11 +719,17 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
     }
     private fun sameContent(expected: String?, actual: String): Boolean =
         expected != null && runCatching { URI(expected).normalize() == URI(actual).normalize() }.getOrDefault(false)
+    private fun receiverMatches(observed: ReceiverObservation, source: Source): Boolean {
+        val request = activeSourceRequest ?: return false
+        return source === activeSource && player.source === source && receiverLoadGuard?.accepts(
+            coordinator.current, request, activeCastId, observed.sessionId, observed.mediaSessionId,
+            observed.sourceLoadToken, sameContent(source.config.url, observed.contentId)) == true
+    }
     private fun dispatchRemoteIntent(pending: RemoteLoad) {
-        if (pendingRemoteLoad !== pending || activeSource !== pending.source || player.isDestroyed || lastErrorCode != null) return
+        if (pendingRemoteLoad !== pending || activeSource !== pending.source || player.isDestroyed || lastErrorCode != null || state.value.sourceFailed) return
         val observed = lastReceiverObservation
         val matching = player.isCasting && state.value.castConnection == CastConnection.CONNECTED &&
-            observed?.sessionId == activeCastId && sameContent(pending.source.config.url, observed?.contentId.orEmpty())
+            observed != null && receiverMatches(observed, pending.source)
         val command = pending.intent.dispatch(coordinator.current, matching, observed?.playing == true, observed?.paused == true)
         if (command != null) {
             val details = JSONObject().put("command", command.name).put("assetId", coordinator.current?.assetId ?: JSONObject.NULL)
@@ -599,7 +788,13 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
     private fun checkMainThread() { check(Looper.myLooper() == Looper.getMainLooper()) }
     fun snapshot() = OwnershipSnapshot(player, player.source, player.analytics?.impressionId,
         loadCount, player.currentTime, player.isPaused, player.playbackSpeed, player.source?.selectedSubtitleTrack?.id)
-    override fun onCleared() { castController?.close(); catalogJob?.cancel(); statusJob?.cancel(); player.destroy() }
+    override fun onCleared() {
+        mainHandler.removeCallbacksAndMessages(null)
+        pendingRemoteReplacement = null
+        pendingRemoteLoad = null
+        subtitleRenderer.setPlayer(null)
+        castController?.close(); catalogJob?.cancel(); statusJob?.cancel(); player.destroy()
+    }
 }
 
 data class OwnershipSnapshot(
@@ -612,6 +807,9 @@ private data class PendingLiveReturn(val request: PlaybackRequest, val utcMs: Lo
 private data class PendingHandoff(val request: PlaybackRequest, val source: Source, val recordId: String,
     val videoId: String, var lastPositionMs: Long? = null)
 
-data class ReceiverEvidence(val assetId: String?, val positionMs: Long?, val playing: Boolean?, val paused: Boolean?, val samples: Long)
+data class ReceiverEvidence(val assetId: String?, val positionMs: Long?, val playing: Boolean?, val paused: Boolean?,
+    val samples: Long, val mediaSessionId: Long? = null)
 
 private data class RemoteLoad(val source: Source, val intent: ReceiverLoadIntent)
+private data class RemoteReplacement(val connectionId: String, var source: Source, var request: PlaybackRequest,
+    val gate: ReceiverStopGate, var dispatchPosted: Boolean = false)
