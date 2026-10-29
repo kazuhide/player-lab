@@ -9,7 +9,7 @@ const publicFiles = new Map([
   ['/app.mjs', ['app.mjs', 'text/javascript; charset=utf-8']],
   ['/client.mjs', ['client.mjs', 'text/javascript; charset=utf-8']],
   ['/ui.mjs', ['ui.mjs', 'text/javascript; charset=utf-8']],
-  ['/supplement.mjs', ['supplement.mjs', 'text/javascript; charset=utf-8']],
+  ['/demo.mjs', ['demo.mjs', 'text/javascript; charset=utf-8']],
   ['/translations.mjs', ['translations.mjs', 'text/javascript; charset=utf-8']],
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
 ]);
@@ -39,7 +39,7 @@ export function createDashboardServer({ service = createAnalyticsService({ confi
           (request.headers['sec-fetch-site'] === 'cross-site' && !documentNavigation)) return send(403, { code: 'LOCAL_ORIGIN_REQUIRED' });
       if (url.pathname.startsWith('/api/')) {
         if (request.method !== 'GET') return send(405, { code: 'METHOD_NOT_ALLOWED' }, undefined, { Allow: 'GET' });
-        if (url.pathname === '/api/config' && !url.search) return send(200, config);
+        if (url.pathname === '/api/config' && !url.search) return send(200, { ...config, queryConfigured: service.configured === true });
         if (url.pathname === '/api/qoe') return send(200, await service.query(url.searchParams));
         return send(404, { code: 'NOT_FOUND' });
       }

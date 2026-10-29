@@ -94,7 +94,7 @@ test('whole-period percentiles and grouped/hourly queries are separate requests'
   assert.equal(p95.filter(call => call.body.groupBy?.[0] === 'VIDEO_ID').length, 1);
 });
 
-test('maximum active requests is three, shared requests deduplicate, and cache preserves fetch time', async () => {
+test('maximum active requests is three, in-flight requests deduplicate, and each later fetch queries again', async () => {
   let active = 0; let peak = 0; let calls = 0; let clock = now;
   const api = service({ clock: () => clock, fetchImpl: async (url, request) => {
     active += 1; peak = Math.max(peak, active); calls += 1;
@@ -104,9 +104,10 @@ test('maximum active requests is three, shared requests deduplicate, and cache p
   const [a, b] = await Promise.all([api.query(parameters()), api.query(parameters())]);
   assert.equal(calls, 12); assert.equal(peak, 3); assert.deepEqual(a, b);
   clock += 10_000;
-  const cached = await api.query(parameters());
-  assert.equal(cached.cache, 'hit'); assert.equal(cached.fetchedAt, a.fetchedAt); assert.equal(calls, 12);
-  clock += 6000; await api.query(parameters()); assert.equal(calls, 24);
+  const refreshed = await api.query(parameters());
+  assert.equal(calls, 24);
+  assert.notEqual(refreshed.fetchedAt, a.fetchedAt);
+  clock += 1000; await api.query(parameters()); assert.equal(calls, 36);
 });
 
 test('a full page fetches offset 200 and malformed or excess rows never become a complete result', async () => {

@@ -72,3 +72,15 @@ test('unexpected failures do not reflect upstream diagnostics or credentials', a
   assert.equal(result.status, 500);
   assert.deepEqual(JSON.parse(result.body), { code: 'SERVER_ERROR' });
 });
+
+test('demo assets and configuration load without querying or disclosing credentials', async t => {
+  let queries = 0;
+  const port = await open(t, { configured: false, query: async () => { queries += 1; return { status: 'unconfigured' }; } });
+  for (const path of ['/', '/demo.mjs', '/app.mjs', '/styles.css']) assert.equal((await request(port, path)).status, 200);
+  const result = await request(port, '/api/config');
+  assert.equal(JSON.parse(result.body).queryConfigured, false);
+  assert.doesNotMatch(result.body, /apiKey|licenseKey/);
+  assert.equal(queries, 0);
+  const configuredPort = await open(t, { configured: true, query: async () => ({ status: 'empty' }) });
+  assert.equal(JSON.parse((await request(configuredPort, '/api/config')).body).queryConfigured, true);
+});

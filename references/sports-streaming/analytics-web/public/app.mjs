@@ -1,7 +1,7 @@
 import { translations } from './translations.mjs';
 import { LatestRequest, hourlySegments } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
-import { parseRecords, fictionalRecords, summarizeRecords, handoffOutcome } from './supplement.mjs';
+import { createDemoData } from './demo.mjs';
 
 const $ = id => document.getElementById(id);
 const ids = ['plays', 'watchHours', 'startupMedian', 'startupP95', 'rebufferPercentage', 'errorPercentage'];
@@ -10,7 +10,8 @@ const latest = new LatestRequest();
 let locale = navigator.language.startsWith('ja') ? 'ja' : 'en';
 try { locale = localStorage.getItem('analytics-language') === 'ja' ? 'ja' : localStorage.getItem('analytics-language') === 'en' ? 'en' : locale; } catch { /* Language persistence is optional. */ }
 let config; let current = null; let currentKey = ''; let state = 'noQuery'; let loading = false;
-let records = null; let activeTab = 'quality'; let debounce; let cooldownUntil = 0; let cooldownTimer;
+let mode = location.hash === '#measured' ? 'measured' : 'demo';
+let cooldownUntil = 0; let cooldownTimer;
 const t = key => translations[locale][key] ?? key;
 const number = (value, places = 2) => value == null ? '—' : new Intl.NumberFormat(locale, value !== 0 && Math.abs(value) < 10 ** -places ? { maximumSignificantDigits: 2, notation: Math.abs(value) < .0001 ? 'scientific' : 'standard' } : { maximumFractionDigits: places }).format(value);
 const date = value => value ? new Date(value).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC') : '—';
@@ -19,30 +20,43 @@ const assetName = id => config.assets.find(asset => asset.id === id)?.[locale] ?
 function translate() {
   document.documentElement.lang = locale;
   document.querySelectorAll('[data-text]').forEach(node => { node.textContent = t(node.dataset.text); });
-  $('title').textContent = t(config.kind === 'sports' ? 'sportsTitle' : 'learningTitle');
+  $('title').textContent = t('sportsTitle');
   document.title = `${$('title').textContent} | Player Lab`;
-  $('quality-heading').textContent = t('quality'); $('quality-tab').textContent = t('quality'); $('records-tab').textContent = t('handoffRecords');
-  $('tabs').setAttribute('aria-label', t('quality'));
+  $('quality-heading').textContent = t(mode === 'demo' ? 'demoData' : 'measuredData');
+  $('tabs').setAttribute('aria-label', t('dataView'));
+  $('mode-note').textContent = t(mode === 'demo' ? 'demoNotice' : 'measuredNotice');
+  $('period-field').hidden = mode === 'demo';
+  $('custom-range').hidden = mode === 'demo' || $('period').value !== 'custom';
+  $('custom-range').disabled = $('custom-range').hidden;
+  $('refresh').hidden = mode === 'demo'; $('load-demo').hidden = mode !== 'demo';
+  $('setup').hidden = mode !== 'measured' || config.queryConfigured;
+  $('definitions-text').textContent = t(mode === 'demo' ? 'demoDefinitions' : 'definitionsText');
+  $('sample-time-note').hidden = mode === 'demo';
+  for (const name of ['demo', 'measured']) {
+    if (name === mode) $(`${name}-link`).setAttribute('aria-current', 'page');
+    else $(`${name}-link`).removeAttribute('aria-current');
+  }
   $('language').textContent = locale === 'ja' ? 'English' : '日本語'; $('language').lang = locale === 'ja' ? 'en' : 'ja';
   document.querySelector('.skip-link').textContent = t('skipContent');
   const oldAsset = $('asset').value;
-  $('asset').replaceChildren(new Option(t('all'), 'all'), ...config.assets.map(asset => new Option(asset[locale], asset.id)));
-  $('asset').value = oldAsset || 'all'; $('asset-label').textContent = t(config.kind === 'sports' ? 'video' : 'lesson');
+  const assets = config.assets.filter(asset => $('type').value === 'all' || asset.kind === $('type').value);
+  $('asset').replaceChildren(new Option(t('all'), 'all'), ...assets.map(asset => new Option(asset[locale], asset.id)));
+  $('asset').value = assets.some(asset => asset.id === oldAsset) ? oldAsset : 'all';
   const oldOrigin = $('origin').value;
   $('origin').replaceChildren(new Option(t('all'), 'all'), ...config.origins.map(origin => new Option(t(origin), origin)));
   $('origin').value = oldOrigin || 'all';
-  renderQuality(); renderRecords();
+  renderQuality();
 }
 
 function renderQuality() {
   const error = state === 'error' || state === 'partial';
   $('status').textContent = t(state); $('status').className = error ? 'error' : '';
-  $('metrics').setAttribute('aria-busy', String(loading)); $('refresh').disabled = loading || Date.now() < cooldownUntil;
+  $('metrics').setAttribute('aria-busy', String(loading)); $('refresh').disabled = !config.queryConfigured || loading || Date.now() < cooldownUntil;
   $('fetch-time').textContent = current?.fetchedAt ? `${t('received')}: ${date(current.fetchedAt)}` : '';
   $('period-summary').textContent = current ? `${date(current.period.start)} – ${date(current.period.end)}` : '';
-  $('source-summary').textContent = `${t('source')}: ${current?.source ?? 'Bitmovin Analytics Query API'}`;
+  $('source-summary').textContent = `${t('source')}: ${mode === 'demo' ? t('demoSource') : 'Bitmovin Analytics Query API'}`;
   if (current?.stale) $('status').textContent += ` ${t('earlierResults')}`;
-  if (Date.now() < cooldownUntil) $('status').textContent = `${t('retryLater')}: ${date(new Date(cooldownUntil).toISOString())}`;
+  if (mode === 'measured' && Date.now() < cooldownUntil) $('status').textContent = `${t('retryLater')}: ${date(new Date(cooldownUntil).toISOString())}`;
   $('metrics').replaceChildren(...ids.map((id, index) => {
     const metric = current?.metrics[id]; const node = element('div', undefined, 'metric');
     const label = element('p', t(id), 'metric-label'); const value = element('p', number(metric?.value, id === 'plays' ? 0 : 2), 'metric-value');
@@ -74,7 +88,7 @@ function renderComparison() {
     const result = current?.comparison[id];
     return result?.status === 'error' ? t(result.code) : number(result?.rows.find(row => row.asset === asset.id)?.value, id === 'plays' ? 0 : 2);
   })]);
-  $('comparison-table').replaceChildren(dataTable([t(config.kind === 'sports' ? 'video' : 'lesson'), t('plays'), `${t('p95')} (${t('seconds')})`, `${t('errorPercentage')} (%)`], rows));
+  $('comparison-table').replaceChildren(dataTable([t('video'), t('plays'), `${t('p95')} (${t('seconds')})`, `${t('errorPercentage')} (%)`], rows));
 }
 
 function parameters() {
@@ -85,16 +99,16 @@ function parameters() {
     end = new Date(Math.floor(Date.now() / 60_000) * 60_000); start = new Date(end.getTime() - Number($('period').value) * 3_600_000);
   }
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start || end - start > 7 * 86_400_000 || end.getTime() > Date.now() + 60_000) throw new Error('INVALID_PERIOD');
-  return new URLSearchParams({ start: start.toISOString(), end: end.toISOString(), asset: $('asset').value, origin: $('origin').value, type: config.kind === 'sports' ? $('type').value : 'all' });
+  return new URLSearchParams({ start: start.toISOString(), end: end.toISOString(), asset: $('asset').value, origin: 'all', type: $('type').value });
 }
 
 async function refresh() {
-  if (activeTab !== 'quality' || Date.now() < cooldownUntil) return;
+  if (mode !== 'measured' || !config.queryConfigured || loading || Date.now() < cooldownUntil) return;
   let params;
   try { params = parameters(); } catch { $('status').textContent = t('invalidPeriod'); return; }
   const key = params.toString();
   const earlier = key === currentKey ? current : null;
-  if (key !== currentKey) current = null;
+  current = earlier?.fetchedAt ? { ...earlier, stale: true } : null;
   currentKey = key; state = 'loading'; loading = true; renderQuality();
   await latest.run(async signal => {
     const response = await fetch(`/api/qoe?${params}`, { signal, cache: 'no-store' });
@@ -112,60 +126,39 @@ async function refresh() {
   }, error => { if (error.retryAfter) { cooldownUntil = Date.now() + error.retryAfter * 1000; clearTimeout(cooldownTimer); cooldownTimer = setTimeout(renderQuality, Math.min(error.retryAfter * 1000 + 20, 2147483647)); } loading = false; state = 'error'; current = earlier?.fetchedAt ? { ...earlier, stale: true } : null; renderQuality(); });
 }
 
-function renderRecords() {
-  $('records-status').textContent = records ? t(records.source === 'fictional-demo' ? 'fictional' : 'imported') : t('noRecords');
-  $('records-content').replaceChildren();
-  if (!records) return;
-  const summary = summarizeRecords(records); const counts = element('div', undefined, 'record-counts');
-  for (const key of ['requests', 'success', 'failed', 'pending']) {
-    const item = element('p', t(key)); item.append(element('strong', number(summary[key], 0))); counts.append(item);
-  }
-  const rate = (value, denominator) => value === null ? t('unavailable') : `${summary.success} / ${denominator} (${number(value, 1)}%)`;
-  const content = $('records-content'); content.append(element('p', `${date(records.period.start)} – ${date(records.period.end)}`, 'period-summary'), counts);
-  content.append(element('p', `${t('confirmedRate')}: ${rate(summary.confirmedRate, summary.success + summary.failed)}`));
-  content.append(element('p', `${t('allRate')}: ${rate(summary.allRate, summary.requests)}`));
-  content.append(element('p', t('receiverUnknown'), 'notice'));
-  const wrap = element('div', undefined, 'table-scroll');
-  wrap.append(dataTable([t('request'), t('timeUtc'), t('transition'), t('result')], records.records.map(row => [row.requestId, date(row.requestedAt), t(row.transition === 'cast' ? 'cast' : 'liveToArchive'), t(handoffOutcome(row))])));
-  content.append(wrap);
+function loadDemo() {
+  current = createDemoData(config, { asset: $('asset').value || 'all', type: $('type').value });
+  state = current.status === 'empty' ? 'empty' : 'demoReady';
+  renderQuality();
 }
 
-function chooseTab(tab) {
-  activeTab = tab; $('quality').hidden = tab !== 'quality'; $('records').hidden = tab !== 'records';
-  for (const name of ['quality', 'records']) {
-    if (name === tab) $(`${name}-tab`).setAttribute('aria-current', 'page');
-    else $(`${name}-tab`).removeAttribute('aria-current');
-  }
-  if (tab !== 'quality') { latest.cancel(); loading = false; }
+function chooseMode(next) {
+  latest.cancel(); loading = false; current = null; currentKey = ''; mode = next;
+  state = config.queryConfigured ? 'noQuery' : 'unconfigured';
+  translate();
+  if (mode === 'demo') loadDemo();
 }
 
 async function init() {
   const response = await fetch('/api/config', { cache: 'no-store' });
   if (!response.ok) throw new Error('CONFIG_FAILED');
   config = await response.json();
-  $('origin-field').hidden = config.kind !== 'elearning'; $('type-field').hidden = config.kind !== 'sports'; $('tabs').hidden = config.kind !== 'sports';
+  $('origin-field').hidden = true;
   const end = new Date(Math.floor(Date.now() / 60_000) * 60_000); const start = new Date(end.getTime() - 86_400_000);
   $('start').value = start.toISOString().slice(0, 16); $('end').value = end.toISOString().slice(0, 16);
-  translate();
+  chooseMode(mode);
   let chartWidth = 0;
   new ResizeObserver(entries => { const width = entries[0].contentRect.width; if (width !== chartWidth) { chartWidth = width; requestAnimationFrame(renderCharts); } }).observe($('plays-chart'));
   $('language').addEventListener('click', () => { locale = locale === 'en' ? 'ja' : 'en'; try { localStorage.setItem('analytics-language', locale); } catch { /* Optional preference. */ } translate(); });
-  $('filters').addEventListener('submit', event => { event.preventDefault(); clearTimeout(debounce); refresh(); });
-  $('filters').addEventListener('change', event => {
-    $('custom-range').hidden = $('period').value !== 'custom';
-    if (event.target.id === 'automatic') return;
-    latest.cancel(); loading = false; current = null; state = 'noQuery'; renderQuality();
-    clearTimeout(debounce); debounce = setTimeout(refresh, 300);
+  $('filters').addEventListener('submit', event => { event.preventDefault(); if (mode === 'demo') loadDemo(); else refresh(); });
+  $('filters').addEventListener('change', () => {
+    latest.cancel(); loading = false; current = null; currentKey = ''; state = config.queryConfigured ? 'noQuery' : 'unconfigured';
+    translate();
+    if (mode === 'demo') loadDemo();
   });
-  $('quality-tab').addEventListener('click', () => { chooseTab('quality'); renderQuality(); });
-  $('records-tab').addEventListener('click', () => chooseTab('records'));
-  $('demo-records').addEventListener('click', () => { records = parseRecords(JSON.stringify(fictionalRecords()), config.assets.map(asset => asset.id)); renderRecords(); });
-  $('record-file').addEventListener('change', async event => {
-    const file = event.target.files?.[0]; if (!file) return;
-    try { if (file.size > 1_048_576) throw new Error('INVALID_RECORDS'); records = parseRecords(await file.text(), config.assets.map(asset => asset.id)); renderRecords(); }
-    catch { $('records-status').textContent = t('invalidRecords'); }
-    finally { event.target.value = ''; }
+  $('load-demo').addEventListener('click', loadDemo);
+  window.addEventListener('hashchange', () => {
+    if (location.hash === '#demo' || location.hash === '#measured') chooseMode(location.hash.slice(1));
   });
-  setInterval(() => { if ($('automatic').checked && !loading && document.visibilityState === 'visible' && activeTab === 'quality') refresh(); }, 60_000);
 }
 init().catch(() => { $('status').textContent = t('error'); });
