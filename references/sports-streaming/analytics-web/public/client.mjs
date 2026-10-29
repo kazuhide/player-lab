@@ -16,6 +16,14 @@ export class LatestRequest {
   }
 }
 
+export function qualityStatus({ state, result, loading = false, cooldownUntil = 0, now }, translate, formatDate) {
+  let message = now < cooldownUntil
+    ? `${translate("retryLater")}: ${formatDate(new Date(cooldownUntil).toISOString())}`
+    : translate(state);
+  if (result?.stale || (loading && result?.fetchedAt)) message += ` ${translate("earlierResults")}`;
+  return message;
+}
+
 export function hourlySegments(rows) {
   const segments = [];
   let current = [];

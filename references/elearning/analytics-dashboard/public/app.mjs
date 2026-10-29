@@ -1,5 +1,5 @@
 import { translations } from './translations.mjs';
-import { LatestRequest, hourlySegments } from './client.mjs';
+import { LatestRequest, hourlySegments, qualityStatus } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
 import { demoSnapshot } from './demo.mjs';
 
@@ -37,7 +37,8 @@ function translate() {
 function renderQuality() {
   const demo = mode === 'demo';
   const error = state === 'error' || state === 'partial';
-  $('status').textContent = t(state); $('status').className = error ? 'error' : '';
+  $('status').textContent = qualityStatus({ state, result: current, loading, cooldownUntil: mode === 'measured' ? cooldownUntil : 0, now: Date.now() }, t, date);
+  $('status').className = error ? 'error' : '';
   $('metrics').setAttribute('aria-busy', String(loading));
   $('refresh').disabled = !demo && (loading || !config.queryConfigured || Date.now() < cooldownUntil);
   $('refresh').textContent = t(demo ? 'loadDemo' : 'refresh');
@@ -54,8 +55,6 @@ function renderQuality() {
   $('definitions-text').textContent = t(demo ? 'demoDefinitions' : 'definitionsText');
   $('sample-note').hidden = demo;
   $('scope').textContent = t(demo ? 'demoScope' : 'scope');
-  if (current?.stale) $('status').textContent += ` ${t('earlierResults')}`;
-  if (!demo && Date.now() < cooldownUntil) $('status').textContent = `${t('retryLater')}: ${date(new Date(cooldownUntil).toISOString())}`;
   $('metrics').replaceChildren(...ids.map((id, index) => {
     const metric = current?.metrics[id]; const node = element('div', undefined, 'metric');
     const label = element('p', t(id), 'metric-label'); const value = element('p', number(metric?.value, id === 'plays' ? 0 : 2), 'metric-value');

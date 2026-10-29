@@ -1,5 +1,5 @@
 import { translations } from './translations.mjs';
-import { LatestRequest, hourlySegments } from './client.mjs';
+import { LatestRequest, hourlySegments, qualityStatus } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
 import { createDemoData } from './demo.mjs';
 
@@ -50,13 +50,12 @@ function translate() {
 
 function renderQuality() {
   const error = state === 'error' || state === 'partial';
-  $('status').textContent = t(state); $('status').className = error ? 'error' : '';
+  $('status').textContent = qualityStatus({ state, result: current, loading, cooldownUntil: mode === 'measured' ? cooldownUntil : 0, now: Date.now() }, t, date);
+  $('status').className = error ? 'error' : '';
   $('metrics').setAttribute('aria-busy', String(loading)); $('refresh').disabled = !config.queryConfigured || loading || Date.now() < cooldownUntil;
   $('fetch-time').textContent = current?.fetchedAt ? `${t('received')}: ${date(current.fetchedAt)}` : '';
   $('period-summary').textContent = current ? `${date(current.period.start)} – ${date(current.period.end)}` : '';
   $('source-summary').textContent = `${t('source')}: ${mode === 'demo' ? t('demoSource') : 'Bitmovin Analytics Query API'}`;
-  if (current?.stale) $('status').textContent += ` ${t('earlierResults')}`;
-  if (mode === 'measured' && Date.now() < cooldownUntil) $('status').textContent = `${t('retryLater')}: ${date(new Date(cooldownUntil).toISOString())}`;
   $('metrics').replaceChildren(...ids.map((id, index) => {
     const metric = current?.metrics[id]; const node = element('div', undefined, 'metric');
     const label = element('p', t(id), 'metric-label'); const value = element('p', number(metric?.value, id === 'plays' ? 0 : 2), 'metric-value');
