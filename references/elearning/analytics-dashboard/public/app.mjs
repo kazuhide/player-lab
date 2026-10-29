@@ -1,6 +1,7 @@
 import { translations } from './translations.mjs';
 import { LatestRequest, hourlySegments } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
+import { demoSnapshot } from './demo.mjs';
 
 const $ = id => document.getElementById(id);
 const ids = ['plays', 'watchHours', 'startupMedian', 'startupP95', 'rebufferPercentage', 'errorPercentage'];
@@ -9,7 +10,7 @@ const latest = new LatestRequest();
 let locale = navigator.language.startsWith('ja') ? 'ja' : 'en';
 try { locale = localStorage.getItem('analytics-language') === 'ja' ? 'ja' : localStorage.getItem('analytics-language') === 'en' ? 'en' : locale; } catch { /* Language persistence is optional. */ }
 let config; let current = null; let currentKey = ''; let state = 'noQuery'; let loading = false;
-let activeTab = 'quality'; let debounce; let cooldownUntil = 0; let cooldownTimer;
+let mode = 'demo'; let cooldownUntil = 0; let cooldownTimer;
 const t = key => translations[locale][key] ?? key;
 const number = (value, places = 2) => value == null ? '—' : new Intl.NumberFormat(locale, value !== 0 && Math.abs(value) < 10 ** -places ? { maximumSignificantDigits: 2, notation: Math.abs(value) < .0001 ? 'scientific' : 'standard' } : { maximumFractionDigits: places }).format(value);
 const date = value => value ? new Date(value).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC') : '—';
@@ -18,6 +19,7 @@ const assetName = id => config.assets.find(asset => asset.id === id)?.[locale] ?
 function translate() {
   document.documentElement.lang = locale;
   document.querySelectorAll('[data-text]').forEach(node => { node.textContent = t(node.dataset.text); });
+  document.querySelectorAll('[data-label]').forEach(node => { node.setAttribute('aria-label', t(node.dataset.label)); });
   $('title').textContent = t('learningTitle');
   document.title = `${$('title').textContent} | Player Lab`;
   $('quality-heading').textContent = t('quality');
@@ -33,14 +35,27 @@ function translate() {
 }
 
 function renderQuality() {
+  const demo = mode === 'demo';
   const error = state === 'error' || state === 'partial';
   $('status').textContent = t(state); $('status').className = error ? 'error' : '';
-  $('metrics').setAttribute('aria-busy', String(loading)); $('refresh').disabled = loading || Date.now() < cooldownUntil;
+  $('metrics').setAttribute('aria-busy', String(loading));
+  $('refresh').disabled = !demo && (loading || !config.queryConfigured || Date.now() < cooldownUntil);
+  $('refresh').textContent = t(demo ? 'loadDemo' : 'refresh');
+  $('period-field').hidden = demo; $('filters').classList.toggle('demo', demo);
+  $('custom-range').hidden = demo || $('period').value !== 'custom';
+  $('start').disabled = $('custom-range').hidden; $('end').disabled = $('custom-range').hidden;
+  $('setup-instructions').hidden = demo || config.queryConfigured;
+  $('mode-notice').textContent = t(demo ? 'demoNotice' : config.queryConfigured ? 'measuredNotice' : 'setupNotice');
+  $('demo-tab').toggleAttribute('aria-current', demo); $('measured-tab').toggleAttribute('aria-current', !demo);
+  for (const link of [$('demo-tab'), $('measured-tab')]) if (link.hasAttribute('aria-current')) link.setAttribute('aria-current', 'page');
   $('fetch-time').textContent = current?.fetchedAt ? `${t('received')}: ${date(current.fetchedAt)}` : '';
   $('period-summary').textContent = current ? `${date(current.period.start)} – ${date(current.period.end)}` : '';
-  $('source-summary').textContent = `${t('source')}: ${current?.source ?? 'Bitmovin Analytics Query API'}`;
+  $('source-summary').textContent = `${t('source')}: ${demo ? t('demoSource') : 'Bitmovin Analytics Query API'}`;
+  $('definitions-text').textContent = t(demo ? 'demoDefinitions' : 'definitionsText');
+  $('sample-note').hidden = demo;
+  $('scope').textContent = t(demo ? 'demoScope' : 'scope');
   if (current?.stale) $('status').textContent += ` ${t('earlierResults')}`;
-  if (Date.now() < cooldownUntil) $('status').textContent = `${t('retryLater')}: ${date(new Date(cooldownUntil).toISOString())}`;
+  if (!demo && Date.now() < cooldownUntil) $('status').textContent = `${t('retryLater')}: ${date(new Date(cooldownUntil).toISOString())}`;
   $('metrics').replaceChildren(...ids.map((id, index) => {
     const metric = current?.metrics[id]; const node = element('div', undefined, 'metric');
     const label = element('p', t(id), 'metric-label'); const value = element('p', number(metric?.value, id === 'plays' ? 0 : 2), 'metric-value');
@@ -87,7 +102,7 @@ function parameters() {
 }
 
 async function refresh() {
-  if (activeTab !== 'quality' || Date.now() < cooldownUntil) return;
+  if (mode !== 'measured' || loading || !config.queryConfigured || Date.now() < cooldownUntil) return;
   let params;
   try { params = parameters(); } catch { $('status').textContent = t('invalidPeriod'); return; }
   const key = params.toString();
@@ -110,6 +125,19 @@ async function refresh() {
   }, error => { if (error.retryAfter) { cooldownUntil = Date.now() + error.retryAfter * 1000; clearTimeout(cooldownTimer); cooldownTimer = setTimeout(renderQuality, Math.min(error.retryAfter * 1000 + 20, 2147483647)); } loading = false; state = 'error'; current = earlier?.fetchedAt ? { ...earlier, stale: true } : null; renderQuality(); });
 }
 
+function loadDemo() {
+  current = demoSnapshot({ asset: $('asset').value, origin: $('origin').value }, config);
+  state = 'demo'; renderQuality();
+}
+
+function selectMode() {
+  mode = location.hash === '#measured' ? 'measured' : 'demo';
+  if (location.hash !== `#${mode}`) history.replaceState(null, '', `#${mode}`);
+  latest.cancel(); loading = false; current = null; currentKey = '';
+  state = config.queryConfigured ? 'noQuery' : 'unconfigured';
+  if (mode === 'demo') loadDemo(); else renderQuality();
+}
+
 async function init() {
   const response = await fetch('/api/config', { cache: 'no-store' });
   if (!response.ok) throw new Error('CONFIG_FAILED');
@@ -117,17 +145,16 @@ async function init() {
   $('origin-field').hidden = false;
   const end = new Date(Math.floor(Date.now() / 60_000) * 60_000); const start = new Date(end.getTime() - 86_400_000);
   $('start').value = start.toISOString().slice(0, 16); $('end').value = end.toISOString().slice(0, 16);
-  translate();
+  translate(); selectMode();
   let chartWidth = 0;
   new ResizeObserver(entries => { const width = entries[0].contentRect.width; if (width !== chartWidth) { chartWidth = width; requestAnimationFrame(renderCharts); } }).observe($('plays-chart'));
   $('language').addEventListener('click', () => { locale = locale === 'en' ? 'ja' : 'en'; try { localStorage.setItem('analytics-language', locale); } catch { /* Optional preference. */ } translate(); });
-  $('filters').addEventListener('submit', event => { event.preventDefault(); clearTimeout(debounce); refresh(); });
-  $('filters').addEventListener('change', event => {
-    $('custom-range').hidden = $('period').value !== 'custom';
-    if (event.target.id === 'automatic') return;
-    latest.cancel(); loading = false; current = null; state = 'noQuery'; renderQuality();
-    clearTimeout(debounce); debounce = setTimeout(refresh, 300);
+  $('filters').addEventListener('submit', event => { event.preventDefault(); if (mode === 'demo') loadDemo(); else refresh(); });
+  $('filters').addEventListener('change', () => {
+    latest.cancel(); loading = false; current = null; currentKey = '';
+    state = config.queryConfigured ? 'noQuery' : 'unconfigured';
+    if (mode === 'demo') loadDemo(); else renderQuality();
   });
-  setInterval(() => { if ($('automatic').checked && !loading && document.visibilityState === 'visible' && activeTab === 'quality') refresh(); }, 60_000);
+  window.addEventListener('hashchange', selectMode);
 }
 init().catch(() => { $('status').textContent = t('error'); });
