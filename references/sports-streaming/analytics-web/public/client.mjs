@@ -24,6 +24,12 @@ export function qualityStatus({ state, result, loading = false, cooldownUntil = 
   return message;
 }
 
+export function modeFromHash(hash, currentMode = 'demo') {
+  if (hash === '#measured') return 'measured';
+  if (hash === '' || hash === '#' || hash === '#demo') return 'demo';
+  return currentMode;
+}
+
 export function hourlySegments(rows) {
   const segments = [];
   let current = [];

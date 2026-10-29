@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LatestRequest, hourlySegments, qualityStatus } from '../public/client.mjs';
+import { LatestRequest, hourlySegments, qualityStatus, modeFromHash } from '../public/client.mjs';
 
 test('an older successful response cannot replace the newest selection', async () => {
   const latest = new LatestRequest(); const accepted = [];
@@ -53,4 +53,26 @@ test("unfetched, first-loading and fresh empty results never acquire an earlier-
 
 test("a rate limit without retained results does not invent an earlier measurement", () => {
   assert.equal(status({ state: "error", result: null, cooldownUntil: 2000 }), "Retry after: 1970-01-01T00:00:02.000Z");
+});
+
+
+test("empty-fragment history returns from measured data to demo", () => {
+  assert.equal(modeFromHash("", "measured"), "demo");
+  assert.equal(modeFromHash("#", "measured"), "demo");
+});
+
+test("content anchors preserve the current measured route and its same-mode round trip", () => {
+  let mode = "measured";
+  for (const hash of ["#main", "#plays-heading", "#other-content", "#measured"]) {
+    mode = modeFromHash(hash, mode);
+    assert.equal(mode, "measured");
+  }
+  assert.equal(modeFromHash("#demo", mode), "demo");
+});
+
+test("initial known routes select their mode and unknown content starts in demo", () => {
+  assert.equal(modeFromHash("#measured"), "measured");
+  assert.equal(modeFromHash("#demo"), "demo");
+  assert.equal(modeFromHash("#plays-heading"), "demo");
+  assert.equal(modeFromHash("#main", "demo"), "demo");
 });

@@ -1,5 +1,5 @@
 import { translations } from './translations.mjs';
-import { LatestRequest, hourlySegments, qualityStatus } from './client.mjs';
+import { LatestRequest, hourlySegments, qualityStatus, modeFromHash } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
 import { createDemoData } from './demo.mjs';
 
@@ -10,7 +10,7 @@ const latest = new LatestRequest();
 let locale = navigator.language.startsWith('ja') ? 'ja' : 'en';
 try { locale = localStorage.getItem('analytics-language') === 'ja' ? 'ja' : localStorage.getItem('analytics-language') === 'en' ? 'en' : locale; } catch { /* Language persistence is optional. */ }
 let config; let current = null; let currentKey = ''; let state = 'noQuery'; let loading = false;
-let mode = location.hash === '#measured' ? 'measured' : 'demo';
+let mode = 'demo';
 let cooldownUntil = 0; let cooldownTimer;
 const t = key => translations[locale][key] ?? key;
 const number = (value, places = 2) => value == null ? '—' : new Intl.NumberFormat(locale, value !== 0 && Math.abs(value) < 10 ** -places ? { maximumSignificantDigits: 2, notation: Math.abs(value) < .0001 ? 'scientific' : 'standard' } : { maximumFractionDigits: places }).format(value);
@@ -145,7 +145,7 @@ async function init() {
   $('origin-field').hidden = true;
   const end = new Date(Math.floor(Date.now() / 60_000) * 60_000); const start = new Date(end.getTime() - 86_400_000);
   $('start').value = start.toISOString().slice(0, 16); $('end').value = end.toISOString().slice(0, 16);
-  chooseMode(mode);
+  chooseMode(modeFromHash(location.hash));
   let chartWidth = 0;
   new ResizeObserver(entries => { const width = entries[0].contentRect.width; if (width !== chartWidth) { chartWidth = width; requestAnimationFrame(renderCharts); } }).observe($('plays-chart'));
   $('language').addEventListener('click', () => { locale = locale === 'en' ? 'ja' : 'en'; try { localStorage.setItem('analytics-language', locale); } catch { /* Optional preference. */ } translate(); });
@@ -157,7 +157,11 @@ async function init() {
   });
   $('load-demo').addEventListener('click', loadDemo);
   window.addEventListener('hashchange', () => {
-    if (location.hash === '#demo' || location.hash === '#measured') chooseMode(location.hash.slice(1));
+    const next = modeFromHash(location.hash, mode);
+    if (next !== mode) chooseMode(next);
   });
 }
+document.querySelector('.skip-link').addEventListener('click', event => {
+  event.preventDefault(); $('main').focus(); $('main').scrollIntoView();
+});
 init().catch(() => { $('status').textContent = t('error'); });

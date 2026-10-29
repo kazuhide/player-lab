@@ -1,5 +1,5 @@
 import { translations } from './translations.mjs';
-import { LatestRequest, hourlySegments, qualityStatus } from './client.mjs';
+import { LatestRequest, hourlySegments, qualityStatus, modeFromHash } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
 import { demoSnapshot } from './demo.mjs';
 
@@ -129,9 +129,8 @@ function loadDemo() {
   state = 'demo'; renderQuality();
 }
 
-function selectMode() {
-  mode = location.hash === '#measured' ? 'measured' : 'demo';
-  if (location.hash !== `#${mode}`) history.replaceState(null, '', `#${mode}`);
+function selectMode(next) {
+  mode = next;
   latest.cancel(); loading = false; current = null; currentKey = '';
   state = config.queryConfigured ? 'noQuery' : 'unconfigured';
   if (mode === 'demo') loadDemo(); else renderQuality();
@@ -144,7 +143,8 @@ async function init() {
   $('origin-field').hidden = false;
   const end = new Date(Math.floor(Date.now() / 60_000) * 60_000); const start = new Date(end.getTime() - 86_400_000);
   $('start').value = start.toISOString().slice(0, 16); $('end').value = end.toISOString().slice(0, 16);
-  translate(); selectMode();
+  mode = modeFromHash(location.hash);
+  translate(); selectMode(mode);
   let chartWidth = 0;
   new ResizeObserver(entries => { const width = entries[0].contentRect.width; if (width !== chartWidth) { chartWidth = width; requestAnimationFrame(renderCharts); } }).observe($('plays-chart'));
   $('language').addEventListener('click', () => { locale = locale === 'en' ? 'ja' : 'en'; try { localStorage.setItem('analytics-language', locale); } catch { /* Optional preference. */ } translate(); });
@@ -154,6 +154,12 @@ async function init() {
     state = config.queryConfigured ? 'noQuery' : 'unconfigured';
     if (mode === 'demo') loadDemo(); else renderQuality();
   });
-  window.addEventListener('hashchange', selectMode);
+  window.addEventListener('hashchange', () => {
+    const next = modeFromHash(location.hash, mode);
+    if (next !== mode) selectMode(next);
+  });
 }
+document.querySelector('.skip-link').addEventListener('click', event => {
+  event.preventDefault(); $('main').focus(); $('main').scrollIntoView();
+});
 init().catch(() => { $('status').textContent = t('error'); });
