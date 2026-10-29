@@ -101,10 +101,11 @@ and return to the live edge. A live seek is checked against the current seekable
 window when the operation is dispatched. A saved clip-return position is only
 offered while it remains seekable.
 
-Landscape places playback beside the asset list and keeps the controls in view.
-Use fullscreen for a larger video area.
+The landscape tablet view below was captured in the Android emulator. Playback
+sits beside the asset list, with controls in view. Use fullscreen for a larger
+video area.
 
-<img src="docs/screenshots/sports-ui-landscape-en.png" width="760" alt="Landscape sports controls beside the live event list">
+<img src="docs/screenshots/sports-ui-landscape-en.png" width="760" alt="Landscape Android tablet showing sports controls beside the live event list">
 
 Event-ended and archive-ready are separate states. An end notification leaves
 current playback running. Continuing into an archive is an explicit choice by

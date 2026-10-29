@@ -8,8 +8,10 @@ demo licenses and this reference's self-authored fixtures. Credentials, device
 serials, private origins and raw device logs are excluded.
 
 Guide screenshots were refreshed on 2026-10-29 using the baseball fixtures and
-the actual English/Japanese app UI. This refresh covers screen capture; the
-playback and Cast results below retain their original date and scope.
+the actual English/Japanese app UI. Portrait views use a Pixel 11 Pro; landscape
+views use an Android tablet emulator. The captures exclude system bars and are
+displayed without stretching. This refresh covers screen capture;
+the playback and Cast results below retain their original date and scope.
 
 ## Build and focused playback checks
 
