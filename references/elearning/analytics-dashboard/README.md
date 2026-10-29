@@ -2,7 +2,7 @@
 
 [English](README.md) · [日本語](README.ja.md)
 
-Query playback quality for this reference app. The interface supports English and Japanese. The dashboard and its server run independently of the Android build.
+Explore playback quality with synthetic demo data, or fetch this reference app's measured Analytics results. The interface supports English and Japanese. The dashboard and its server run independently of the Android build.
 
 ## Setup
 
@@ -10,11 +10,27 @@ Use Node.js 24.13 or later within the Node.js 24 release line.
 
 ```sh
 cd analytics-dashboard
-cp .env.example .env
 npm ci
+npm start
 ```
 
-Edit this directory's `.env`:
+Open `http://127.0.0.1:9051`. The initial **Demo data** view works without an `.env` file or API credentials.
+
+## Demo data
+
+The demo contains fictional learning sessions over a fixed UTC day. Lesson and playback-entry filters work locally; **Load demo data** reloads the same sample. Cards, hourly charts and lesson comparisons use these synthetic observations. The displayed period and data source identify the sample; its values are not measured playback results.
+
+![Demo data in the English learning dashboard](../docs/screenshots/analytics-demo-en.png)
+
+## Measured data
+
+Stop the server and create this directory's private configuration file:
+
+```sh
+cp .env.example .env
+```
+
+Edit `.env`:
 
 | Variable | Value |
 | --- | --- |
@@ -28,7 +44,11 @@ The server reads `.env` only from this dashboard directory. An Android configura
 npm start
 ```
 
-Open `http://127.0.0.1:9051`. Select a period and lesson, then choose **Refresh**. Automatic refresh is off initially; when enabled, it runs every 60 seconds while the page is visible. Missing configuration, no data, a value of zero, and query failures have separate states. Playback collection and this read-only query server are separate: starting the dashboard does not create playback sessions.
+Open `http://127.0.0.1:9051/#measured`. Select a period and lesson, then choose **Fetch data**. Changing a filter does not query Analytics. Each fetch requests the latest available results from the API; recently collected events may not yet be included. The page shows the received time and distinguishes missing configuration, no data, a value of zero, and query failures. Failed queries never fall back to demo data.
+
+![Measured data setup in the English learning dashboard](../docs/screenshots/analytics-measured-en.png)
+
+Playback collection and this read-only query server are separate: starting the dashboard does not create playback sessions.
 
 ## Available data
 
@@ -51,7 +71,7 @@ The displayed fetch time is when the server received the API response. These agg
 
 The server binds to `127.0.0.1` and accepts only its localhost host/origin. It serves fixed static files and `GET /api/config` and `GET /api/qoe`; it is not an arbitrary API proxy. Client parameters cannot change the upstream URL, account key, Analytics license, dimensions, or platform.
 
-Queries cover at most seven days with hourly plots, at most three simultaneous upstream requests, and a ten-second deadline for the whole batch. Complete results are cached for 15 seconds; cache hits retain the original fetch time. Equal requests share work, at most two batches can be active, and the cache holds at most 16 selections. Each upstream page is limited to 200 rows and fetched using `offset`; incomplete pagination is reported as an error. Response sizes are bounded. Rate limits follow `Retry-After`, with at most one short retry within the deadline. A failed metric does not replace its value with zero or with demo data. If a refresh fails for the same selection, an earlier successful result is labeled as such.
+Queries cover at most seven days with hourly plots, at most three simultaneous upstream requests, and a ten-second deadline for the whole batch. Completed results are not cached: each later fetch queries the API again. Identical requests already in progress share work, and at most two batches can be active. Each upstream page is limited to 200 rows and fetched using `offset`; incomplete pagination is reported as an error. Response sizes are bounded. Rate limits follow `Retry-After`, with at most one short retry within the deadline. A failed metric does not replace its value with zero or with demo data. If a fetch fails for the same selection, an earlier successful result is labeled as such.
 
 The browser cannot select receiver data: Android sender data does not establish receiver playback quality. This local development server has no authentication and must not be exposed on a public interface.
 
@@ -62,4 +82,4 @@ npm test
 npm run build
 ```
 
-The tests cover query contracts, filtering, pagination, concurrency, caching, rate limits, deadlines, response bounds, origin checks, secret-free errors, stale browser responses, and missing chart values. `build` checks the JavaScript modules and static assets; there is no generated bundle or runtime dependency.
+The tests cover synthetic data and filtering, query contracts, pagination, concurrency, repeated fresh queries, rate limits, deadlines, response bounds, origin checks, secret-free errors, stale browser responses, and missing chart values. `build` checks the JavaScript modules and static assets; there is no generated bundle or runtime dependency.

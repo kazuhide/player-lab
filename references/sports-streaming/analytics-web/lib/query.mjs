@@ -133,7 +133,6 @@ export function normalizeRows(rows, metric, shape, selection) {
 
 export function createAnalyticsService({ config, apiKey, licenseKey, fetchImpl = fetch, timeoutMs = 10_000, clock = Date.now, wait = delay }) {
   const run = semaphore(3);
-  const cache = new Map();
   const inFlight = new Map();
   let cooldownUntil = 0;
 
@@ -214,21 +213,13 @@ export function createAnalyticsService({ config, apiKey, licenseKey, fetchImpl =
   }
 
   return {
+    configured: Boolean(apiKey && licenseKey),
     async query(params) {
       const selection = validateParameters(params, config, clock());
       const key = JSON.stringify(selection);
-      const entry = cache.get(key);
-      if (entry && clock() - entry.time < 15_000) return { ...entry.value, cache: 'hit' };
-      cache.delete(key);
       if (inFlight.has(key)) return inFlight.get(key);
       if (inFlight.size >= 2) throw new QueryError('BUSY', 2);
-      const job = load(selection).then(value => {
-        if (['ok', 'empty'].includes(value.status)) {
-          if (cache.size >= 16) cache.delete(cache.keys().next().value);
-          cache.set(key, { time: clock(), value });
-        }
-        return { ...value, cache: 'miss' };
-      }).finally(() => inFlight.delete(key));
+      const job = load(selection).finally(() => inFlight.delete(key));
       inFlight.set(key, job);
       return job;
     },

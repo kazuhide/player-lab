@@ -133,12 +133,15 @@ CAFの状態メッセージ内の位置はスナップショットなので、�
 メディア、字幕、マニフェストは受信機から到達できるものを使ってください。その受信機で、通信、コーデック、クロスオリジンアクセス、有効期限を確認します。エミュレーターでの再生や、スマートフォンのローカルURLだけでは、受信機の対応を確認したことにはなりません。
 
 <a id="analytics-and-local-handoff-records"></a>
-## Analyticsとローカルの位置引継ぎ記録
+<a id="analytics"></a>
+## Analytics
 
 統合コレクターは一つだけ使い、Playerライセンスとは別に設定します。初版のアプリでは標準メタデータを使い、**customDataの枠は使いません**。映像の分類にはカタログの`sports:SP-LIVE-S`、`sports:SP-ARCH-S`などの固定video IDを使います。
 
 [分析Web](../analytics-web/README.ja.md)では再生開始数、視聴時間、起動時間の中央値と95パーセンタイル、再バッファ割合、エラー割合を取得します。全期間のカードはそれぞれ専用のクエリーで集計し、時間別カードの平均値にはしません。APIキーはlocalhostサーバーだけに保持します。
 
-ローカルの位置引継ぎ記録には要求と観測した結果を保存します。解決していない要求は保留中のままです。受信機の品質は実際の受信機側コレクターと、その識別項目を確認するまで取得不可とします。送信側の指標や0で代用してはいけません。
+初期画面のデモは架空のデータを使うため、認証情報は不要です。実測データは別の画面で取得ボタンを押してAnalyticsへ問い合わせます。
+
+Androidアプリのローカルの位置引継ぎ記録には要求と観測した結果を保存します。解決していない要求は保留中のままです。受信機の品質は実際の受信機側コレクターと、その識別項目を確認するまで取得不可とします。送信側の指標や0で代用してはいけません。
 
 公式資料：[Cast対応](https://developer.bitmovin.com/playback/docs/casting-support)、[CAF受信機](https://developer.bitmovin.com/playback/docs/caf-support)、[Android送信側の実装](https://developers.google.com/cast/docs/android_sender/integrate)、[Analyticsクエリーの定義](https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1)。

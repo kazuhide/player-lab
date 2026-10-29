@@ -99,4 +99,4 @@ python3.11 tools/run-device-tests.py \
 
 例の配信元は自分の配信元に置き換えてください。ドライバーは実行件数とAPKのハッシュを記録します。Castは別途指定する検証で、正確な受信機名が必要です。[端末テストの説明](android/README.ja.md#reproducible-device-checks)を参照してください。端末テスト一式では、実際のimpressionが継続していることを確認するためにAnalyticsライセンスも必要です。アプリ自体はAnalyticsを無効にしても動作します。[検証記録](docs/validation.ja.md)ではビルド、端末再生、実時間の実行、Cast受信機での再生、クラウド素材準備の結果を分けています。
 
-[分析Web](analytics-web/README.ja.md)は専用のlocalhostサーバーを通じて標準の再生品質指標を読み取ります。ローカルに保存する位置引継ぎの記録は別の入力であり、受信機の再生品質を計測するものではありません。
+[再生品質ダッシュボード](analytics-web/README.ja.md)には[キー不要のデモ](analytics-web/README.ja.md#demo-data)と、取得ボタンで問い合わせる[実測データの画面](analytics-web/README.ja.md#measured-data)があります。

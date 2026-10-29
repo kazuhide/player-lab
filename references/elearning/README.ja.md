@@ -8,6 +8,8 @@ Bitmovin Playerを使ったコース再生用の独立したAndroidサンプル�
 
 アプリ、設定、Gradle wrapper、素材の入力データ、素材サーバー、分析用Webアプリはこのディレクトリ内にあります。ディレクトリをコピーして個別にビルドでき、ほかのPlayer Labアプリのコードやビルド成果物には依存しません。
 
+[再生品質ダッシュボード](analytics-dashboard/README.ja.md)も利用できます。キー不要のデモ画面と、Analyticsから実測データを取得する画面があります。
+
 <a id="requirements"></a>
 
 ## 必要な環境

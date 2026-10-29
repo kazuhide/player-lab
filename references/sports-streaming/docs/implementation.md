@@ -275,7 +275,8 @@ Use media, subtitles and manifests reachable by the receiver. Check their
 transport, codecs, cross-origin access and expiry on that receiver. Emulator
 playback or a phone's local URL does not prove receiver compatibility.
 
-## Analytics and local handoff records
+<a id="analytics-and-local-handoff-records"></a>
+## Analytics
 
 Use the integrated collector once and configure it separately from the Player
 license. The initial application uses standard metadata and **no customData
@@ -287,7 +288,10 @@ viewing time, startup median and 95th percentile, rebuffer percentage and error
 percentage. Whole-period cards use their own queries; they are not averages of
 hourly cards. API keys remain on its localhost server.
 
-Local handoff records contain requests and observed outcomes. An unresolved
+Its initial demo screen uses fictional data without credentials. Open the
+separate measured-data screen and use its fetch button to query Analytics.
+
+The Android app's local handoff records contain requests and observed outcomes. An unresolved
 request stays pending. Receiver quality remains unavailable unless an actual
 receiver collector and its identifying fields have been verified. Sender
 metrics and zeros cannot substitute for those observations.

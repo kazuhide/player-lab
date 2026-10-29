@@ -149,6 +149,6 @@ The
 [validation record](docs/validation.md) separates builds, device playback,
 real-time runs, Cast receiver playback and cloud preparation.
 
-The [analysis Web application](analytics-web/README.md) reads standard playback
-quality metrics through a dedicated localhost server. Local handoff records
-remain a separate input. They do not measure receiver playback quality.
+The [playback quality dashboard](analytics-web/README.md) provides a
+[key-free demo](analytics-web/README.md#demo-data) and a separate
+[measured-data screen](analytics-web/README.md#measured-data) with a fetch button.

@@ -12,6 +12,9 @@ fixture inputs, media publisher and analytics application. It can be copied and
 built independently. It does not use another Player Lab application's code or
 build output.
 
+The optional [playback quality dashboard](analytics-dashboard/README.md) has a
+key-free demo view and a separate view for fetching measured Analytics results.
+
 ## Requirements
 
 - JDK 21, Android SDK platform 37 and Android build tools 36.0.0.
