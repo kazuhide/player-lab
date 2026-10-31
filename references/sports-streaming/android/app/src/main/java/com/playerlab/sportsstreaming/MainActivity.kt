@@ -96,7 +96,7 @@ class MainActivity : AppCompatActivity() {
                     onCast = playback::toggleCasting,
                     onExport = { export.launch("sports-handoff-records.json") },
                     onAnalytics = { openUrl(BuildConfig.ANALYTICS_URL) },
-                    onDashboard = { openUrl("https://dashboard.bitmovin.com/analytics/") },
+                    onDashboard = { openUrl("https://dashboard.bitmovin.com/observability/home") },
                     onLanguage = { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(it)) })
             }
         }

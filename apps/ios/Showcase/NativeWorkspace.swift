@@ -409,7 +409,7 @@ struct NativeMoreWorkspace: View {
                         }
                     case .analytics:
                         Text("Analytics and Observability").font(.headline)
-                        Link("Open Bitmovin Dashboard", destination: URL(string: "https://dashboard.bitmovin.com/analytics")!)
+                        Link("Open Bitmovin Dashboard", destination: URL(string: "https://dashboard.bitmovin.com/observability/home")!)
                     }
                 }
             }
