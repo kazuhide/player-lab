@@ -646,3 +646,37 @@
 "Enable BitmovinUserInterfaceConfig.customMessageHandler and apply the player configuration first." = "Enable BitmovinUserInterfaceConfig.customMessageHandler and apply the player configuration first.";
 "tvOS System UI does not support changing rewind control visibility during playback." = "tvOS System UI does not support changing rewind control visibility during playback.";
 "This control requires the bundled Player Lab Web UI." = "This control requires the bundled Player Lab Web UI.";
+
+/* Named configuration profiles */
+"Profiles" = "Profiles";
+"Profile name" = "Profile name";
+"Saved profiles" = "Saved profiles";
+"Choose a profile" = "Choose a profile";
+"Save" = "Save";
+"Save profile" = "Save profile";
+"Restore draft" = "Restore draft";
+"Delete" = "Delete";
+"Delete profile" = "Delete profile";
+"Saved fields" = "Saved fields";
+"Saved SDK: %@ · Current SDK: %@" = "Saved SDK: %@ · Current SDK: %@";
+"Clear saved profiles" = "Clear saved profiles";
+"Replace profile" = "Replace profile";
+"Revalidate and restore" = "Revalidate and restore";
+"Profiles save a limited settings subset on this device. Restore only edits the draft; use Apply separately." = "Profiles save a limited settings subset on this device. Restore only edits the draft; use Apply separately.";
+"Saves playback flags, start position, track language preferences, bitrate, buffer, scaling and 19 supported primitive SDK overrides. A built-in public source is saved only when its exact URL and type match. Other URLs, titles, posters, metadata, credentials, headers and scripts stay in the current draft." = "Saves playback flags, start position, track language preferences, bitrate, buffer, scaling and 19 supported primitive SDK overrides. A built-in public source is saved only when its exact URL and type match. Other URLs, titles, posters, metadata, credentials, headers and scripts stay in the current draft.";
+"Up to 20 profiles; 1–48 Unicode code points per name, 8 KiB per profile and 128 KiB in total. iOS and tvOS profiles are separate and excluded from backup." = "Up to 20 profiles; 1–48 Unicode code points per name, 8 KiB per profile and 128 KiB in total. iOS and tvOS profiles are separate and excluded from backup.";
+"Replace the saved profile with this name?" = "Replace the saved profile with this name?";
+"This profile uses a different SDK version. Revalidate the supported fields and restore them to the draft? Playback will not change." = "This profile uses a different SDK version. Revalidate the supported fields and restore them to the draft? Playback will not change.";
+"Delete the selected saved profile? The draft and playback will not change." = "Delete the selected saved profile? The draft and playback will not change.";
+"Clear all saved profiles on this device? The draft and playback will not change." = "Clear all saved profiles on this device? The draft and playback will not change.";
+"Profile restored to draft. Review the settings, then use Apply." = "Profile restored to draft. Review the settings, then use Apply.";
+"Saved profiles updated. The draft and playback are unchanged." = "Saved profiles updated. The draft and playback are unchanged.";
+"Saved profiles contain unsupported data. Clear saved profiles to start again." = "Saved profiles contain unsupported data. Clear saved profiles to start again.";
+"Use a profile name of 1–48 characters: letters, numbers, spaces, or . - _ ( )." = "Use a profile name of 1–48 characters: letters, numbers, spaces, or . - _ ( ).";
+"Profiles are limited to 20 entries, 8 KiB per entry and 128 KiB in total." = "Profiles are limited to 20 entries, 8 KiB per entry and 128 KiB in total.";
+"A profile with this name already exists. Confirm replacement." = "A profile with this name already exists. Confirm replacement.";
+"This profile was saved with a different SDK. Confirm restoration after revalidation." = "This profile was saved with a different SDK. Confirm restoration after revalidation.";
+"Saved profiles could not be read. Existing saved data was retained." = "Saved profiles could not be read. Existing saved data was retained.";
+"Profiles could not be saved. Existing saved data was retained." = "Profiles could not be saved. Existing saved data was retained.";
+
+"Some profile fields are invalid in the draft. Correct them before saving." = "Some profile fields are invalid in the draft. Correct them before saving.";

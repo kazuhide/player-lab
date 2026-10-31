@@ -75,6 +75,7 @@ struct WorkspaceChoice<Value: Hashable>: View {
     let title: String
     @Binding var selection: Value
     let options: [Value]
+    var localizesOptions = true
     let label: (Value) -> String
     @State private var choosing = false
     @State private var filter = ""
@@ -98,7 +99,7 @@ struct WorkspaceChoice<Value: Hashable>: View {
                 .padding(48)
             }
             .accessibilityLabel(Text(LocalizedStringKey(title)))
-            .accessibilityValue(Text(LocalizedStringKey(label(selection))))
+            .accessibilityValue(optionText(selection))
         #else
         Button { filter = ""; choosing = true } label: { choiceLabel }
                 .popover(isPresented: $choosing) {
@@ -109,7 +110,7 @@ struct WorkspaceChoice<Value: Hashable>: View {
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .controlSize(.regular)
         .accessibilityLabel(Text(LocalizedStringKey(title)))
-        .accessibilityValue(Text(LocalizedStringKey(label(selection))))
+        .accessibilityValue(optionText(selection))
         #endif
         }
         .preference(key: WorkspaceChoicePresentationPreference.self, value: choosing)
@@ -117,7 +118,7 @@ struct WorkspaceChoice<Value: Hashable>: View {
 
     private var choiceLabel: some View {
         HStack(spacing: 6) {
-            Text(LocalizedStringKey(label(selection))).lineLimit(1)
+            optionText(selection).lineLimit(1)
             Image(systemName: "chevron.up.chevron.down").font(.caption2)
         }
         .frame(minHeight: 32).contentShape(Rectangle())
@@ -135,10 +136,10 @@ struct WorkspaceChoice<Value: Hashable>: View {
                 .accessibilityIdentifier("workspace.choice.filter")
             ScrollView {
               LazyVStack(spacing: 0) {
-              ForEach(options.filter { filter.isEmpty || label($0).localizedCaseInsensitiveContains(filter) || label($0).nativeLocalized.localizedCaseInsensitiveContains(filter) }, id: \.self) { option in
+              ForEach(options.filter { filter.isEmpty || label($0).localizedCaseInsensitiveContains(filter) || (localizesOptions && label($0).nativeLocalized.localizedCaseInsensitiveContains(filter)) }, id: \.self) { option in
                 Button { selection = option; choosing = false } label: {
                     HStack {
-                        Text(LocalizedStringKey(label(option))).lineLimit(2)
+                        optionText(option).lineLimit(2)
                         Spacer(minLength: 0)
                         if option == selection { Image(systemName: "checkmark") }
                     }
@@ -148,7 +149,7 @@ struct WorkspaceChoice<Value: Hashable>: View {
                     .frame(minHeight: choiceRowHeight)
                     .contentShape(Rectangle())
                 }
-                .accessibilityLabel(Text(LocalizedStringKey(label(option))))
+                .accessibilityLabel(optionText(option))
                 .accessibilityIdentifier("workspace.choice.option.\(label(option))")
                 .accessibilityAddTraits(option == selection ? .isSelected : [])
                 #if os(tvOS)
@@ -177,6 +178,10 @@ struct WorkspaceChoice<Value: Hashable>: View {
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .frame(width: 320, height: min(440, CGFloat(options.count) * 45 + 64))
         #endif
+    }
+
+    private func optionText(_ option: Value) -> Text {
+        localizesOptions ? Text(LocalizedStringKey(label(option))) : Text(verbatim: label(option))
     }
 
     private var choiceRowHeight: CGFloat {

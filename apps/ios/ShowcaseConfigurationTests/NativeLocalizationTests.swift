@@ -24,6 +24,14 @@ final class NativeLocalizationTests: XCTestCase {
         XCTAssertEqual(NativeLocalization.text("SourceConfig.tracks", bundle: try strings("ja")), "SourceConfig.tracks")
     }
 
+    func testNamedProfilesShipJapaneseDraftOnlyControls() throws {
+        let bundle = try strings("ja")
+        XCTAssertEqual(NativeLocalization.text("Profiles", bundle: bundle), "プロファイル")
+        XCTAssertEqual(NativeLocalization.text("Restore draft", bundle: bundle), "下書きに復元")
+        XCTAssertEqual(NativeLocalization.text("Saved fields", bundle: bundle), "保存する項目")
+        XCTAssertTrue(NativeLocalization.text("Profiles save a limited settings subset on this device. Restore only edits the draft; use Apply separately.", bundle: bundle).contains("下書きだけ"))
+    }
+
     func testLocalizedPresentationDoesNotChangeStoredOrSdkValues() throws {
         XCTAssertEqual(VideoScaling.fill.rawValue, "Fill (crop)")
         XCTAssertEqual(VideoScaling.fill.sdkCode, "zoom")
