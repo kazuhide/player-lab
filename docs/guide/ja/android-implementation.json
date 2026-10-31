@@ -367,6 +367,57 @@
       "text": "評価処理には実行量の制限があり、Java・Android・Playerのオブジェクトへはアクセスできません。不正な戻り値や実行上限には説明された代替動作を使います。呼び出し数が0ならSDKはまだその処理を呼んでいません。これはアプリの補助実装です。"
     },
     {
+      "type": "h3",
+      "id": "saved-configurations",
+      "text": "設定の下書きを保存して読み込む"
+    },
+    {
+      "type": "p",
+      "text": "「設定」で「プロファイル」を選ぶと、評価用の設定に名前を付けてAndroidアプリ内へ保存できます。保存するのは対応する下書きの値で、SDKオブジェクトや現在の再生状態ではありません。保存や選択だけでは設定を適用せず、ソースの再読み込みやAPIの実行も行いません。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Source、Player、または対応するSDK設定の下書きを編集し、「プロファイル」を開きます。名前を入力して「保存」を押します。同じ名前の内容を置き換える場合は確認が必要です。",
+        "アプリを起動し直した後は「プロファイル」で保存した名前を選び、「下書きへ読み込む」を押します。SDKのバージョンが変わっている場合は、警告を確認してから読み込みます。",
+        "Source、Player、SDK設定を確認し、変更したいセクションの既存の適用操作で反映します。保存時に未指定だった対応SDK項目は下書きから取り除き、保存対象外の項目は現在の値を残します。",
+        "削除する場合は保存した名前を選び、「削除」を押します。削除しても現在の下書きと再生は変わりません。"
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "保存する項目",
+        "保存対象外の項目と読み込み時の扱い"
+      ],
+      "widths": [
+        0.5,
+        0.5
+      ],
+      "rows": [
+        [
+          "Playerの基本設定。自動再生、開始時のミュート、ライブの時間移動、バッファー、ビットレート上限、先読み、再バッファ、画質と安定性のバランス、音声言語の優先順、再試行の待ち時間。",
+          "Player・Analytics・DRMのキー、認証ヘッダー、メタデータ、コールバックやスクリプト、取得済みの実行時の値は保存しません。"
+        ],
+        [
+          "Sourceの基本設定。形式、ポスターの保持、開始位置と基準、ライブの目標遅延、音声言語の優先順、旧コンストラクター。アプリに用意したストリームはIDで保存します。",
+          "入力したURL、タイトル、ポスターURL、外部字幕の項目は保存しません。読み込み時の下書きの値を残すため、必要なURLを再入力し、形式を確認してから適用してください。"
+        ],
+        [
+          "明示的に対応したSDKの数値・真偽値（true/false）・選択項目。音声フォーカス、シーク、画質選択、ライブの時間設定、映像の表示面と拡大方法、組み込みWeb UIの設定など。",
+          "その他のSDK設定とテーマの選択は保存対象外です。対応する項目は保存した内容で一括して置き換え、保存後に追加した対応SDK項目は下書きから取り除きます。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "最大20件を保存でき、名前はUnicodeのコードポイントで48文字までです。保存形式にはサイズの上限があり、Android用であること、形式のバージョン、保存時のSDKを記録します。未対応の形式、未知の項目、不正な値、保存先の問題はエラーとして表示し、一部だけを適用しません。SDKのバージョンが異なる場合も、既知の設定を検証したうえで確認を求めます。"
+    },
+    {
+      "type": "p",
+      "text": "プロファイル用の設定ファイルはこのアプリだけで使い、Androidのバックアップと端末間転送から除外しています。外部への出力や起動時の自動読み込みは行いません。保存した一覧は項目を削除するか、アプリのデータを消去またはアプリを削除するまで残ります。SDKのライセンスなど、セッションだけで使う設定は従来のローカル設定を使います。"
+    },
+    {
       "type": "h2",
       "text": "プレイヤーUIと画面レイアウトの変更",
       "id": "ui-customization",
@@ -450,10 +501,10 @@
       "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                liveRewindViewConfig(controller.apiOverrides.view(playerViewConfig(uiMode, television)), controller.timeShiftEnabled))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
-        "line": 183,
-        "label": "PlayerWorkspace.kt:183–197"
+        "line": 184,
+        "label": "PlayerWorkspace.kt:184–198"
       },
-      "endLine": 197
+      "endLine": 198
     },
     {
       "type": "p",
@@ -1087,6 +1138,18 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-android-samples/blob/main/BasicPlaybackTVKotlin/src/main/java/com/bitmovin/samples/tv/playback/basic/MainActivity.kt",
       "label": "Android TV公式サンプルの専用メディアキー"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationProfiles.kt",
+      "label": "保存する項目の制限、検証、下書きへの復元"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationProfilesPanel.kt",
+      "label": "ローカル設定の保存・選択・確認・削除"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/AndroidConfigurationProfileStorage.kt",
+      "label": "アプリ内の保存先と書き込み結果の確認"
     }
   ]
 }

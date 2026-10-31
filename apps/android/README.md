@@ -764,3 +764,9 @@ form scrolling and cancellation/release handling. From `apps/android`, run:
 ```
 
 Rebuild with your normal allowed key before running playback checks.
+
+## Saved configuration drafts
+
+Open **Settings → Profiles** to save, choose, load or delete a named local profile. Loading changes only drafts; use the existing Source, Player and SDK Apply actions after review. Supported settings include the standard Player/Source form and explicitly allowed primitive SDK overrides. Custom URLs, titles, external tracks, credentials, metadata, scripts, unsupported SDK overrides and the theme selector are excluded. Excluded fields keep their current draft values.
+
+Profiles survive app restarts, support explicit replacement and deletion, and require confirmation when the SDK version differs. Unsupported versions, platforms, fields and invalid values are rejected. The preferences file is excluded from Android backup and device transfer. See the [implementation guide](https://kazuhide.github.io/player-lab/guide/android-implementation/player-source-config/#saved-configurations) ([日本語](https://kazuhide.github.io/player-lab/ja/guide/android-implementation/player-source-config/#saved-configurations)) for the saved subset and Apply behavior.

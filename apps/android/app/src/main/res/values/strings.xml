@@ -487,4 +487,40 @@
     <string name="ui_api_vr_callback_required" formatted="false">Register the selected update callback first.</string>
     <string name="ui_api_surface_ready_required" formatted="false">A valid SurfaceView surface is required.</string>
     <string name="ui_api_texture_view_required" formatted="false">Choose TextureView in PlayerViewConfig and Apply first.</string>
+    <string name="ui_profiles">Profiles</string>
+    <string name="ui_profile_selected">Saved profile</string>
+    <string name="ui_profile_choose">Choose a profile</string>
+    <string name="ui_profile_name">Profile name</string>
+    <string name="ui_profile_save">Save profile</string>
+    <string name="ui_profile_restore">Load draft</string>
+    <string name="ui_profile_delete">Delete profile</string>
+    <string name="ui_profile_fields">Saved fields</string>
+    <string name="ui_profile_empty">No saved profiles.</string>
+    <string name="ui_profile_saved">Profile saved.</string>
+    <string name="ui_profile_deleted">Profile deleted.</string>
+    <string name="ui_profile_restored">Loaded into drafts. Playback is unchanged.</string>
+    <string name="ui_profile_drafts_only">Restores drafts only. Review and Apply each section.</string>
+    <string name="ui_profile_replace_title">Replace saved profile?</string>
+    <string name="ui_profile_sdk_different">Different SDK version</string>
+    <string name="ui_profile_clear">Delete saved profiles</string>
+    <string name="ui_profile_clear_title">Delete saved profiles?</string>
+    <string name="ui_profile_delete_title">Delete profile?</string>
+    <string name="ui_profile_clear_notice">Saved profiles will be removed. Current drafts and playback are unchanged.</string>
+    <string name="ui_profile_delete_notice">The selected saved profile will be removed. Current drafts and playback are unchanged.</string>
+    <string name="ui_profile_scope">Saves standard Player and Source settings and supported numeric, boolean and enum SDK overrides. Only built-in stream IDs are saved.</string>
+    <string name="ui_profile_excluded">Custom URLs, titles, posters, subtitles, credentials, headers, metadata, Analytics settings and scripts are excluded. Other SDK overrides and the theme selector are not saved.</string>
+    <string name="ui_profile_retained">Excluded fields retain their current draft values when a profile is loaded. Review Source, Player and SDK overrides before using their Apply actions.</string>
+    <string name="ui_profile_local">Profiles stay on this device and survive app restarts. Up to 20 profiles; names up to 48 characters. There is no export or automatic playback.</string>
+    <string name="ui_profile_error_name">Use a short profile name without credentials or links.</string>
+    <string name="ui_profile_error_exists">This profile name already exists.</string>
+    <string name="ui_profile_error_missing">The selected profile no longer exists.</string>
+    <string name="ui_profile_error_limit">The profile storage limit has been reached.</string>
+    <string name="ui_profile_error_version">The saved profile format is not supported.</string>
+    <string name="ui_profile_error_platform">These profiles belong to another platform.</string>
+    <string name="ui_profile_error_unsupported">Saved profiles contain unsupported settings. Drafts were not changed.</string>
+    <string name="ui_profile_error_invalid">Saved profiles or draft values are invalid. Drafts were not changed.</string>
+    <string name="ui_profile_error_storage">Profile storage is unavailable. The operation was not confirmed.</string>
+    <string name="ui_profile_error_sdk">The SDK version differs. Confirm before restoring drafts.</string>
+    <string name="ui_profile_sdk_version">Saved with SDK %1$s</string>
+    <string name="ui_profile_sdk_warning">This profile uses SDK %1$s; this app uses %2$s. Known fields were validated. Load drafts to review them before Apply.</string>
 </resources>

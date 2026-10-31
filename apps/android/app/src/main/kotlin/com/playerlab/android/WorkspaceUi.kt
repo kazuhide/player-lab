@@ -170,6 +170,8 @@ internal fun <T> WorkspacePicker(
     compact: Boolean = false,
     modifier: Modifier = Modifier,
     selectedLabel: String? = null,
+    translateChoices: Boolean = true,
+    enabled: Boolean = true,
     unavailableReason: (T) -> String? = { null },
     change: (T) -> Unit,
 ) {
@@ -178,7 +180,7 @@ internal fun <T> WorkspacePicker(
     var query by remember { mutableStateOf("") }
     var focused by remember { mutableStateOf(false) }
     val current = selectedLabel ?: choices.firstOrNull { it.first == selected }?.second ?: selected.toString()
-    OutlinedButton(onClick = { query = ""; open = true }, modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(tag)
+    OutlinedButton(onClick = { query = ""; open = true }, enabled = enabled, modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(tag)
         .onFocusChanged { focused = it.isFocused }
         .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface,
@@ -186,7 +188,9 @@ internal fun <T> WorkspacePicker(
         shape = MaterialTheme.shapes.small, contentPadding = PaddingValues(horizontal = 12.dp, vertical = if (compact) 6.dp else 8.dp)) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(if (compact) 0.dp else 2.dp)) {
             UiText(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            UiText(current, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
+            if (translateChoices) UiText(current, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
+                maxLines = if (compact) 1 else 2, overflow = TextOverflow.Ellipsis)
+            else Text(current, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
                 maxLines = if (compact) 1 else 2, overflow = TextOverflow.Ellipsis)
         }
         UiText("⌄", modifier = Modifier.padding(start = 8.dp))
@@ -206,7 +210,7 @@ internal fun <T> WorkspacePicker(
             val dialogView = LocalView.current
             var searchFocused by remember { mutableStateOf(false) }
             var keyboardWasVisible by remember { mutableStateOf(false) }
-            val localizedChoices = choices.map { (value, title) -> Triple(value, title, uiText(title)) }
+            val localizedChoices = choices.map { (value, title) -> Triple(value, title, if (translateChoices) uiText(title) else title) }
             val matches = localizedChoices.filter { (value, title, localized) -> localized.contains(query, ignoreCase = true) || title.contains(query, ignoreCase = true) || value.toString().contains(query, ignoreCase = true) }
             val firstEnabledIndex = matches.indexOfFirst { unavailableReason(it.first) == null }
             LaunchedEffect(television, keyboardVisible, searchFocused, query, selected, matches.map { it.first }, firstEnabledIndex) {
