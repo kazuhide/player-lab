@@ -36,3 +36,20 @@ test('an incompatible selection has no values rather than borrowing another vide
   assert.equal(demo.metrics.startupP95.value, null);
   assert.deepEqual(demo.comparison.plays.rows, []);
 });
+
+
+test('scenario changes alter individual sessions without changing their count or leaking into measured data', () => {
+  const normal = createDemoData(config, { asset: 'sports:SP-CLIP-A' });
+  const slow = createDemoData(config, { asset: 'sports:SP-CLIP-A', scenario: 'slow-start' });
+  const rebuffer = createDemoData(config, { asset: 'sports:SP-CLIP-A', scenario: 'rebuffering' });
+  assert.equal(slow.metrics.plays.value, normal.metrics.plays.value);
+  assert.equal(rebuffer.metrics.watchHours.value, normal.metrics.watchHours.value);
+  assert.ok(slow.metrics.startupMedian.value > normal.metrics.startupMedian.value * 2);
+  assert.ok(slow.metrics.startupP95.value > normal.metrics.startupP95.value * 2);
+  assert.ok(rebuffer.metrics.rebufferPercentage.value > normal.metrics.rebufferPercentage.value * 5);
+  assert.equal(slow.metrics.rebufferPercentage.value, normal.metrics.rebufferPercentage.value);
+  assert.equal(rebuffer.metrics.startupP95.value, normal.metrics.startupP95.value);
+  assert.equal(slow.scenario, 'slow-start');
+  assert.deepEqual(createDemoData(config, { asset: 'sports:SP-CLIP-A', scenario: 'slow-start' }), slow);
+  assert.throws(() => createDemoData(config, { scenario: 'unknown' }), /INVALID_SCENARIO/);
+});

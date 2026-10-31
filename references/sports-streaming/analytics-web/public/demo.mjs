@@ -2,7 +2,7 @@ const START = Date.parse('2026-10-01T00:00:00.000Z');
 const HOUR = 3_600_000;
 const units = { plays: 'count', watchHours: 'hours', startupMedian: 'seconds', startupP95: 'seconds', rebufferPercentage: 'percent', errorPercentage: 'percent' };
 
-function observations(assets) {
+function observations(assets, scenario) {
   const samples = [];
   assets.forEach((asset, index) => {
     for (let hour = 0; hour < 24; hour += 1) {
@@ -10,9 +10,9 @@ function observations(assets) {
       for (let play = 0; play < count; play += 1) {
         const seed = hour * 31 + index * 17 + play * 11;
         samples.push({ asset: asset.id, hour,
-          startup: (seed % 17 === 0 ? 4200 : 500) + seed % 1800,
+          startup: ((seed % 17 === 0 ? 4200 : 500) + seed % 1800) * (scenario === 'slow-start' ? 4 : 1),
           played: asset.kind === 'clip' ? 8000 + seed % 12000 : 60000 + seed % 240000,
-          rebuffer: seed % 13 === 0 ? 2.5 : .1 + (seed % 5) / 10,
+          rebuffer: (seed % 13 === 0 ? 2.5 : .1 + (seed % 5) / 10) + (scenario === 'rebuffering' ? 8 + seed % 7 : 0),
           error: seed % 97 === 0 ? 100 : 0,
         });
       }
@@ -35,9 +35,10 @@ function values(samples) {
   };
 }
 
-export function createDemoData(config, { asset = 'all', type = 'all' } = {}) {
+export function createDemoData(config, { asset = 'all', type = 'all', scenario = 'normal' } = {}) {
+  if (!['normal', 'slow-start', 'rebuffering'].includes(scenario)) throw new Error('INVALID_SCENARIO');
   const selected = config.assets.filter(item => (asset === 'all' || item.id === asset) && (type === 'all' || item.kind === type));
-  const samples = observations(config.assets).filter(sample => selected.some(item => item.id === sample.asset));
+  const samples = observations(config.assets, scenario).filter(sample => selected.some(item => item.id === sample.asset));
   const totals = values(samples);
   const series = {};
   for (const id of ['plays', 'startupMedian', 'startupP95']) {
@@ -48,7 +49,7 @@ export function createDemoData(config, { asset = 'all', type = 'all' } = {}) {
     comparison[id] = { status: 'ok', rows: selected.map(item => ({ asset: item.id, value: values(samples.filter(sample => sample.asset === item.id))[id] })) };
   }
   return {
-    source: 'synthetic-demo', status: samples.length ? 'ok' : 'empty', requestedAt: null, fetchedAt: null, latestSampleAt: null,
+    source: 'synthetic-demo', scenario, status: samples.length ? 'ok' : 'empty', requestedAt: null, fetchedAt: null, latestSampleAt: null,
     period: { start: new Date(START).toISOString(), end: new Date(START + 24 * HOUR).toISOString(), interval: 'HOUR' },
     filters: { asset, type, origin: 'all', platform: 'android' },
     metrics: Object.fromEntries(Object.entries(totals).map(([id, value]) => [id, { value, unit: units[id], status: value === null ? 'empty' : 'ok' }])),
