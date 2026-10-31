@@ -503,7 +503,57 @@
     },
     {
       "type": "p",
-      "text": "Clear an optional Source or initial-configuration override, or select its default option, then apply it to remove only that override. Other settings remain applied. Checkboxes explicitly specify on or off; they do not provide an unset state. Runtime setters can need an explicit replacement value, as described above. Selecting a source preset clears source overrides but keeps Player settings. Reloading the browser page clears this app's in-memory edits; stored Player UI preferences are separate. The GUI has no global reset or configuration-file save/load."
+      "text": "Clear an optional Source or initial-configuration override, or select its default option, then apply it to remove only that override. Other settings remain applied. Normal checkbox edits explicitly specify on or off. Profile restoration can also mark optional overrides as unset, as described below. Runtime setters can need an explicit replacement value, as described above. Selecting a source preset clears source overrides but keeps Player settings. Reloading the browser page clears this app's in-memory edits. Named profiles remain in this browser and can be restored explicitly; stored Player UI preferences are separate. The GUI has no global reset or configuration-file save/load."
+    },
+    {
+      "type": "h2",
+      "id": "saved-configurations",
+      "text": "Save and restore basic settings"
+    },
+    {
+      "type": "p",
+      "text": "Open Saved configurations in the PlayerConfig / SourceConfig panel. These named profiles save supported values from the basic reload/recreate form in this browser. They are not a snapshot of every Player setting. Runtime controls, theme selection and SDK settings, APIs and events drafts are excluded."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Edit the supported basic settings, enter a Configuration name, and choose Save. The same name updates its saved values. Saving does not apply settings.",
+        "Choose a Saved configuration, then select Restore draft. Selection alone and page startup do not restore it. Review the differences and use the existing Reload the source to apply or Recreate the player to apply action.",
+        "Choose Delete to remove the saved profile. This leaves the current player and drafts unchanged. Profiles remain after a page reload; clearing browser data removes them."
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Saved",
+        "Excluded"
+      ],
+      "rows": [
+        [
+          "Typed playback/language, initial adaptation, buffer, request API/timeouts, numeric/boolean Tweaks, logs, constrained style dimensions/ratio, Cast enable, live settings, licensing delay and storage preference",
+          "Player and Analytics keys; DRM, authentication and headers; app IDs; callbacks, scripts and SDK instances"
+        ],
+        [
+          "SourceConfig.options.persistentPoster, startOffset and startOffsetTimelineReference",
+          "Source URLs, title, description, poster and other free text; receiver IDs/namespaces and external script or stylesheet locations"
+        ]
+      ],
+      "widths": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Unset configuration fields are saved as unset, rather than as the form’s fallback display values. Restoration replaces the supported draft fields as a set, including absent values. A blank optional value or a profile field recorded as null removes that override when you later apply. A restored unset checkbox shows a dash; an unset enum offers no override. Excluded current values and detailed-editor drafts remain in place. Checkboxes you edit normally still specify true or false. Basic adaptation controls apply to both desktop and mobile as usual."
+    },
+    {
+      "type": "note",
+      "text": "Names use 1–48 Unicode characters. This browser can store up to 20 profiles, 8 KiB per profile and 128 KiB in total. A different SDK version shows a warning and is checked against currently supported fields before restoration. Unsupported format versions, other platforms, unknown fields and invalid values are rejected. Clear saved profiles explicitly removes unreadable stored data; the player and current drafts are unaffected. Storage denial or a full browser store is reported without applying or replacing settings."
+    },
+    {
+      "type": "p",
+      "text": "Only the listed scalar settings are saved. Language tags, bitrate values and CSS dimensions/ratios use constrained formats; arbitrary text and all URLs are excluded, including signed URLs. Optional finite number fields can be cleared; unsupported values must be corrected before saving. There is no profile file import/export or automatic transfer to another browser or site origin."
     },
     {
       "type": "h2",
@@ -746,6 +796,14 @@
     {
       "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.TweaksConfig.html",
       "label": "TweaksConfig"
+    },
+    {
+      "path": "apps/web/src/configurationProfiles.ts",
+      "label": "Local configuration profile validation"
+    },
+    {
+      "path": "apps/web/src/configurationProfilesView.ts",
+      "label": "Explicit save, restore and delete controls"
     }
   ]
 }

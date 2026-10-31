@@ -206,10 +206,10 @@
       "text": "  function dynAdapt(mutate: (cur: DynamicAdaptationConfig) => DynamicAdaptationConfig): void {\n    const p = options.getPlayer();\n    if (!p) return;\n    p.adaptation.setConfig(mutate(p.adaptation.getConfig()));\n  }",
       "source": {
         "path": "apps/web/src/configPanel.ts",
-        "line": 278,
-        "label": "configPanel.ts:278–282"
+        "line": 286,
+        "label": "configPanel.ts:286–290"
       },
-      "endLine": 282
+      "endLine": 290
     },
     {
       "type": "p",
