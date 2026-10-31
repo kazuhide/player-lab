@@ -2,10 +2,12 @@ import { translations } from './translations.mjs';
 import { LatestRequest, hourlySegments, qualityStatus, modeFromHash } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
 import { createDemoData } from './demo.mjs';
+import { metrics, queryTasks, metricExample, selectionFor } from './query-recipes.mjs';
+import { exportSnapshot, exportCsv } from './export.mjs';
 
 const $ = id => document.getElementById(id);
-const ids = ['plays', 'watchHours', 'startupMedian', 'startupP95', 'rebufferPercentage', 'errorPercentage'];
-const units = ['count', 'hours', 'seconds', 'seconds', 'percent', 'percent'];
+const ids = metrics.map(metric => metric.id);
+const units = metrics.map(metric => metric.unit);
 const latest = new LatestRequest();
 let locale = navigator.language.startsWith('ja') ? 'ja' : 'en';
 try { locale = localStorage.getItem('analytics-language') === 'ja' ? 'ja' : localStorage.getItem('analytics-language') === 'en' ? 'en' : locale; } catch { /* Language persistence is optional. */ }
@@ -26,6 +28,7 @@ function translate() {
   $('tabs').setAttribute('aria-label', t('dataView'));
   $('mode-note').textContent = t(mode === 'demo' ? 'demoNotice' : 'measuredNotice');
   $('period-field').hidden = mode === 'demo';
+  $('scenario-field').hidden = mode !== 'demo';
   $('custom-range').hidden = mode === 'demo' || $('period').value !== 'custom';
   $('custom-range').disabled = $('custom-range').hidden;
   $('refresh').hidden = mode === 'demo'; $('load-demo').hidden = mode !== 'demo';
@@ -63,7 +66,9 @@ function renderQuality() {
     const status = metric?.status === 'error' ? t(metric.code) : metric?.status === 'empty' ? t('unavailable') : metric ? '' : t('notFetched');
     node.append(label, value, element('p', status, 'metric-state')); return node;
   }));
-  renderCharts(); renderComparison();
+  for (const id of ['export-json', 'export-csv']) $(id).disabled = !current || loading;
+  $('export-status').textContent = '';
+  renderCharts(); renderComparison(); renderRecipe();
   document.querySelectorAll('.table-scroll').forEach(node => { node.tabIndex = 0; node.setAttribute('role', 'region'); node.setAttribute('aria-label', t('tableView')); });
 }
 
@@ -88,6 +93,53 @@ function renderComparison() {
     return result?.status === 'error' ? t(result.code) : number(result?.rows.find(row => row.asset === asset.id)?.value, id === 'plays' ? 0 : 2);
   })]);
   $('comparison-table').replaceChildren(dataTable([t('video'), t('plays'), `${t('p95')} (${t('seconds')})`, `${t('errorPercentage')} (%)`], rows));
+}
+
+function renderRecipe() {
+  const selectedMetric = $('recipe-metric').value || 'plays';
+  $('recipe-metric').replaceChildren(...metrics.map(metric => new Option(t(metric.id), metric.id)));
+  $('recipe-metric').value = selectedMetric;
+  const oldShape = $('recipe-shape').value;
+  const shapes = queryTasks.filter(task => task.metric.id === selectedMetric).map(task => task.shape);
+  $('recipe-shape').replaceChildren(...shapes.map(shape => new Option(t(`shape_${shape}`), shape)));
+  $('recipe-shape').value = shapes.includes(oldShape) ? oldShape : 'total';
+  $('metric-definition').textContent = t(`definition_${selectedMetric}`);
+  $('query-conditions').textContent = t('queryConditions');
+  $('recipe-context').textContent = t(mode === 'demo' ? 'demoRecipe' : current ? current.stale ? 'earlierRecipe' : 'displayedRecipe' : 'selectionRecipe');
+  $('copy-status').textContent = '';
+  try {
+    const params = current ? null : parameters();
+    const period = current?.period ?? { start: params.get('start'), end: params.get('end') };
+    const filters = current?.filters ?? Object.fromEntries(params);
+    const example = metricExample(selectionFor(config, period, filters), selectedMetric, $('recipe-shape').value);
+    $('recipe-json').textContent = example.json;
+    $('recipe-code').textContent = example.code;
+    $('query-endpoint').textContent = `POST https://api.bitmovin.com/v1/analytics/queries/${example.operation}`;
+    for (const id of ['copy-json', 'copy-code']) $(id).disabled = false;
+  } catch {
+    $('recipe-json').textContent = t('invalidPeriod'); $('recipe-code').textContent = ''; $('query-endpoint').textContent = '';
+    for (const id of ['copy-json', 'copy-code']) $(id).disabled = true;
+  }
+}
+
+async function copyExample(id) {
+  try { await navigator.clipboard.writeText($(id).textContent); $('copy-status').textContent = t('copied'); }
+  catch { $('copy-status').textContent = t('copyFailed'); }
+}
+
+function download(format) {
+  if (!current || loading) return;
+  let url;
+  try {
+    const snapshot = exportSnapshot(current, { mode, viewStatus: state, config });
+    const body = format === 'json' ? JSON.stringify(snapshot, null, 2) + '\n' : exportCsv(snapshot);
+    url = URL.createObjectURL(new Blob([body], { type: format === 'json' ? 'application/json;charset=utf-8' : 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url;
+    link.download = `sports-playback-quality-${mode}-${snapshot.exportedAt.replaceAll(':', '-')}.${format}`;
+    document.body.append(link); link.click(); link.remove();
+    $('export-status').textContent = t('exported');
+  } catch { $('export-status').textContent = t('exportFailed'); }
+  finally { if (url) setTimeout(() => URL.revokeObjectURL(url), 0); }
 }
 
 function parameters() {
@@ -126,7 +178,7 @@ async function refresh() {
 }
 
 function loadDemo() {
-  current = createDemoData(config, { asset: $('asset').value || 'all', type: $('type').value });
+  current = createDemoData(config, { asset: $('asset').value || 'all', type: $('type').value, scenario: $('scenario').value });
   state = current.status === 'empty' ? 'empty' : 'demoReady';
   renderQuality();
 }
@@ -156,6 +208,12 @@ async function init() {
     if (mode === 'demo') loadDemo();
   });
   $('load-demo').addEventListener('click', loadDemo);
+  $('recipe-metric').addEventListener('change', renderRecipe);
+  $('recipe-shape').addEventListener('change', renderRecipe);
+  $('copy-json').addEventListener('click', () => copyExample('recipe-json'));
+  $('copy-code').addEventListener('click', () => copyExample('recipe-code'));
+  $('export-json').addEventListener('click', () => download('json'));
+  $('export-csv').addEventListener('click', () => download('csv'));
   window.addEventListener('hashchange', () => {
     const next = modeFromHash(location.hash, mode);
     if (next !== mode) chooseMode(next);

@@ -41,7 +41,7 @@ Androidの設定はプロセスの環境変数、`android/.env`、既定値の�
 <a id="find-the-playback-in-bitmovin-dashboard"></a>
 ## Bitmovin Dashboardで確認する
 
-1. Analyticsライセンスを持つアカウントで[Bitmovin Dashboard](https://dashboard.bitmovin.com/analytics)を開いてください。
+1. Analyticsライセンスを持つアカウントで[Bitmovin Dashboard](https://dashboard.bitmovin.com/observability/home)を開いてください。
 2. Androidに設定したものと同じAnalyticsライセンスを選び、控えた再生時刻を含む期間を指定してください。
 3. AndroidとVideo ID `sports:SP-CLIP-A`で絞り込み、再生開始数、開始待ち時間、再バッファを確認してください。
 

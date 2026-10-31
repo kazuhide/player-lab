@@ -1,5 +1,7 @@
 import { test as base, expect } from '@playwright/test';
 import { config } from '../config.mjs';
+import { metrics } from '../public/query-recipes.mjs';
+import { readFile } from 'node:fs/promises';
 
 const ids = ['plays', 'watchHours', 'startupMedian', 'startupP95', 'rebufferPercentage', 'errorPercentage'];
 const text = {
@@ -18,13 +20,13 @@ function snapshot(request, { shape = 'ok', plays = 101 } = {}) {
     source: 'Bitmovin Analytics Query API', requestedAt: fetchedAt, fetchedAt, latestSampleAt: null,
     period: { start, end, interval: 'HOUR' },
     filters: { asset: params.get('asset'), origin: params.get('origin'), type: params.get('type'), platform: 'android' },
-    metrics: Object.fromEntries(ids.map((id, i) => [id, { status: values[i] === null ? 'empty' : 'ok', value: values[i], rows: [{ value: values[i] }], fetchedAt }])),
+    metrics: Object.fromEntries(ids.map((id, i) => [id, { status: values[i] === null ? 'empty' : 'ok', value: values[i], unit: metrics[i].unit, rows: [{ value: values[i] }], fetchedAt }])),
     series: {}, comparison: {},
   };
   for (const id of ['plays', 'startupMedian', 'startupP95']) result.series[id] = { status: shape === 'empty' ? 'empty' : 'ok', rows: shape === 'empty' ? [] : [{ at: start, value: result.metrics[id].value }], fetchedAt };
   const assets = config.assets.filter(asset => (result.filters.asset === 'all' || result.filters.asset === asset.id) && (result.filters.type === 'all' || result.filters.type === asset.kind));
   for (const id of ['plays', 'startupP95', 'errorPercentage']) result.comparison[id] = { status: shape === 'empty' ? 'empty' : 'ok', rows: shape === 'empty' ? [] : assets.map(asset => ({ asset: asset.id, value: result.metrics[id].value })), fetchedAt };
-  if (shape === 'partial') result.metrics.startupP95 = { status: 'error', value: null, rows: [], code: 'UPSTREAM_ERROR', fetchedAt: null };
+  if (shape === 'partial') result.metrics.startupP95 = { status: 'error', value: null, unit: 'seconds', rows: [], code: 'UPSTREAM_ERROR', fetchedAt: null };
   return result;
 }
 
@@ -220,4 +222,104 @@ test('keyboard navigation and custom UTC controls remain usable at the configure
   expect(dashboard.calls[0].get('start')).toBe('2026-10-30T12:00:00.000Z');
   expect(dashboard.calls[0].get('end')).toBe('2026-10-31T12:00:00.000Z');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+
+async function downloaded(page, button) {
+  const waiting = page.waitForEvent('download'); await page.locator(button).click();
+  const download = await waiting;
+  expect(await download.failure()).toBeNull();
+  return readFile(await download.path(), 'utf8');
+}
+
+test('demo scenarios change local session aggregates and preserve video and type filters', async ({ page, dashboard }) => {
+  await dashboard.open();
+  await page.locator('#type').selectOption('clip');
+  await page.locator('#asset').selectOption('sports:SP-CLIP-A');
+  const normal = await dashboard.values.allTextContents();
+  await page.locator('#scenario').selectOption('slow-start');
+  await expect(dashboard.values.nth(2)).not.toHaveText(normal[2]);
+  await expect(dashboard.values.nth(3)).not.toHaveText(normal[3]);
+  await expect(dashboard.values.first()).toHaveText(normal[0]);
+  await expect(dashboard.values.nth(4)).toHaveText(normal[4]);
+  await page.locator('#scenario').selectOption('rebuffering');
+  await expect(dashboard.values.nth(4)).not.toHaveText(normal[4]);
+  await expect(dashboard.values.nth(2)).toHaveText(normal[2]);
+  await expect(page.locator('#asset')).toHaveValue('sports:SP-CLIP-A');
+  await expect(page.locator('#type')).toHaveValue('clip');
+  await expect(page.locator('#comparison-table tbody tr')).toHaveCount(1);
+  await dashboard.measured.click();
+  await expect(page.locator('#scenario-field')).toBeHidden();
+  await expectUnfetched(dashboard);
+  expect(dashboard.calls).toHaveLength(0);
+});
+
+test('query and copy examples use the displayed or selected scope without fetching data', async ({ page, dashboard }) => {
+  await page.addInitScript(() => {
+    window.__copies = [];
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async value => { window.__copies.push(value); } } });
+  });
+  await dashboard.open();
+  const summary = page.locator('#query-example summary'); await summary.focus(); await page.keyboard.press('Space');
+  await expect(page.locator('#recipe-json')).toBeVisible();
+  await expect(page.locator('#recipe-context')).toContainText(dashboard.t === text.ja ? '架空' : 'fictional');
+  let body = JSON.parse(await page.locator('#recipe-json').textContent());
+  expect(body.start).toBe('2026-10-01T00:00:00.000Z'); expect(body.licenseKey).toBe('<ANALYTICS_LICENSE_KEY>');
+  await page.locator('#copy-json').click();
+  expect(JSON.parse((await page.evaluate(() => window.__copies))[0])).toEqual(body);
+  await dashboard.measured.click(); await page.locator('#period').selectOption('custom');
+  await page.locator('#start').fill('2026-10-30T12:00'); await page.locator('#end').fill('2026-10-31T12:00');
+  await page.locator('#type').selectOption('clip'); await page.locator('#asset').selectOption('sports:SP-CLIP-A');
+  await page.locator('#recipe-metric').selectOption('startupP95'); await page.locator('#recipe-shape').selectOption('assets');
+  body = JSON.parse(await page.locator('#recipe-json').textContent());
+  expect(body.start).toBe('2026-10-30T12:00:00.000Z'); expect(body.end).toBe('2026-10-31T12:00:00.000Z');
+  expect(body.filters.find(filter => filter.name === 'VIDEO_ID').value).toEqual(['sports:SP-CLIP-A']);
+  expect(body.percentile).toBe(95); expect(body.groupBy).toEqual(['VIDEO_ID']);
+  await page.locator('#copy-code').click();
+  expect((await page.evaluate(() => window.__copies)).at(-1)).toContain('process.env.BITMOVIN_API_KEY');
+  await page.locator('#recipe-metric').selectOption('watchHours');
+  await expect(page.locator('#recipe-shape option')).toHaveCount(1);
+  expect(dashboard.calls).toHaveLength(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('demo JSON and CSV exports identify fictional data and revoke their temporary URLs', async ({ page, dashboard }) => {
+  await page.addInitScript(() => {
+    window.__created = []; window.__revoked = [];
+    const create = URL.createObjectURL; const revoke = URL.revokeObjectURL;
+    URL.createObjectURL = blob => { const url = create(blob); window.__created.push(url); return url; };
+    URL.revokeObjectURL = url => { window.__revoked.push(url); revoke(url); };
+  });
+  await dashboard.open(); await page.locator('#scenario').selectOption('rebuffering');
+  await page.locator('#type').selectOption('clip'); await page.locator('#asset').selectOption('sports:SP-CLIP-A');
+  const result = JSON.parse(await downloaded(page, '#export-json'));
+  expect(result.dataSource).toBe('demo'); expect(result.scenario).toBe('rebuffering'); expect(result.fetchedAt).toBeNull();
+  expect(result.filters.asset).toBe('sports:SP-CLIP-A'); expect(result.filters.type).toBe('clip');
+  expect(result.metrics.startupMedian.unit).toBe('seconds'); expect(result.series.plays.rows[0].value).toBe(0);
+  const csv = await downloaded(page, '#export-csv');
+  expect(csv).toContain('"demo"'); expect(csv).toContain('"rebuffering"'); expect(csv).toContain('"seconds"');
+  await expect.poll(() => page.evaluate(() => window.__revoked.length)).toBe(2);
+  expect(await page.evaluate(() => window.__created.every(url => window.__revoked.includes(url)))).toBe(true);
+  expect(dashboard.calls).toHaveLength(0);
+});
+
+test('measured exports keep partial and earlier provenance and never relabel old values after filter changes', async ({ page, dashboard }) => {
+  await dashboard.open('#measured');
+  await expect(page.locator('#export-json')).toBeDisabled(); await expect(page.locator('#export-csv')).toBeDisabled();
+  const release = dashboard.hold({ shape: 'partial' }); await dashboard.fetch.click();
+  await expect(page.locator('#export-json')).toBeDisabled(); await expect(page.locator('#export-csv')).toBeDisabled();
+  await release(); await expect(dashboard.status).toHaveText(dashboard.t.partial);
+  const partial = JSON.parse(await downloaded(page, '#export-json'));
+  expect(partial.dataSource).toBe('measured'); expect(partial.scenario).toBeNull(); expect(partial.dataStatus).toBe('partial');
+  expect(partial.metrics.startupP95.value).toBeNull(); expect(partial.metrics.startupP95.code).toBe('UPSTREAM_ERROR');
+  expect(partial.metrics.rebufferPercentage.value).toBe(0); expect(partial.isEarlier).toBe(false);
+  dashboard.fail(500); await dashboard.fetch.click(); await expect(dashboard.status).toContainText(dashboard.t.earlier);
+  const earlier = JSON.parse(await downloaded(page, '#export-json'));
+  expect(earlier.viewStatus).toBe('error'); expect(earlier.isEarlier).toBe(true); expect(earlier.dataStatus).toBe('partial');
+  expect(earlier.fetchedAt).toBe(partial.fetchedAt); expect(earlier.period).toEqual(partial.period); expect(earlier.filters).toEqual(partial.filters);
+  await page.locator('#query-example summary').click();
+  expect(JSON.parse(await page.locator('#recipe-json').textContent()).end).toBe(earlier.period.end);
+  await page.locator('#asset').selectOption(config.assets[1].id);
+  await expect(page.locator('#export-json')).toBeDisabled(); await expect(page.locator('#export-csv')).toBeDisabled();
+  await expectUnfetched(dashboard); expect(dashboard.calls).toHaveLength(2);
 });
