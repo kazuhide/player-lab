@@ -599,22 +599,54 @@ class PlayerControlsInstrumentedTest {
     }
 
     private fun revealTouchControls(view: WebView): Boolean {
-        val centerHitsButton = javascript(view, """
-            !!document.elementFromPoint(innerWidth / 2, innerHeight / 3)?.closest('button')
-        """.trimIndent()) == "true"
-        val needsTouch = javascript(view, """
+        val geometry = javascript(view, """
             (() => { $visibleElementScript
-              const target = document.elementFromPoint(innerWidth * .15, innerHeight * .25);
-              return !!target?.matches('.bmpui-ui-touch-control-overlay') &&
-                !visible('.bmpui-ui-controlbar') && !visible('.bmpui-ui-settings-panel');
+              if (visible('.bmpui-ui-controlbar') || visible('.bmpui-ui-settings-panel')) return null;
+              const interactive = 'button,a,input,select,textarea,[role="button"],[role="slider"],[role="checkbox"],[role="radio"],[contenteditable="true"]';
+              const surface = '.bmpui-ui-touch-control-overlay,.bmpui-ui-playerinfo-card,.bmpui-ui-scoreboard-strip,.bmpui-ui-uicontainer';
+              for (const root of document.querySelectorAll(surface)) {
+                const rect = root.getBoundingClientRect();
+                const left = Math.max(4, rect.left), right = Math.min(innerWidth - 4, rect.right);
+                const top = Math.max(4, rect.top), bottom = Math.min(innerHeight - 4, rect.bottom);
+                if (right - left < 16 || bottom - top < 16) continue;
+                for (const [fx, fy] of [[.25,.25],[.5,.5],[.75,.25]]) {
+                  const x = left + (right - left) * fx, y = top + (bottom - top) * fy;
+                  const target = document.elementFromPoint(x, y);
+                  if (!target || target.closest(interactive) || !root.contains(target)) continue;
+                  const passiveCard = root.matches('.bmpui-ui-playerinfo-card,.bmpui-ui-scoreboard-strip');
+                  if (!passiveCard && target !== root) continue;
+                  return {x:x/innerWidth,y:y/innerHeight,gesture:'tap'};
+                }
+              }
+              // A full-video playback button leaves no inert tap target. A drag
+              // reveals its UIContainer through touchend without clicking Play/Pause.
+              for (const fx of [.5,.75,.25]) {
+                const y = innerHeight * .25, endY = innerHeight * .55;
+                const first = document.elementFromPoint(innerWidth * fx, y);
+                const last = document.elementFromPoint(innerWidth * fx, endY);
+                const button = first?.closest('.bmpui-ui-hugeplaybacktogglebutton');
+                if (button && last?.closest('.bmpui-ui-hugeplaybacktogglebutton') === button &&
+                    button.closest('.bmpui-ui-playbacktoggle-overlay')) {
+                  return {x:fx,y:y/innerHeight,endY:endY/innerHeight,gesture:'drag'};
+                }
+              }
+              return null;
             })()
-        """.trimIndent()) == "true"
-        if (!needsTouch) return false
-        // TouchControlOverlay consumes video-area mouse events; a real single tap reveals its controls.
-        // Never click a hidden menu item or change the UI's visibility styles to pass the oracle.
-        workspaceTapVisiblePlayer(ui, view)
+        """.trimIndent())
+        if (geometry == null || geometry == "null") return false
+        val point = JSONObject(geometry)
+        val x = point.getDouble("x").toFloat()
+        val y = point.getDouble("y").toFloat()
+        require(x in 0.01f..0.99f && y in 0.01f..0.99f)
+        if (point.getString("gesture") == "drag") {
+            val endY = point.getDouble("endY").toFloat()
+            require(endY in 0.01f..0.99f)
+            workspaceSwipeVisiblePlayer(ui, view, x, y, endY)
+        } else {
+            workspaceTapVisiblePlayer(ui, view, x, y)
+        }
         ui.runOnUiThread {
-            println("NATIVE_UI_SAFE action=reveal-touch emptyOverlayTarget=true centerHitsButton=$centerHitsButton nativeTap=true visibleViewport=true priorPlaying=${ui.activity.controller.player.isPlaying}")
+            println("NATIVE_UI_SAFE action=reveal-geometry gesture=${point.getString("gesture")} nativeInput=true visibleViewport=true playing=${ui.activity.controller.player.isPlaying}")
         }
         return true
     }
