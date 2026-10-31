@@ -1,4 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
+import { metrics, queryBody, queryTasks } from '../public/query-recipes.mjs';
+export { metrics, queryBody } from '../public/query-recipes.mjs';
 
 export class QueryError extends Error {
   constructor(code, retryAfter = null) {
@@ -7,15 +9,6 @@ export class QueryError extends Error {
     this.retryAfter = retryAfter;
   }
 }
-
-export const metrics = Object.freeze([
-  { id: 'plays', operation: 'count', dimension: 'IMPRESSION_ID', positive: 'VIDEO_STARTUPTIME', divisor: 1, unit: 'count' },
-  { id: 'watchHours', operation: 'sum', dimension: 'PLAYED', positive: 'PLAYED', divisor: 3_600_000, unit: 'hours' },
-  { id: 'startupMedian', operation: 'median', dimension: 'VIDEO_STARTUPTIME', positive: 'VIDEO_STARTUPTIME', divisor: 1000, unit: 'seconds' },
-  { id: 'startupP95', operation: 'percentile', dimension: 'VIDEO_STARTUPTIME', positive: 'VIDEO_STARTUPTIME', divisor: 1000, unit: 'seconds' },
-  { id: 'rebufferPercentage', operation: 'avg', dimension: 'REBUFFER_PERCENTAGE', divisor: 1, unit: 'percent' },
-  { id: 'errorPercentage', operation: 'avg', dimension: 'ERROR_PERCENTAGE', divisor: 1, unit: 'percent' },
-]);
 
 const DAY = 86_400_000;
 const UPSTREAM = 'https://api.bitmovin.com/v1/analytics/queries/';
@@ -42,24 +35,6 @@ export function validateParameters(params, config, now = Date.now()) {
   const assets = config.assets.filter(item => (asset === 'all' || item.id === asset) && (type === 'all' || item.kind === type)).map(item => item.id);
   if (!assets.length) throw new QueryError('INVALID_ASSET');
   return { start, end, asset, type, origin, assets };
-}
-
-export function queryBody(selection, metric, licenseKey, shape = 'total', offset = 0) {
-  const body = {
-    licenseKey, start: selection.start, end: selection.end,
-    dimension: metric.dimension,
-    filters: [
-      { name: 'PLATFORM', operator: 'EQ', value: 'android' },
-      { name: 'VIDEO_ID', operator: 'IN', value: selection.assets },
-    ],
-    includeContext: false, limit: 200, offset,
-  };
-  if (metric.positive) body.filters.push({ name: metric.positive, operator: 'GT', value: 0 });
-  if (selection.origin !== 'all') body.filters.push({ name: 'CUSTOM_DATA_1', operator: 'EQ', value: selection.origin });
-  if (metric.operation === 'percentile') body.percentile = 95;
-  if (shape === 'hourly') body.interval = 'HOUR';
-  if (shape === 'assets') body.groupBy = ['VIDEO_ID'];
-  return body;
 }
 
 function semaphore(limit) {
@@ -195,9 +170,7 @@ export function createAnalyticsService({ config, apiKey, licenseKey, fetchImpl =
       metrics: {}, series: {}, comparison: {},
     };
     if (!apiKey || !licenseKey) return { ...base, status: 'unconfigured' };
-    const tasks = metrics.map(metric => ({ metric, shape: 'total' }));
-    for (const id of ['plays', 'startupMedian', 'startupP95']) tasks.push({ metric: metrics.find(metric => metric.id === id), shape: 'hourly' });
-    for (const id of ['plays', 'startupP95', 'errorPercentage']) tasks.push({ metric: metrics.find(metric => metric.id === id), shape: 'assets' });
+    const tasks = queryTasks();
     const results = await Promise.all(tasks.map(async ({ metric, shape }) => {
       let result;
       try { result = await operation(selection, metric, shape, deadline); }

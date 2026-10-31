@@ -2,10 +2,12 @@ import { translations } from './translations.mjs';
 import { LatestRequest, hourlySegments, qualityStatus, modeFromHash } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
 import { demoSnapshot } from './demo.mjs';
+import { metrics, queryRecipe } from './query-recipes.mjs';
+import { exportSnapshot, toCSV } from './exports.mjs';
 
 const $ = id => document.getElementById(id);
-const ids = ['plays', 'watchHours', 'startupMedian', 'startupP95', 'rebufferPercentage', 'errorPercentage'];
-const units = ['count', 'hours', 'seconds', 'seconds', 'percent', 'percent'];
+const ids = metrics.map(metric => metric.id);
+const units = metrics.map(metric => metric.unit);
 const latest = new LatestRequest();
 let locale = navigator.language.startsWith('ja') ? 'ja' : 'en';
 try { locale = localStorage.getItem('analytics-language') === 'ja' ? 'ja' : localStorage.getItem('analytics-language') === 'en' ? 'en' : locale; } catch { /* Language persistence is optional. */ }
@@ -31,6 +33,9 @@ function translate() {
   const oldOrigin = $('origin').value;
   $('origin').replaceChildren(new Option(t('all'), 'all'), ...config.origins.map(origin => new Option(t(origin), origin)));
   $('origin').value = oldOrigin || 'all';
+  const oldMetric = $('recipe-metric').value;
+  $('recipe-metric').replaceChildren(...metrics.map(metric => new Option(t(metric.id), metric.id)));
+  $('recipe-metric').value = oldMetric || 'plays';
   renderQuality();
 }
 
@@ -43,6 +48,7 @@ function renderQuality() {
   $('refresh').disabled = !demo && (loading || !config.queryConfigured || Date.now() < cooldownUntil);
   $('refresh').textContent = t(demo ? 'loadDemo' : 'refresh');
   $('period-field').hidden = demo; $('filters').classList.toggle('demo', demo);
+  $('scenario-field').hidden = !demo; $('scenario').disabled = !demo;
   $('custom-range').hidden = demo || $('period').value !== 'custom';
   $('start').disabled = $('custom-range').hidden; $('end').disabled = $('custom-range').hidden;
   $('setup-instructions').hidden = demo || config.queryConfigured;
@@ -55,6 +61,7 @@ function renderQuality() {
   $('definitions-text').textContent = t(demo ? 'demoDefinitions' : 'definitionsText');
   $('sample-note').hidden = demo;
   $('scope').textContent = t(demo ? 'demoScope' : 'scope');
+  $('download-json').disabled = $('download-csv').disabled = !current || loading;
   $('metrics').replaceChildren(...ids.map((id, index) => {
     const metric = current?.metrics[id]; const node = element('div', undefined, 'metric');
     const label = element('p', t(id), 'metric-label'); const value = element('p', number(metric?.value, id === 'plays' ? 0 : 2), 'metric-value');
@@ -62,8 +69,53 @@ function renderQuality() {
     const status = metric?.status === 'error' ? t(metric.code) : metric?.status === 'empty' ? t('unavailable') : metric ? '' : t('notFetched');
     node.append(label, value, element('p', status, 'metric-state')); return node;
   }));
-  renderCharts(); renderComparison();
+  renderCharts(); renderComparison(); renderRecipe();
   document.querySelectorAll('.table-scroll').forEach(node => { node.tabIndex = 0; node.setAttribute('role', 'region'); node.setAttribute('aria-label', t('tableView')); });
+}
+
+function renderRecipe() {
+  const metric = metrics.find(item => item.id === $('recipe-metric').value) ?? metrics[0];
+  const oldShape = $('recipe-shape').value;
+  $('recipe-shape').replaceChildren(...metric.shapes.map(shape => new Option(t(`shape_${shape}`), shape)));
+  $('recipe-shape').value = metric.shapes.includes(oldShape) ? oldShape : 'total';
+  try {
+    const params = current ? null : parameters();
+    const snapshot = current ?? { period: { start: params.get('start'), end: params.get('end') }, filters: { asset: params.get('asset'), origin: params.get('origin'), type: 'all' } };
+    const recipe = queryRecipe(snapshot, config, metric.id, $('recipe-shape').value);
+    $('recipe-json').textContent = JSON.stringify(recipe.body, null, 2);
+    $('recipe-node').textContent = recipe.node;
+    $('recipe-endpoint').textContent = `POST ${recipe.endpoint}`;
+    $('recipe-context').textContent = t(mode === 'demo' ? 'recipeDemo' : current?.stale ? 'recipeEarlier' : current ? 'recipeResult' : 'recipeSelection');
+    $('recipe-definition').textContent = t(`definition_${metric.id}`);
+    $('recipe-unit').textContent = `${t('conversion')}: ÷ ${metric.divisor.toLocaleString(locale)} → ${t(metric.unit)}`;
+    $('copy-json').disabled = $('copy-node').disabled = false;
+  } catch {
+    for (const id of ['recipe-json', 'recipe-node', 'recipe-endpoint', 'recipe-definition', 'recipe-unit']) $(id).textContent = '';
+    $('recipe-context').textContent = t('invalidPeriod');
+    $('copy-json').disabled = $('copy-node').disabled = true;
+  }
+}
+
+async function copyRecipe(format) {
+  try {
+    await navigator.clipboard.writeText($(format === 'json' ? 'recipe-json' : 'recipe-node').textContent);
+    $('copy-status').textContent = t('copied');
+  } catch { $('copy-status').textContent = t('copyFailed'); }
+}
+
+function downloadResult(format) {
+  if (!current || loading) return;
+  let url;
+  try {
+    const result = exportSnapshot(current, config, { dataSource: mode, viewStatus: state });
+    const text = format === 'json' ? JSON.stringify(result, null, 2) + '\n' : toCSV(result);
+    url = URL.createObjectURL(new Blob([text], { type: format === 'json' ? 'application/json' : 'text/csv;charset=utf-8' }));
+    const link = element('a'); link.href = url; link.download = `learning-quality-${mode}.${format}`;
+    document.body.append(link);
+    try { link.click(); } finally { link.remove(); }
+    $('export-status').textContent = t('downloaded');
+  } catch { $('export-status').textContent = t('downloadFailed'); }
+  finally { if (url) setTimeout(() => URL.revokeObjectURL(url), 1000); }
 }
 
 function renderCharts() {
@@ -125,12 +177,13 @@ async function refresh() {
 }
 
 function loadDemo() {
-  current = demoSnapshot({ asset: $('asset').value, origin: $('origin').value }, config);
+  current = demoSnapshot({ asset: $('asset').value, origin: $('origin').value, scenario: $('scenario').value }, config);
   state = 'demo'; renderQuality();
 }
 
 function selectMode(next) {
   mode = next;
+  $('export-status').textContent = ''; $('copy-status').textContent = '';
   latest.cancel(); loading = false; current = null; currentKey = '';
   state = config.queryConfigured ? 'noQuery' : 'unconfigured';
   if (mode === 'demo') loadDemo(); else renderQuality();
@@ -150,10 +203,15 @@ async function init() {
   $('language').addEventListener('click', () => { locale = locale === 'en' ? 'ja' : 'en'; try { localStorage.setItem('analytics-language', locale); } catch { /* Optional preference. */ } translate(); });
   $('filters').addEventListener('submit', event => { event.preventDefault(); if (mode === 'demo') loadDemo(); else refresh(); });
   $('filters').addEventListener('change', () => {
+    $('export-status').textContent = ''; $('copy-status').textContent = '';
     latest.cancel(); loading = false; current = null; currentKey = '';
     state = config.queryConfigured ? 'noQuery' : 'unconfigured';
     if (mode === 'demo') loadDemo(); else renderQuality();
   });
+  $('recipe-metric').addEventListener('change', () => { $('copy-status').textContent = ''; renderRecipe(); });
+  $('recipe-shape').addEventListener('change', () => { $('copy-status').textContent = ''; renderRecipe(); });
+  for (const format of ['json', 'node']) $(`copy-${format}`).addEventListener('click', () => copyRecipe(format));
+  for (const format of ['json', 'csv']) $(`download-${format}`).addEventListener('click', () => downloadResult(format));
   window.addEventListener('hashchange', () => {
     const next = modeFromHash(location.hash, mode);
     if (next !== mode) selectMode(next);

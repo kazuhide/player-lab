@@ -42,7 +42,7 @@ test('API method/path allowlist and private paths never expose configuration fil
 test('the key-free demo files and public setup state never execute a measured query', async t => {
   let queries = 0;
   const port = await open(t, { configured: true, query: async () => { queries += 1; return { status: 'empty' }; } });
-  for (const path of ['/', '/demo.mjs', '/app.mjs', '/styles.css']) assert.equal((await request(port, path)).status, 200);
+  for (const path of ['/', '/demo.mjs', '/app.mjs', '/styles.css', '/query-recipes.mjs', '/exports.mjs']) assert.equal((await request(port, path)).status, 200);
   const config = JSON.parse((await request(port, '/api/config')).body);
   assert.equal(config.queryConfigured, true);
   assert.equal(queries, 0);

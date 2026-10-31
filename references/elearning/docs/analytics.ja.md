@@ -41,7 +41,7 @@ HLSとDASHで教材のIDは共通です。再生の開始方法は別の項目�
 <a id="find-the-playback-in-bitmovin-dashboard"></a>
 ## Bitmovin Dashboardで確認する
 
-1. Analyticsライセンスを持つアカウントで[Bitmovin Dashboard](https://dashboard.bitmovin.com/analytics)を開いてください。
+1. Analyticsライセンスを持つアカウントで[Bitmovin Dashboard](https://dashboard.bitmovin.com/observability/home)を開いてください。
 2. Androidに設定したものと同じAnalyticsライセンスを選び、控えた再生時刻を含む期間を指定してください。
 3. AndroidとVideo ID `EDU-FX-01`で絞り込み、再生開始数、開始待ち時間、再バッファを確認してください。
 

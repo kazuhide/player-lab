@@ -40,7 +40,7 @@ main { max-width: 1400px; padding: 1.25rem; margin: auto; }
 .tabs a { display: inline-block; text-decoration: none; border-bottom: 3px solid transparent; padding: .75rem .25rem; }
 .tabs [aria-current="page"] { color: var(--accent-dark); font-weight: 650; border-bottom-color: var(--accent); }
 .filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 1rem; align-items: end; }
-.filters.demo { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+.filters.demo { grid-template-columns: repeat(4, minmax(0, 1fr)) auto; }
 .filters label { display: grid; gap: .375rem; color: var(--muted); font-size: .875rem; }
 .filters select { width: 100%; font-size: 1rem; }
 button.primary { color: white; border-color: var(--accent); background: var(--accent); padding-inline: 1.5rem; }
@@ -60,7 +60,7 @@ legend { color: var(--muted); padding-inline: .375rem; font-size: .875rem; }
 .metric-value small { font-size: .875rem; color: var(--muted); padding-left: .5rem; }
 .metric-state { color: var(--muted); min-height: 1.35rem; font-size: .8rem; margin: .375rem 0 0; }
 .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
-.plot, .comparison, .definitions { background: var(--surface); border: 1px solid var(--line); border-radius: .4rem; padding: 1rem 1.25rem; min-width: 0; }
+.plot, .comparison, .definitions, .query-examples { background: var(--surface); border: 1px solid var(--line); border-radius: .4rem; padding: 1rem 1.25rem; min-width: 0; }
 .plot { position: relative; }
 .plot svg { display: block; width: 100%; height: auto; min-height: 10rem; }
 .plot svg text { font-family: inherit; fill: var(--muted); font-size: 12px; }
@@ -81,6 +81,19 @@ th { font-weight: 600; color: var(--muted); }
 td:not(:first-child), th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
 .definitions { margin-top: 1.25rem; color: var(--muted); font-size: .875rem; }
 .definitions p { max-width: 80ch; }
+.result-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: 1rem; }
+.result-actions p, #copy-status { margin: 0; font-size: .875rem; color: var(--muted); }
+.query-examples { margin-top: 1.25rem; }
+.query-examples p { font-size: .875rem; }
+.recipe-selectors { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1rem; margin-block: .75rem 1rem; }
+.recipe-selectors label { display: grid; gap: .375rem; color: var(--muted); font-size: .875rem; min-width: 0; }
+.recipe-selectors select { width: 100%; min-width: 0; }
+.code-heading { display: flex; gap: .5rem; justify-content: space-between; align-items: center; margin-block: 1rem .5rem; }
+.code-heading h2 { margin: 0; }
+.code-heading button { flex-shrink: 0; font-size: .875rem; }
+.query-examples pre { max-width: 100%; max-height: 24rem; overflow: auto; padding: 1rem; background: var(--canvas); border: 1px solid var(--line); border-radius: .3rem; margin-block: .5rem 1rem; }
+.query-examples code, .endpoint { font: .8rem/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.endpoint { overflow-wrap: anywhere; }
 .records-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; }
 .records-heading h2 { margin: 0; }
 .records-heading > div { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
@@ -115,6 +128,8 @@ footer { color: var(--muted); font-size: .8rem; padding-top: 1.25rem; }
   .status-line span { display: block; margin-top: .25rem; }
   .records-heading { display: block; }
   .records-heading h2 { margin-bottom: .75rem; }
+  .recipe-selectors { grid-template-columns: 1fr; }
+  .code-heading { flex-wrap: wrap; }
   fieldset { flex-direction: column; }
 }
 @media (max-width: 359px) {
