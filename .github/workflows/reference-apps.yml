@@ -34,6 +34,11 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24.19.0'
+      - name: Check bilingual documentation and its validator
+        working-directory: references/elearning
+        run: |
+          python3 -B -m unittest discover -s tools/docs -p 'test_*.py'
+          python3 -B tools/docs/check_docs.py
       - name: Test the fixture publisher and its input contracts
         working-directory: references/elearning
         run: |
