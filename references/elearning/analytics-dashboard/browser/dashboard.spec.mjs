@@ -1,5 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { config } from '../config.mjs';
+import { readFile } from 'node:fs/promises';
 
 const ids = ['plays', 'watchHours', 'startupMedian', 'startupP95', 'rebufferPercentage', 'errorPercentage'];
 const text = {
@@ -8,7 +9,7 @@ const text = {
 };
 
 // Fictional responses follow the public BFF contract; no account data or keys.
-function snapshot(request, { shape = 'ok', plays = 101 } = {}) {
+function snapshot(request, { shape = 'ok', plays = 101, tainted = false } = {}) {
   const params = new URL(request.url()).searchParams;
   const start = params.get('start'); const end = params.get('end');
   const values = shape === 'empty' ? ids.map(() => null) : shape === 'zero' ? [0, 0, null, null, 0, 0] : [plays, 2.5, 1.2, 2.3, 0, 0];
@@ -25,6 +26,11 @@ function snapshot(request, { shape = 'ok', plays = 101 } = {}) {
   const assets = config.assets.filter(asset => (result.filters.asset === 'all' || result.filters.asset === asset.id) && (result.filters.type === 'all' || result.filters.type === asset.kind));
   for (const id of ['plays', 'startupP95', 'errorPercentage']) result.comparison[id] = { status: shape === 'empty' ? 'empty' : 'ok', rows: shape === 'empty' ? [] : assets.map(asset => ({ asset: asset.id, value: result.metrics[id].value })), fetchedAt };
   if (shape === 'partial') result.metrics.startupP95 = { status: 'error', value: null, rows: [], code: 'UPSTREAM_ERROR', fetchedAt: null };
+  if (tainted) {
+    result.userId = 'MUST_NOT_EXPORT'; result.apiKey = 'MUST_NOT_EXPORT'; result.filters.userId = 'MUST_NOT_EXPORT';
+    result.metrics.plays.userId = 'MUST_NOT_EXPORT'; result.series.plays.rows[0].userId = 'MUST_NOT_EXPORT';
+    result.comparison.plays.rows.push({ asset: 'MUST_NOT_EXPORT', value: 123 });
+  }
   return result;
 }
 
@@ -220,4 +226,113 @@ test('keyboard navigation and custom UTC controls remain usable at the configure
   expect(dashboard.calls[0].get('start')).toBe('2026-10-30T12:00:00.000Z');
   expect(dashboard.calls[0].get('end')).toBe('2026-10-31T12:00:00.000Z');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+async function download(page, format) {
+  const waiting = page.waitForEvent('download');
+  await page.locator(`#download-${format}`).click();
+  const file = await waiting;
+  expect(file.suggestedFilename()).toMatch(new RegExp(`learning-quality-(demo|measured)\\.${format}$`));
+  return readFile(await file.path(), 'utf8');
+}
+
+test('demo scenarios stay local and keep the selected lesson and playback entry', async ({ page, dashboard }) => {
+  await dashboard.open();
+  await page.locator('#asset').selectOption(config.assets[1].id);
+  await page.locator('#origin').selectOption('playlist');
+  const plays = await dashboard.values.first().textContent();
+  const normal = await dashboard.values.nth(3).textContent();
+  await page.locator('#scenario').selectOption('slow-start');
+  await expect(dashboard.values.nth(3)).not.toHaveText(normal);
+  const slowLabel = await dashboard.values.nth(3).textContent();
+  await expect(dashboard.values.first()).toHaveText(plays);
+  const slow = JSON.parse(await download(page, 'json'));
+  expect(slow.scenario).toBe('slow-start'); expect(slow.dataSource).toBe('demo');
+  expect(slow.filters.asset).toBe(config.assets[1].id); expect(slow.filters.origin).toBe('playlist');
+  expect(slow.fetchedAt).toBeNull();
+  await page.locator('#scenario').selectOption('rebuffering');
+  const buffering = JSON.parse(await download(page, 'json'));
+  expect(buffering.metrics.rebufferPercentage.value).toBeGreaterThan(slow.metrics.rebufferPercentage.value);
+  expect(buffering.metrics.startupP95.value).toBeLessThan(slow.metrics.startupP95.value);
+  await page.locator('#scenario').selectOption('slow-start');
+  await expect(dashboard.values.nth(3)).toHaveText(slowLabel);
+  await dashboard.measured.click();
+  await expect(page.locator('#scenario-field')).toBeHidden(); await expect(page.locator('#scenario')).toBeDisabled();
+  await expect(page.locator('#download-json')).toBeDisabled();
+  expect(dashboard.calls).toHaveLength(0);
+});
+
+test('query recipes show the exact displayed selection and copy locally without querying', async ({ page, dashboard }) => {
+  await page.addInitScript(() => {
+    window.copiedExamples = [];
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async value => window.copiedExamples.push(value) } });
+  });
+  await dashboard.open(); await page.locator('#asset').selectOption(config.assets[0].id); await page.locator('#origin').selectOption('catalog');
+  await page.locator('#query-examples summary').click();
+  const demo = JSON.parse(await page.locator('#recipe-json').textContent());
+  expect(demo.start).toBe('2026-10-21T00:00:00.000Z');
+  expect(demo.filters.find(item => item.name === 'VIDEO_ID').value).toEqual([config.assets[0].id]);
+  expect(demo.filters.find(item => item.name === 'CUSTOM_DATA_1').value).toBe('catalog');
+  await page.locator('#recipe-metric').selectOption('watchHours');
+  await expect(page.locator('#recipe-shape option')).toHaveCount(1);
+  await page.locator('#copy-json').focus(); await page.keyboard.press('Enter');
+  await page.locator('#copy-node').click();
+  const copied = await page.evaluate(() => window.copiedExamples);
+  expect(JSON.parse(copied[0]).dimension).toBe('PLAYED');
+  expect(copied[1]).toContain('process.env.BITMOVIN_API_KEY'); expect(copied[1]).toContain('value / 3600000');
+  expect(dashboard.calls).toHaveLength(0);
+  await dashboard.measured.click();
+  await page.locator('#period').selectOption('custom');
+  await page.locator('#start').fill('2026-10-30T08:00'); await page.locator('#end').fill('2026-10-31T09:00');
+  await page.locator('#recipe-metric').selectOption('startupP95'); await page.locator('#recipe-shape').selectOption('hourly');
+  const selected = JSON.parse(await page.locator('#recipe-json').textContent());
+  expect(selected.start).toBe('2026-10-30T08:00:00.000Z'); expect(selected.end).toBe('2026-10-31T09:00:00.000Z');
+  expect(selected.percentile).toBe(95); expect(selected.interval).toBe('HOUR');
+  expect(dashboard.calls).toHaveLength(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.locator('#start').fill('2026-11-01T08:00'); await page.locator('#recipe-metric').focus();
+  await expect(page.locator('#recipe-json')).toBeEmpty(); await expect(page.locator('#copy-json')).toBeDisabled();
+  await expect(page.locator('#download-json')).toBeDisabled();
+});
+
+test('JSON and CSV preserve partial results, zero, null and actual filters without unknown private fields', async ({ page, dashboard }) => {
+  await page.addInitScript(() => {
+    window.revokedDownloads = [];
+    const revoke = URL.revokeObjectURL.bind(URL);
+    URL.revokeObjectURL = value => { window.revokedDownloads.push(value); revoke(value); };
+  });
+  await dashboard.open('#measured'); await expect(page.locator('#download-json')).toBeDisabled();
+  await page.locator('#asset').selectOption(config.assets[0].id);
+  dashboard.reply({ shape: 'partial', plays: 0, tainted: true });
+  await dashboard.fetch.click(); await expect(dashboard.status).toHaveText(dashboard.t.partial);
+  const json = await download(page, 'json'); const result = JSON.parse(json);
+  expect(result.dataSource).toBe('measured'); expect(result.scenario).toBeNull();
+  expect(result.dataStatus).toBe('partial'); expect(result.isPartial).toBe(true); expect(result.isEarlier).toBe(false);
+  expect(result.metrics.plays.value).toBe(0); expect(result.metrics.startupP95.value).toBeNull();
+  expect(result.metrics.startupP95.status).toBe('error'); expect(result.metrics.startupP95.unit).toBe('seconds');
+  expect(result.filters.asset).toBe(config.assets[0].id);
+  expect(result.period.start).toBe(dashboard.calls[0].get('start'));
+  expect(result.fetchedAt).toBe('2026-10-31T12:00:00.000Z'); expect(result.latestSampleAt).toBeNull();
+  const csv = await download(page, 'csv');
+  for (const content of [json, csv]) expect(content).not.toContain('MUST_NOT_EXPORT');
+  expect(csv).toContain('"isPartial"'); expect(csv).toContain('"metrics","plays","count","ok","","","","0"');
+  expect(csv).toContain('"metrics","startupP95","seconds","error","UPSTREAM_ERROR","","",""');
+  await expect.poll(() => page.evaluate(() => window.revokedDownloads.length)).toBe(2);
+  expect(dashboard.calls).toHaveLength(1);
+  await page.locator('#asset').selectOption(config.assets[1].id);
+  await expect(page.locator('#download-json')).toBeDisabled(); await expect(page.locator('#download-csv')).toBeDisabled();
+});
+
+test('exports qualify an earlier successful response and are unavailable during a pending refresh', async ({ page, dashboard }) => {
+  await dashboard.open('#measured'); await dashboard.fetch.click(); await expect(dashboard.status).toHaveText(dashboard.t.ok);
+  dashboard.fail(500); await dashboard.fetch.click(); await expect(dashboard.status).toContainText(dashboard.t.earlier);
+  const earlier = JSON.parse(await download(page, 'json'));
+  expect(earlier.dataStatus).toBe('ok'); expect(earlier.viewStatus).toBe('error'); expect(earlier.isEarlier).toBe(true);
+  expect(earlier.period.start).toBe(dashboard.calls[0].get('start'));
+  await page.locator('#query-examples summary').click();
+  expect(JSON.parse(await page.locator('#recipe-json').textContent()).start).toBe(earlier.period.start);
+  const release = dashboard.hold({ plays: 909 }); await dashboard.fetch.click();
+  await expect.poll(() => dashboard.calls.length).toBe(3); await expect(page.locator('#download-json')).toBeDisabled();
+  await release(); await expect(dashboard.values.first()).toHaveText(/^909/);
+  const fresh = JSON.parse(await download(page, 'json')); expect(fresh.isEarlier).toBe(false); expect(fresh.viewStatus).toBe('ok');
 });
