@@ -51,6 +51,9 @@ def markdown_files(root):
         names = {Path(os.fsdecode(name)) for name in inventory.stdout.split(b'\0') if name}
     else:
         names = set()
+    # Git may discover an unrelated parent while an extracted reference is ignored.
+    if not {Path('README.md'), Path('LICENSE')}.issubset(names):
+        names = set()
         for directory, subdirectories, files in os.walk(root, followlinks=False):
             relative = Path(directory).relative_to(root)
             subdirectories[:] = [name for name in subdirectories
@@ -201,6 +204,9 @@ def audit(root):
         names = markdown_files(root)
     except (OSError, ValueError) as failure:
         return {'pages': 0, 'pairs': 0, 'local_links': 0, 'errors': [str(failure)]}
+    if not names:
+        return {'pages': 0, 'pairs': 0, 'local_links': 0,
+                'errors': ['Reference contains no public Markdown documentation']}
     for relative in names:
         path = root / relative
         if not path.resolve().is_relative_to(root):

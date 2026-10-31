@@ -120,6 +120,21 @@ class DocumentationChecks(unittest.TestCase):
         with patch('check_docs.subprocess.run', side_effect=responses):
             self.assertIn('Git could not enumerate', self.errors())
 
+    def test_ignored_standalone_copy_falls_back_after_git_discovery(self):
+        # An archive can sit under an ignored build directory in another repository.
+        self.write('docs/unpaired.md', '# Missing translation\n')
+        responses = [subprocess.CompletedProcess([], 0, b'/outer-repository\n'),
+                     subprocess.CompletedProcess([], 0, b'')]
+        with patch('check_docs.subprocess.run', side_effect=responses):
+            result = audit(self.root)
+        self.assertEqual(result['pages'], 3)
+        self.assertIn('Japanese counterpart', '\n'.join(result['errors']))
+
+    def test_empty_public_markdown_inventory_cannot_succeed(self):
+        with patch('check_docs.markdown_files', return_value=[]):
+            result = audit(self.root)
+        self.assertIn('no public Markdown', '\n'.join(result['errors']))
+
     def test_encoded_japanese_fragment_and_same_page_query(self):
         self.pair('docs/unicode', '# 日本語', '# 日本語')
         with (self.root / 'docs/unicode.md').open('a') as f:
