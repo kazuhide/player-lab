@@ -269,6 +269,68 @@
       "caption": "Applied configuration shown by the existing Vega app. D-pad focus allows the code lines to scroll into view; there is no clipboard integration."
     },
     {
+      "type": "h3",
+      "id": "named-configurations",
+      "text": "Save and reuse named configuration drafts"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Edit the settings to keep under Show configuration, then choose Saved configurations.",
+        "Enter a configuration name and choose Save draft. A duplicate name requires confirmation before replacement.",
+        "Choose Select saved configuration, select an item and choose Load draft. Review the draft, then choose Apply and recreate player. Saving or loading alone does not call the SDK, reload the source or change playback.",
+        "Use Delete saved configuration to remove the selected item after confirmation. Saved items remain available after restarting this app."
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Saved subset",
+        "Behavior"
+      ],
+      "rows": [
+        [
+          "Basic settings",
+          "Source format, initial offset and reference, autoplay, mute, audio/video forward buffers and maximum video bitrate."
+        ],
+        [
+          "Built-in sources",
+          "A preset ID is saved only when its public URL and format exactly match a built-in source. Custom URLs are not saved; without a preset, loading keeps the current URL."
+        ],
+        [
+          "Detailed settings",
+          "Explicitly supported numeric, toggle and enum values for playback, buffering, adaptation, live playback and selected UI or tweak settings. configurationProfiles.ts defines the full allowlist. Finite numeric editor inputs are saved as numbers. Other editor input objects are excluded."
+        ],
+        [
+          "Excluded fields",
+          "Player, Analytics and DRM keys; credentials and headers; custom URLs, titles and other free text; subtitles, lists, callbacks, scripts, metadata and runtime resources. Loading keeps their current draft values."
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.77
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Restoration replaces the saved subset as a set. If a supported detailed setting was unset when saved, loading removes a later override and returns that field to its SDK default. Excluded current fields remain unchanged. Names are normalized to NFC, the standard composed Unicode form, and limited to 1–48 Unicode code points; collections are limited to 20 items, 8 KiB per item and 128 KiB in total. Unsupported schema versions, platforms, fields, types or corrupt data produce an error. A different SDK version requires confirmation after validating the supported fields; it is not automatically applied."
+    },
+    {
+      "type": "code",
+      "title": "Restore editor data without applying Player configuration",
+      "text": "export function restoreProfile(profile: ConfigurationProfile, current: ConfigurationDraft, platform: ProfilePlatform, confirmSdk = false): ConfigurationDraft {\n  const validated = validateProfile(profile, platform);\n  if (validated.sdkVersion !== CURRENT_SDK_VERSION && !confirmSdk) throw new ConfigurationProfileError(\"sdk\");\n  const preset = validated.sourcePreset === null ? null : presetForId(validated.sourcePreset, platform);\n  return draftFromProfile(validated, current, preset);\n}",
+      "source": {
+        "path": "apps/vega/src/configurationProfiles.ts",
+        "line": 209,
+        "label": "configurationProfiles.ts:209–214"
+      },
+      "endLine": 214
+    },
+    {
+      "type": "p",
+      "text": "The Vega host stores validated JSON under its own Kepler AsyncStorage key. It never clears other application or SDK storage. Storage errors leave the current draft and playback unchanged. These values are not encrypted by this feature and may be included in operating-system backups. No account API or network request is needed to save or load them."
+    },
+    {
       "type": "h2",
       "text": "Customize the native layout and remote controls",
       "id": "ui-customization",
@@ -677,6 +739,16 @@
       "path": "apps/vega/src/api/availability.ts",
       "line": 1,
       "label": "Current Vega operation prerequisites"
+    },
+    {
+      "path": "apps/vega/src/configurationProfiles.ts",
+      "line": 1,
+      "label": "Local profile allowlist, validation and draft replacement"
+    },
+    {
+      "path": "apps/vega/src/profileStorage.ts",
+      "line": 1,
+      "label": "Private profile storage and failure handling"
     }
   ]
 }

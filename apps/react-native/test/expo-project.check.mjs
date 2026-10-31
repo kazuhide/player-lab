@@ -64,7 +64,8 @@ for (const runtimeChecks of [false, true]) {
     createExpoProject({ target, assets, runtimeChecks });
     const entry = readFileSync(join(target, "index.tsx"), "utf8");
     assert.doesNotMatch(entry, /SafeAreaProvider|SafeAreaView/);
-    assert.match(entry, new RegExp(`registerRootComponent\\(${runtimeChecks ? "RuntimeCheckApp" : "App"}\\)`));
+    assert.match(entry, new RegExp(`registerRootComponent\\(${runtimeChecks ? "RuntimeCheckApp" : "Root"}\\)`));
+    if (!runtimeChecks) assert.match(entry, /function Root\(\) \{ return <App \/>; \}/);
   }));
 }
 

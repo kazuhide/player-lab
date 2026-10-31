@@ -102,9 +102,9 @@ export function Switch(props: SwitchProps): React.JSX.Element {
   return <NativeSwitch {...localizedProps(props, language)} />;
 }
 
-export function Pressable(props: PressableProps): React.JSX.Element {
+export function Pressable({ verbatim = false, ...props }: PressableProps & { verbatim?: boolean }): React.JSX.Element {
   const { language } = useLocale();
-  return <NativePressable {...localizedProps(props, language)} />;
+  return <NativePressable {...(verbatim ? props : localizedProps(props, language))} />;
 }
 
 export function LanguageSelector({ dark = false }: { dark?: boolean }): React.JSX.Element {

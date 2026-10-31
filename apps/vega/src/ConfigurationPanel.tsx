@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Switch, Text, TextInput } from "./localization";
 import type { ConfigurationDraft } from "./configuration";
+import { ConfigurationProfiles } from "./ConfigurationProfilesPanel";
 import { ConfigurationCodeView } from "./ConfigurationCodeView";
 import { ConfigurationInputsPanel } from "./api/ConfigurationInputsPanel";
 
@@ -31,6 +32,16 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   return (
     <View style={styles.panel}>
       <Button title={expanded ? "Hide configuration" : "Show configuration"} onPress={() => setExpanded(!expanded)} />
+      <ConfigurationProfiles draft={draft} onChange={onChange} />
+      <View style={styles.actions}>
+        <Text style={styles.badge}>{changed ? "Unapplied changes" : "Up to date"}</Text>
+        <Text style={styles.help}>Apply reloads from the configured start position.</Text>
+        {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
+        <View style={styles.row}>
+          <Button title="Apply and recreate player" onPress={onApply} disabled={!changed} />
+          <Button title="Reset draft" onPress={onReset} disabled={!changed && !error} />
+        </View>
+      </View>
       {expanded && <>
         <Text style={styles.heading}>Source</Text>
         {field("Source URL", "url")}
@@ -68,15 +79,6 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         {field("Maximum video bitrate (bits per second)", "maxVideoBitrate", true)}
         <Text style={styles.help}>Positive bits per second; blank leaves it unlimited.</Text>
         <ConfigurationInputsPanel values={draft.apiInputs ?? []} onChange={(apiInputs) => onChange({ ...draft, apiInputs })} />
-        <View style={styles.actions}>
-        <Text style={styles.badge}>{changed ? "Unapplied changes" : "Up to date"}</Text>
-        <Text style={styles.help}>Apply reloads from the configured start position.</Text>
-        {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
-        <View style={styles.row}>
-          <Button title="Apply and recreate player" onPress={onApply} disabled={!changed} />
-          <Button title="Reset draft" onPress={onReset} disabled={!changed && !error} />
-        </View>
-        </View>
         <ConfigurationCodeView code={appliedCode} />
       </>}
     </View>

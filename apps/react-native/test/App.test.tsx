@@ -8,7 +8,7 @@ import { HttpRequestType, type PlayerConfig } from "bitmovin-player-react-native
 const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY = "test-license";
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
-  return { castHost: undefined as undefined | { readOptions: ReturnType<typeof vi.fn>; saveOptions: ReturnType<typeof vi.fn> }, os: "android", keyboardDismiss: vi.fn(),
+  return { profileData: new Map<string, string>(), profileWriteFailure: false, profileRecovery: false, castHost: undefined as undefined | { readOptions: ReturnType<typeof vi.fn>; saveOptions: ReturnType<typeof vi.fn> }, os: "android", keyboardDismiss: vi.fn(),
     keyboardListeners: new Map<string, Set<() => void>>(), window: { width: 393, height: 852, fontScale: 1, scale: 1 }, hostTop: 0,
     clipboard: vi.fn(async (_code: string) => {}), editorScrollY: 0, scrollEditor: vi.fn(), scrollEditorEnd: vi.fn(), apiScrollY: 0, scrollApi: vi.fn(), players: [] as Array<{
     config: PlayerConfig;
@@ -37,6 +37,14 @@ vi.mock("react-native", () => ({
 }));
 
 vi.mock("expo-clipboard", () => ({ setStringAsync: runtime.clipboard }));
+vi.mock("../src/profileStorage", async () => {
+  const { ConfigurationProfileError } = await import("../src/configurationProfiles");
+  return { createProfileIO: (platform: string) => ({
+    read: async () => { if (runtime.profileRecovery) throw new ConfigurationProfileError("recovery"); return runtime.profileData.get(platform) ?? null; },
+    write: async (value: string) => { if (runtime.profileWriteFailure) throw new Error("storage unavailable"); runtime.profileData.set(platform, value); },
+    recover: async () => { runtime.profileRecovery = false; },
+  }) };
+});
 vi.mock("react-native-safe-area-context", () => ({ SafeAreaProvider: "SafeAreaProvider", SafeAreaView: "SafeAreaView",
   useSafeAreaFrame: () => ({ x: 0, y: runtime.hostTop, width: runtime.window.width, height: runtime.window.height }),
 }));
@@ -192,6 +200,7 @@ async function ready() { await act(async () => element("PlayerView").props.onPla
 
 beforeEach(async () => {
   runtime.os = "android";
+  runtime.profileData.clear(); runtime.profileWriteFailure = false; runtime.profileRecovery = false;
   runtime.players.length = 0;
   runtime.castHost = undefined;
   runtime.clipboard.mockClear();
@@ -1625,5 +1634,78 @@ return { isFullscreenActive: false, enterFullscreen() {}, exitFullscreen() {} };
     expect(current().config).not.toHaveProperty("adaptationConfig");
     await ready();
     expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ type: "progressive" }));
+  });
+});
+
+
+describe("named configuration drafts in the mounted React Native App", () => {
+  it.each(["android", "ios"])("persists %s profiles, restores only the draft after restart, applies explicitly and deletes after confirmation", async platform => {
+    runtime.os = platform;
+    await mount(); await ready();
+    await toggle("Autoplay", true);
+    const original = current(); const loads = original.load.mock.calls.length; const count = runtime.players.length;
+    await settingsGroup("profiles");
+    await text("Configuration name", "Autoplay test");
+    await tap("configuration-profile-save");
+    expect(runtime.profileData.get("react-native-" + platform)).toContain("Autoplay test");
+    expect(runtime.players.length).toBe(count); expect(original.load).toHaveBeenCalledTimes(loads); expect(original.destroy).not.toHaveBeenCalled();
+    await act(async () => screen.unmount());
+    await mount(); await ready();
+    const restarted = current(); const restartedLoads = restarted.load.mock.calls.length; const restartedCount = runtime.players.length;
+    expect(restarted.config.playbackConfig?.isAutoplayEnabled).toBe(false);
+    await settingsGroup("profiles");
+    await tap("configuration-profile-restore");
+    expect(runtime.players.length).toBe(restartedCount); expect(restarted.load).toHaveBeenCalledTimes(restartedLoads); expect(restarted.destroy).not.toHaveBeenCalled();
+    await basicField("player", "autoplay");
+    expect(element("Switch", { accessibilityLabel: "Autoplay" }).props.value).toBe(true);
+    await tap("configuration-apply");
+    expect(runtime.players.length).toBe(restartedCount + 1); expect(current().config.playbackConfig?.isAutoplayEnabled).toBe(true);
+    await settingsGroup("profiles"); await tap("configuration-profile-delete");
+    await tap("configuration-profile-cancel");
+    expect(runtime.profileData.get("react-native-" + platform)).toContain("Autoplay test");
+    await tap("configuration-profile-delete"); await tap("configuration-profile-confirm");
+    expect(JSON.parse(runtime.profileData.get("react-native-" + platform)!).profiles).toEqual([]);
+  });
+
+  it.each(["Source", "Default"])("confirms SDK provenance, preserves the opaque %s name in Japanese and leaves the player unchanged on restore", async profileName => {
+    await mount(); await ready(); await toggle("Autoplay", true); await settingsGroup("profiles");
+    await text("Configuration name", profileName); await tap("configuration-profile-save");
+    const envelope = JSON.parse(runtime.profileData.get("react-native-android")!); envelope.profiles[0].sdkVersion = "99.0.0";
+    runtime.profileData.set("react-native-android", JSON.stringify(envelope));
+    await act(async () => screen.unmount()); await mount(); await ready();
+    const original = current(); const loads = original.load.mock.calls.length; const count = runtime.players.length;
+    await settingsGroup("profiles");
+    await tap("configuration-profile-restore"); await tap("configuration-profile-cancel");
+    await basicField("player", "autoplay"); expect(element("Switch", { accessibilityLabel: "Autoplay" }).props.value).toBe(false);
+    await settingsGroup("profiles"); await tap("configuration-profile-restore"); await tap("configuration-profile-confirm");
+    expect(runtime.players.length).toBe(count); expect(original.load).toHaveBeenCalledTimes(loads); expect(original.destroy).not.toHaveBeenCalled();
+    await press("日本語"); await tap("configuration-profile-picker");
+    expect(element("Pressable", { testID: `configuration-profile-picker-option-${profileName}` }).props.accessibilityLabel).toBe(profileName);
+    await tap(`configuration-profile-picker-option-${profileName}`);
+    expect(element("Pressable", { testID: "configuration-profile-picker" }).props.accessibilityValue.text).toBe(profileName);
+  });
+
+  it("requires explicit backup recovery and a separate draft load without changing playback", async () => {
+    await mount(); await ready(); await toggle("Autoplay", true); await settingsGroup("profiles");
+    await text("Configuration name", "Backup"); await tap("configuration-profile-save");
+    await act(async () => screen.unmount()); runtime.profileRecovery = true; await mount(); await ready();
+    const original = current(); const count = runtime.players.length; const loads = original.load.mock.calls.length;
+    await settingsGroup("profiles");
+    expect(element("Pressable", { testID: "configuration-profile-restore" }).props.disabled).toBe(true);
+    await tap("configuration-profile-retry"); await tap("configuration-profile-cancel"); expect(runtime.profileRecovery).toBe(true);
+    await tap("configuration-profile-retry"); await tap("configuration-profile-confirm"); expect(runtime.profileRecovery).toBe(false);
+    await basicField("player", "autoplay"); expect(element("Switch", { accessibilityLabel: "Autoplay" }).props.value).toBe(false);
+    await settingsGroup("profiles"); await tap("configuration-profile-restore");
+    await basicField("player", "autoplay"); expect(element("Switch", { accessibilityLabel: "Autoplay" }).props.value).toBe(true);
+    expect(runtime.players.length).toBe(count); expect(original.load).toHaveBeenCalledTimes(loads); expect(original.destroy).not.toHaveBeenCalled();
+  });
+
+  it("reports a failed save without claiming success or changing playback", async () => {
+    await mount(); await ready(); await settingsGroup("profiles"); await text("Configuration name", "Failed write");
+    const original = current(); const count = runtime.players.length; const loads = original.load.mock.calls.length;
+    runtime.profileWriteFailure = true; await tap("configuration-profile-save");
+    expect(runtime.profileData.size).toBe(0);
+    expect(screen.root.findAll(node => String(node.type) === "Text" && node.props.children === "Saved configurations could not be read or written.")).toHaveLength(1);
+    expect(runtime.players.length).toBe(count); expect(original.load).toHaveBeenCalledTimes(loads); expect(original.destroy).not.toHaveBeenCalled();
   });
 });
