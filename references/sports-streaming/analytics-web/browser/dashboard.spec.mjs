@@ -32,8 +32,10 @@ const test = base.extend({
   configured: [true, { option: true }],
   dashboard: async ({ page, baseURL, configured, locale }, use) => {
     const calls = []; const errors = []; const external = []; const pending = [];
+    const heldRequests = []; const failedRequests = [];
     let responder = route => route.fulfill({ json: snapshot(route.request()) });
     page.on('pageerror', error => errors.push(error.message));
+    page.on('requestfailed', request => failedRequests.push(request));
     await page.clock.setFixedTime(new Date('2026-10-31T12:00:00Z'));
     await page.route('**/*', async route => {
       const url = new URL(route.request().url());
@@ -48,7 +50,7 @@ const test = base.extend({
     });
     const t = text[locale.startsWith('ja') ? 'ja' : 'en'];
     const dashboard = {
-      calls, t,
+      calls, heldRequests, failedRequests, t,
       demo: page.getByRole('link', { name: t.demo, exact: true }),
       measured: page.getByRole('link', { name: t.measured, exact: true }),
       fetch: page.getByRole('button', { name: t.fetch, exact: true }),
@@ -59,7 +61,7 @@ const test = base.extend({
       hold(options) {
         let release; const gate = new Promise(resolve => { release = resolve; });
         let settled; const done = new Promise(resolve => { settled = resolve; });
-        responder = async route => { pending.push({ release, done }); await gate; try { await route.fulfill({ json: snapshot(route.request(), options) }); } finally { settled(); } };
+        responder = async route => { heldRequests.push(route.request()); pending.push({ release, done }); await gate; try { await route.fulfill({ json: snapshot(route.request(), options) }); } finally { settled(); } };
         return async () => { release(); await done; };
       },
     };
@@ -67,6 +69,11 @@ const test = base.extend({
     finally { for (const gate of pending) gate.release(); await Promise.all(pending.map(gate => gate.done)); expect(errors).toEqual([]); expect(external).toEqual([]); }
   },
 });
+
+async function expectAborted(dashboard, request) {
+  await expect.poll(() => dashboard.failedRequests.includes(request), { message: 'The held request must fail when its operation is cancelled' }).toBe(true);
+  expect(request.failure()?.errorText).toBe('net::ERR_ABORTED');
+}
 
 async function expectUnfetched(dashboard) {
   await expect(dashboard.values).toHaveCount(6);
@@ -150,15 +157,19 @@ test('pending request survives skip navigation, but filter and mode changes disc
   release = dashboard.hold({ plays: 303 });
   await dashboard.fetch.click(); await expect(dashboard.fetch).toBeDisabled();
   await expect.poll(() => dashboard.calls.length).toBe(2);
+  const filterRequest = dashboard.heldRequests[1];
   await page.locator('#asset').selectOption(config.assets[1].id);
   await expectUnfetched(dashboard); await release();
+  await expectAborted(dashboard, filterRequest);
   await expectUnfetched(dashboard);
   release = dashboard.hold({ plays: 404 });
   await dashboard.fetch.click(); await expect(dashboard.fetch).toBeDisabled();
   await expect.poll(() => dashboard.calls.length).toBe(3);
+  const modeRequest = dashboard.heldRequests[2];
   await dashboard.demo.click(); await expect(dashboard.demo).toHaveAttribute('aria-current', 'page');
   const demo = await dashboard.values.first().textContent();
-  await release(); await expect(dashboard.values.first()).toHaveText(demo);
+  await release(); await expectAborted(dashboard, modeRequest);
+  await expect(dashboard.values.first()).toHaveText(demo);
   await dashboard.measured.click(); await expectUnfetched(dashboard);
   dashboard.reply({ plays: 505 }); await dashboard.fetch.click();
   await expect(dashboard.values.first()).toHaveText(/^505/);
