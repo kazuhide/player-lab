@@ -34,10 +34,16 @@ export function mountConfigurationProfiles(container: HTMLElement, options: Opti
   for (const button of [save, restore, remove, clear]) button.type = "button";
   actions.append(save, restore, remove, clear); fields.append(nameLabel, savedLabel);
   const help = node("p", "config-profile-help"); const guide = node("a"); const status = node("p", "config-profile-status"); status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite");
-  details.append(summary, fields, actions, help, guide, status); container.append(details);
+  const confirmation = node("div"); confirmation.setAttribute("role", "group");
+  const confirmationText = node("p", "config-profile-help");
+  const confirmationActions = node("div", "config-profile-actions");
+  const confirm = node("button"); const cancel = node("button"); confirm.type = cancel.type = "button";
+  confirmationActions.append(confirm, cancel); confirmation.append(confirmationText, confirmationActions);
+  details.append(summary, fields, actions, confirmation, help, guide, status); container.append(details);
   const storage = () => window.localStorage;
   let collection: ConfigurationProfiles = { schemaVersion: 1, platform: "web", profiles: [] };
   let selected = ""; let invalid = false; let unavailable = false; let message: L | undefined;
+  let pending: { text: L; label: L; origin: HTMLButtonElement; action: () => void } | undefined;
   function failure(error: unknown, reading = false): void {
     const code = error instanceof ProfileError ? error.code : "setting";
     message = messages[code];
@@ -51,10 +57,12 @@ export function mountConfigurationProfiles(container: HTMLElement, options: Opti
     if (!collection.profiles.some(profile => profile.id === selected)) selected = "";
   }
   function refreshControls(): void {
-    save.disabled = options.busy() || invalid || unavailable;
-    restore.disabled = remove.disabled = options.busy() || invalid || unavailable || !selected;
-    saved.disabled = options.busy() || invalid || unavailable || !collection.profiles.length;
-    clear.hidden = !invalid; clear.disabled = options.busy();
+    const blocked = options.busy() || !!pending;
+    save.disabled = blocked || invalid || unavailable;
+    restore.disabled = remove.disabled = blocked || invalid || unavailable || !selected;
+    saved.disabled = blocked || invalid || unavailable || !collection.profiles.length;
+    name.disabled = !!pending;
+    clear.hidden = !invalid; clear.disabled = blocked;
   }
   function render(): void {
     summary.textContent = pick({ ja: "設定の保存と復元", en: "Saved configurations" });
@@ -62,6 +70,11 @@ export function mountConfigurationProfiles(container: HTMLElement, options: Opti
     savedText.textContent = pick({ ja: "保存した設定", en: "Saved configuration" });
     save.textContent = pick({ ja: "保存", en: "Save" }); restore.textContent = pick({ ja: "下書きへ復元", en: "Restore draft" });
     remove.textContent = pick({ ja: "削除", en: "Delete" }); clear.textContent = pick({ ja: "保存した設定を消去", en: "Clear saved profiles" });
+    confirmation.hidden = !pending;
+    confirmation.setAttribute("aria-label", pick({ ja: "操作の確認", en: "Confirm action" }));
+    confirmationText.textContent = pending ? pick(pending.text) : "";
+    confirm.textContent = pending ? pick(pending.label) : "";
+    cancel.textContent = pick({ ja: "キャンセル", en: "Cancel" });
     help.textContent = pick({ ja: "通常パネルの再読み込み・再生成の設定を保存します。URL、自由な文字列、認証情報、即時操作、テーマ選択、詳細APIの編集内容は保存しません。復元後の適用は別の操作です。", en: "Saves the basic reload/recreate settings. URLs, free text, credentials, runtime controls, theme selection and detailed API edits are excluded. Apply separately after restoring." });
     guide.textContent = pick({ ja: "保存対象と制限", en: "Supported fields and limits" }); guide.href = userGuideHref("web-player-config") + "#saved-configurations";
     saved.replaceChildren(new Option(pick({ ja: "選択してください", en: "Choose a configuration" }), ""), ...collection.profiles.map(profile => new Option(profile.name, profile.id)));
@@ -71,7 +84,21 @@ export function mountConfigurationProfiles(container: HTMLElement, options: Opti
     status.textContent = message ? pick(message) : profile && profile.sdkVersion !== options.sdkVersion
       ? pick({ ja: `保存時のSDKは${profile.sdkVersion}です。現在のSDK ${options.sdkVersion}の入力項目と型を確認してから、下書きへ復元します。`, en: `Saved with SDK ${profile.sdkVersion}; current SDK ${options.sdkVersion}. Supported fields are validated before restoration.` }) : "";
   }
-  function ready(): void { if (options.busy()) throw new ProfileError("busy"); reload(); }
+  function ready(): void { if (options.busy() || pending) throw new ProfileError("busy"); reload(); }
+  function requestConfirmation(text: L, label: L, origin: HTMLButtonElement, action: () => void): void {
+    pending = { text, label, origin, action }; render(); cancel.focus();
+  }
+  function cancelConfirmation(): void {
+    const origin = pending?.origin; pending = undefined; render(); origin?.focus();
+  }
+  cancel.addEventListener("click", cancelConfirmation);
+  confirmation.addEventListener("keydown", event => { if (event.key === "Escape") { event.preventDefault(); cancelConfirmation(); } });
+  confirm.addEventListener("click", () => {
+    const requested = pending; if (!requested) return;
+    pending = undefined;
+    try { requested.action(); } catch (error) { failure(error); }
+    render(); requested.origin.focus();
+  });
   saved.addEventListener("change", () => {
     selected = saved.value; const profile = collection.profiles.find(entry => entry.id === selected);
     if (profile) name.value = profile.name; message = undefined; render();
@@ -80,9 +107,18 @@ export function mountConfigurationProfiles(container: HTMLElement, options: Opti
     try {
       ready();
       const next = saveProfile(collection, name.value, options.capture(), options.sdkVersion, options.rules, crypto.randomUUID());
-      writeProfiles(storage, next, options.rules); collection = next;
-      selected = collection.profiles.find(profile => profile.name.toLowerCase() === name.value.trim().toLowerCase())!.id;
-      message = { ja: "通常パネルの対象設定を保存しました。同じ名前で保存すると更新します。", en: "Saved the supported basic settings. Saving the same name updates it." }; render();
+      const target = next.profiles.find(profile => profile.name.toLowerCase() === name.value.trim().toLowerCase())!;
+      const commit = () => {
+        writeProfiles(storage, next, options.rules); collection = next; selected = target.id;
+        message = { ja: "通常パネルの対象設定を保存しました。", en: "Saved the supported basic settings." }; render();
+      };
+      if (collection.profiles.some(profile => profile.id === target.id)) {
+        const expected = JSON.stringify(collection);
+        requestConfirmation({ ja: "同じ名前の保存済み設定を置き換えますか？", en: "Replace the saved configuration with this name?" },
+          { ja: "設定を置き換える", en: "Replace configuration" }, save, () => {
+            ready(); if (JSON.stringify(collection) !== expected) throw new ProfileError("setting"); commit();
+          });
+      } else { commit(); }
     } catch (error) { failure(error); }
   });
   restore.addEventListener("click", () => {
@@ -90,11 +126,20 @@ export function mountConfigurationProfiles(container: HTMLElement, options: Opti
       const requested = selected; ready();
       const profile = collection.profiles.find(entry => entry.id === requested);
       if (!profile) throw new ProfileError("setting");
-      options.restore({ ...profile.values });
-      message = profile.sdkVersion === options.sdkVersion
-        ? { ja: "下書きへ復元しました。差分を確認し、必要な設定を適用してください。", en: "Restored into drafts. Review the differences and apply the settings you need." }
-        : { ja: `SDK ${profile.sdkVersion}で保存した設定を下書きへ復元しました。現在のSDK ${options.sdkVersion}の項目と型を確認済みです。適用は別の操作です。`, en: `Validated SDK ${profile.sdkVersion} settings against current SDK ${options.sdkVersion} and restored drafts. Apply separately.` };
-      render();
+      const restoreDraft = () => {
+        options.restore({ ...profile.values });
+        message = profile.sdkVersion === options.sdkVersion
+          ? { ja: "下書きへ復元しました。差分を確認し、必要な設定を適用してください。", en: "Restored into drafts. Review the differences and apply the settings you need." }
+          : { ja: `SDK ${profile.sdkVersion}で保存した設定を下書きへ復元しました。現在のSDK ${options.sdkVersion}の項目と型を確認済みです。適用は別の操作です。`, en: `Validated SDK ${profile.sdkVersion} settings against current SDK ${options.sdkVersion} and restored drafts. Apply separately.` };
+        render();
+      };
+      if (profile.sdkVersion !== options.sdkVersion) {
+        const expected = JSON.stringify(collection);
+        requestConfirmation({ ja: "SDKのバージョンが異なります。対応項目を再検証して下書きへ復元しますか？", en: "This profile uses a different SDK. Revalidate its supported fields and restore the draft?" },
+          { ja: "再検証して復元", en: "Revalidate and restore" }, restore, () => {
+            ready(); if (JSON.stringify(collection) !== expected) throw new ProfileError("setting"); restoreDraft();
+          });
+      } else { restoreDraft(); }
     } catch (error) { failure(error); }
   });
   remove.addEventListener("click", () => {
@@ -106,7 +151,7 @@ export function mountConfigurationProfiles(container: HTMLElement, options: Opti
   });
   clear.addEventListener("click", () => {
     try {
-      if (options.busy()) throw new ProfileError("busy");
+      if (options.busy() || pending) throw new ProfileError("busy");
       clearProfiles(storage); reload(); selected = "";
       message = { ja: "保存した設定を消去しました。現在の下書きはそのままです。", en: "Cleared saved profiles. Current drafts are unchanged." }; render();
     } catch (error) { failure(error); }

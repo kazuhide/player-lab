@@ -517,7 +517,7 @@
     {
       "type": "steps",
       "items": [
-        "Edit the supported basic settings, enter a Configuration name, and choose Save. The same name updates its saved values. Saving does not apply settings.",
+        "Edit the supported basic settings, enter a Configuration name, and choose Save. Saving under the same name asks before replacing its saved values. Saving does not apply settings.",
         "Choose a Saved configuration, then select Restore draft. Selection alone and page startup do not restore it. Review the differences and use the existing Reload the source to apply or Recreate the player to apply action.",
         "Choose Delete to remove the saved profile. This leaves the current player and drafts unchanged. Profiles remain after a page reload; clearing browser data removes them."
       ]
@@ -549,7 +549,7 @@
     },
     {
       "type": "note",
-      "text": "Names use 1–48 Unicode characters. This browser can store up to 20 profiles, 8 KiB per profile and 128 KiB in total. A different SDK version shows a warning and is checked against currently supported fields before restoration. Unsupported format versions, other platforms, unknown fields and invalid values are rejected. Clear saved profiles explicitly removes unreadable stored data; the player and current drafts are unaffected. Storage denial or a full browser store is reported without applying or replacing settings."
+      "text": "Names use 1–48 Unicode characters. This browser can store up to 20 profiles, 8 KiB per profile and 128 KiB in total. A different SDK version requires confirmation; its values are checked against currently supported fields again when you confirm. Cancel leaves the draft unchanged. Unsupported format versions, other platforms, unknown fields and invalid values are rejected. Clear saved profiles explicitly removes unreadable stored data; the player and current drafts are unaffected. Storage denial or a full browser store is reported without applying or replacing settings."
     },
     {
       "type": "p",

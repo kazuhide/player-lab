@@ -88,6 +88,7 @@ test("restoration clears absent supported fields and saved unsets while preservi
   await expect(page.locator(".config-band-static [role=status]")).toContainText("Fixture load failed");
   await expect(await field(page, /^autoplay\b/)).toHaveJSProperty("indeterminate", true);
   await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page.getByRole("button", { name: "Replace configuration", exact: true }).click();
   expect(JSON.parse(await storage(page)).profiles[0].values["PlayerConfig.playback.autoplay"]).toBeNull();
   await page.locator(".config-band-static").getByRole("button", { name: "Reset draft", exact: true }).click();
   await expect(await field(page, /^autoplay\b/)).toHaveJSProperty("indeterminate", false);
@@ -113,7 +114,7 @@ for (const [description, mutate, message] of [
   expect(await storage(page)).toBe(""); await expect(page.getByRole("button", { name: "Save", exact: true })).toBeEnabled();
 });
 
-test("a different SDK version warns, validates and restores only a draft", async ({ page }) => {
+test("a different SDK version requires confirmation before restoring only a draft", async ({ page }) => {
   await page.goto("/settings-fixture.html"); await openProfiles(page); await name(page).fill("Older SDK");
   await page.getByRole("button", { name: "Save", exact: true }).click(); await expect(status(page)).toContainText("Saved the supported");
   const record = JSON.parse(await storage(page)); record.profiles[0].sdkVersion = "8.280.0";
@@ -122,9 +123,66 @@ test("a different SDK version warns, validates and restores only a draft", async
   await page.reload(); await openProfiles(page); await selector(page).selectOption(record.profiles[0].id);
   await expect(status(page)).toContainText("Saved with SDK 8.280.0");
   await page.getByRole("button", { name: "Restore draft", exact: true }).click();
+  const confirm = page.getByRole("button", { name: "Revalidate and restore", exact: true });
+  await expect(confirm).toBeVisible();
+  await expect(await field(page, /^autoplay\b/)).toBeChecked();
+  expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(confirm).toBeHidden();
+  await expect(await field(page, /^autoplay\b/)).toBeChecked();
+  await page.getByRole("button", { name: "Restore draft", exact: true }).click();
+  await confirm.click();
   await expect(status(page)).toContainText("Validated SDK 8.280.0");
   await expect(await field(page, /^autoplay\b/)).not.toBeChecked();
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
+});
+
+test("replacing a saved name requires confirmation and cancellation preserves stored data and drafts", async ({ page }) => {
+  await page.goto("/settings-fixture.html"); await openProfiles(page);
+  await name(page).fill("Baseline"); await page.getByRole("button", { name: "Save", exact: true }).click();
+  const original = await storage(page);
+  const autoplay = await field(page, /^autoplay\b/); await autoplay.uncheck();
+  await name(page).fill("baseline"); await page.getByRole("button", { name: "Save", exact: true }).click();
+  const confirm = page.getByRole("button", { name: "Replace configuration", exact: true });
+  await expect(confirm).toBeVisible(); expect(await storage(page)).toBe(original);
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  expect(await storage(page)).toBe(original); await expect(autoplay).not.toBeChecked();
+  expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
+  await page.getByRole("button", { name: "Save", exact: true }).click(); await confirm.click();
+  const replaced = JSON.parse(await storage(page)); const before = JSON.parse(original);
+  expect(replaced.profiles).toHaveLength(1); expect(replaced.profiles[0].id).toBe(before.profiles[0].id);
+  expect(replaced.profiles[0].values["PlayerConfig.playback.autoplay"]).toBe(false);
+  expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
+});
+
+for (const kind of ["replacement", "SDK restoration"] as const) test(`a pending ${kind} cannot overwrite newer stored data`, async ({ page }) => {
+  await page.goto("/settings-fixture.html"); await openProfiles(page); await name(page).fill("Baseline");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  if (kind === "SDK restoration") {
+    const older = JSON.parse(await storage(page)); older.profiles[0].sdkVersion = "8.280.0";
+    await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: PROFILE_STORAGE_KEY, value: JSON.stringify(older) });
+    await page.reload(); await openProfiles(page); await selector(page).selectOption(older.profiles[0].id);
+  }
+  const autoplay = await field(page, /^autoplay\b/); await autoplay.uncheck();
+  await page.getByRole("button", { name: kind === "replacement" ? "Save" : "Restore draft", exact: true }).click();
+  const newer = JSON.parse(await storage(page)); newer.profiles[0].name = "Newer saved data";
+  const bytes = JSON.stringify(newer);
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: PROFILE_STORAGE_KEY, value: bytes });
+  await page.getByRole("button", { name: kind === "replacement" ? "Replace configuration" : "Revalidate and restore", exact: true }).click();
+  await expect(status(page)).toContainText("unsupported"); expect(await storage(page)).toBe(bytes);
+  await expect(autoplay).not.toBeChecked(); expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
+});
+
+test("Japanese confirmation uses the existing controls and Escape cancels without changing data", async ({ page }) => {
+  await page.goto("/settings-fixture.html"); await page.evaluate(() => window.settingsFixture.language("ja"));
+  await openProfiles(page); await name(page).fill("ソース");
+  await page.getByRole("button", { name: "保存", exact: true }).click(); const original = await storage(page);
+  await page.getByRole("button", { name: "保存", exact: true }).click();
+  const confirmation = page.getByRole("group", { name: "操作の確認", exact: true });
+  await expect(confirmation).toBeVisible(); await expect(confirmation.getByRole("button", { name: "設定を置き換える", exact: true })).toBeVisible();
+  await expect(confirmation.getByRole("button", { name: "キャンセル", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape"); await expect(confirmation).toBeHidden();
+  await expect(page.getByRole("button", { name: "保存", exact: true })).toBeFocused(); expect(await storage(page)).toBe(original);
 });
 
 test("an absent configured value is saved as unset rather than the form's fallback checkbox value", async ({ page }) => {
