@@ -31,6 +31,16 @@ reinstall Android after changing its keys; restart the local server after
 changing its settings. Android can play without Analytics, so successful
 playback alone does not establish that collection is enabled.
 
+Android resolves each setting in this order: Gradle property, `android/local.properties`,
+process environment, `android/.env`, then its default. The Gradle/local-property
+names are `bitmovinLicenseKey` for `BITMOVIN_PLAYER_LICENSE_KEY` and
+`bitmovinAnalyticsLicenseKey` for `BITMOVIN_ANALYTICS_LICENSE_KEY`. For the Node server, inherited
+`BITMOVIN_API_KEY` and `BITMOVIN_ANALYTICS_LICENSE_KEY` take precedence over
+`analytics-dashboard/.env`. If editing a file has no effect, remove or align the
+higher-priority setting before rebuilding or restarting. Restarting the server
+alone does not clear an exported value. Check where overrides are set without
+printing their values.
+
 ## Play a known lesson
 
 Open the course and choose **Number-line basics**, then confirm that video frames

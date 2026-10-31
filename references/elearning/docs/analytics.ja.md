@@ -19,6 +19,8 @@ PlayerとAnalyticsの両方のライセンスで`com.playerlab.elearning`を許�
 
 それぞれの`.env`は独立しています。Androidのビルドは分析サーバーのファイルを読み込まず、分析サーバーもAndroidのファイルを読み込みません。Androidのキーを変更したら再ビルドしてインストールし、サーバーの設定を変更したら再起動してください。Analyticsが無効でも再生できるため、再生の成功だけではデータ収集が有効かどうかは分かりません。
 
+Androidの設定はGradleプロパティ、`android/local.properties`、プロセスの環境変数、`android/.env`、既定値の順に優先します。Gradleと`local.properties`の名前は`bitmovinLicenseKey`と`bitmovinAnalyticsLicenseKey`、環境変数と`.env`の名前は表の`BITMOVIN_*`です。Nodeサーバーも引き継いだ`BITMOVIN_API_KEY`と`BITMOVIN_ANALYTICS_LICENSE_KEY`を`analytics-dashboard/.env`より優先します。ファイルを編集しても反映されない場合は、優先される設定を解除するか同じ値にそろえてから、再ビルドや再起動を行ってください。サーバーを再起動するだけでは、export済みの値は解除されません。値を表示せずに、上書きする設定の有無と設定元を確認してください。
+
 <a id="play-a-known-lesson"></a>
 ## 確認する教材を再生する
 

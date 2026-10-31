@@ -31,6 +31,14 @@ keys, and restart the local server after changing its settings. Playback works
 with collection disabled, so successful video playback does not prove that
 Analytics is configured.
 
+Android uses the process environment before `android/.env`, then falls back to
+the default. The Node server likewise gives inherited `BITMOVIN_API_KEY` and
+`BITMOVIN_ANALYTICS_LICENSE_KEY` precedence over `analytics-web/.env`. If an
+edited file has no effect, remove or align the higher-priority environment
+setting before rebuilding or restarting. Restarting the server alone does not
+clear an exported value. Check where overrides are set without printing their
+values.
+
 ## Play a known clip
 
 Open **Clips**, select **Opening clip**, and confirm that video frames and the playback
