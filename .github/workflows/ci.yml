@@ -337,6 +337,7 @@ jobs:
           raise SystemExit('No available iPhone simulator was found for the iOS configuration tests.')
           PY
           )"
+          echo "IOS_CONFIGURATION_SIMULATOR=$simulator_id" >> "$GITHUB_ENV"
           cd apps/ios
           xcodebuild \
             -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \
@@ -344,7 +345,57 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/ios-configuration-tests" \
             -onlyUsePackageVersionsFromResolvedFile \
             -parallel-testing-enabled NO \
+            -jobs 2 \
             CODE_SIGNING_ALLOWED=NO test
+      - name: Test iOS Profiles controls in English and Japanese
+        run: |
+          cd apps/ios
+          xcodebuild \
+            -project Showcase.xcodeproj -scheme Showcase-iOS-ProfilesUI \
+            -destination "platform=iOS Simulator,id=$IOS_CONFIGURATION_SIMULATOR" \
+            -derivedDataPath "$RUNNER_TEMP/ios-profiles-ui" \
+            -resultBundlePath "$RUNNER_TEMP/apple-profiles-ios.xcresult" \
+            -onlyUsePackageVersionsFromResolvedFile \
+            -only-testing:Showcase-iOSProfilesUITests/NativeProfilesUITests \
+            -parallel-testing-enabled NO -jobs 2 \
+            CODE_SIGNING_ALLOWED=NO test
+      - name: Test tvOS Profiles controls in English and Japanese
+        run: |
+          simulator_id="$(python3 - <<'PY'
+          import json
+          import subprocess
+          inventory = json.loads(subprocess.check_output(
+              ['xcrun', 'simctl', 'list', 'devices', 'available', '-j'], text=True))
+          for runtime, devices in inventory['devices'].items():
+              if '.tvOS-' not in runtime:
+                  continue
+              for device in devices:
+                  if device.get('isAvailable') and device.get('name', '').startswith('Apple TV'):
+                      print(device['udid'])
+                      raise SystemExit(0)
+          raise SystemExit('No available Apple TV simulator was found for the Profiles UI tests.')
+          PY
+          )"
+          cd apps/ios
+          xcodebuild \
+            -project Showcase.xcodeproj -scheme Showcase-tvOS-ProfilesUI \
+            -destination "platform=tvOS Simulator,id=$simulator_id" \
+            -derivedDataPath "$RUNNER_TEMP/tvos-profiles-ui" \
+            -resultBundlePath "$RUNNER_TEMP/apple-profiles-tvos.xcresult" \
+            -onlyUsePackageVersionsFromResolvedFile \
+            -only-testing:Showcase-tvOSProfilesUITests/NativeProfilesUITests \
+            -parallel-testing-enabled NO -jobs 2 \
+            CODE_SIGNING_ALLOWED=NO test
+      - name: Save isolated Apple Profiles UI results and captures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: apple-profiles-ui-results
+          path: |
+            ${{ runner.temp }}/apple-profiles-ios.xcresult
+            ${{ runner.temp }}/apple-profiles-tvos.xcresult
+          if-no-files-found: warn
+          retention-days: 7
       - name: Build iOS app (simulator)
         run: |
           cd apps/ios && xcodebuild \
