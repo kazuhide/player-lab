@@ -116,6 +116,9 @@ targets:
         buildPhase: resources
       - Showcase/Configuration.swift
       - Showcase/NativeWorkspaceDraft.swift
+      - Showcase/NativeConfigurationProfile.swift
+      - Showcase/NativeProfileDraft.swift
+      - Showcase/NativeProfileStore.swift
       - Showcase/AdvancedConfiguration.swift
       - Showcase/SourceObjectConfiguration.swift
       - Showcase/SourceObjectCode.swift
@@ -247,6 +250,9 @@ targets:
         buildPhase: resources
       - Showcase/Configuration.swift
       - Showcase/NativeWorkspaceDraft.swift
+      - Showcase/NativeConfigurationProfile.swift
+      - Showcase/NativeProfileDraft.swift
+      - Showcase/NativeProfileStore.swift
       - Showcase/AdvancedConfiguration.swift
       - Showcase/SourceObjectConfiguration.swift
       - Showcase/SourceObjectCode.swift

@@ -6,6 +6,10 @@ final class NativeWorkspaceDraft: ObservableObject {
     @Published var applied: ConfigurationDraft
     init(_ draft: ConfigurationDraft) { value = draft; applied = draft }
 
+    func restoreProfile(_ profile: NativeConfigurationProfile, sdkVersion: String, confirmDifferentSDK: Bool = false) throws {
+        value = try profile.restored(into: value, sdkVersion: sdkVersion, confirmDifferentSDK: confirmDifferentSDK)
+    }
+
     func synchronize(_ next: ConfigurationDraft) {
         // Rebase untouched fields when a source preset or host change updates the applied model.
         // A draft edit must not restore unrelated settings from the retired source/player.
