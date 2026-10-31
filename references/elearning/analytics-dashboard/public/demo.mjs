@@ -4,7 +4,7 @@ export const demoPeriod = Object.freeze({
 
 const units = { plays: 'count', watchHours: 'hours', startupMedian: 'seconds', startupP95: 'seconds', rebufferPercentage: 'percent', errorPercentage: 'percent' };
 
-function observations(config) {
+function observations(config, scenario) {
   const rows = [];
   config.assets.forEach((asset, lesson) => config.origins.forEach((origin, entry) => {
     for (let hour = 0; hour < 24; hour += 1) {
@@ -12,9 +12,9 @@ function observations(config) {
       for (let play = 0; play < 2 + (hour + lesson + entry) % 6; play += 1) {
         rows.push({
           asset: asset.id, origin, at: new Date(Date.parse(demoPeriod.start) + hour * 3_600_000).toISOString(),
-          startup: .65 + lesson * .25 + entry * .2 + play * .17 + (hour % 5 === 0 ? 1.4 : 0),
+          startup: .65 + lesson * .25 + entry * .2 + play * .17 + (hour % 5 === 0 ? 1.4 : 0) + (scenario === 'slow-start' ? 2.5 + (play % 3) * 2 + (hour % 4 === 0 ? 5 : 0) : 0),
           played: 35 + lesson * 18 + play * 9 + hour % 7,
-          rebuffer: (hour + play + lesson) % 13 === 0 ? 3.2 : .15,
+          rebuffer: scenario === 'rebuffering' ? 4 + (hour + play + lesson) % 7 : (hour + play + lesson) % 13 === 0 ? 3.2 : .15,
           error: (hour + play + lesson * 5 + entry) % 41 === 0 ? 100 : 0,
         });
       }
@@ -36,10 +36,11 @@ function summarize(rows) {
   };
 }
 
-export function demoSnapshot({ asset = 'all', origin = 'all' } = {}, config) {
+export function demoSnapshot({ asset = 'all', origin = 'all', scenario = 'normal' } = {}, config) {
+  if (!['normal', 'slow-start', 'rebuffering'].includes(scenario)) throw new RangeError('Unknown demo scenario');
   if (asset !== 'all' && !config.assets.some(item => item.id === asset)) throw new RangeError('Unknown demo lesson');
   if (origin !== 'all' && !config.origins.includes(origin)) throw new RangeError('Unknown demo entry');
-  const rows = observations(config).filter(row => (asset === 'all' || row.asset === asset) && (origin === 'all' || row.origin === origin));
+  const rows = observations(config, scenario).filter(row => (asset === 'all' || row.asset === asset) && (origin === 'all' || row.origin === origin));
   const total = summarize(rows);
   const metrics = Object.fromEntries(Object.entries(units).map(([id, unit]) => [id, { status: 'ok', value: total[id], unit }]));
   const series = Object.fromEntries(['plays', 'startupMedian', 'startupP95'].map(id => [id, {
@@ -49,7 +50,7 @@ export function demoSnapshot({ asset = 'all', origin = 'all' } = {}, config) {
     status: 'ok', rows: config.assets.filter(item => asset === 'all' || item.id === asset).map(item => ({ asset: item.id, value: summarize(rows.filter(row => row.asset === item.id))[id] })),
   }]));
   return {
-    status: 'demo', source: 'Synthetic demo data', requestedAt: null, fetchedAt: null, latestSampleAt: null,
+    status: 'demo', scenario, source: 'Synthetic demo data', requestedAt: null, fetchedAt: null, latestSampleAt: null,
     period: { ...demoPeriod }, filters: { asset, origin, type: 'all', platform: 'android' }, metrics, series, comparison,
   };
 }
