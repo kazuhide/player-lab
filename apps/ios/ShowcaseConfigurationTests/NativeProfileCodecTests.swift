@@ -57,6 +57,19 @@ final class NativeProfileCodecTests: XCTestCase {
         XCTAssertThrowsError(try NativeProfileCodec.decode(JSONSerialization.data(withJSONObject: root)))
     }
 
+    func testOrdinaryNamesAndLocalizedLabelCollisionsSurviveNativeCodec() throws {
+        for name in ["Profile 1", "Study", "Source", "Profiles", "プロファイル 1", "ソース", "Cafe\u{301}"] {
+            let normalized = try NativeProfileSchema.normalizedName(name)
+            XCTAssertEqual(normalized, name.precomposedStringWithCanonicalMapping, "User names retain their case and literal text")
+            let saved = profile(normalized)
+            let decoded = try NativeProfileCodec.decode(NativeProfileCodec.encode([saved]))
+            XCTAssertEqual(decoded.first?.name, normalized, name)
+            XCTAssertEqual(decoded.first?.id, saved.id, name)
+        }
+        XCTAssertEqual(try NativeProfileSchema.normalizedName("  Profile 1  "), "Profile 1")
+        XCTAssertEqual(try NativeProfileSchema.normalizedName("Cafe\u{301}"), "Café")
+    }
+
     func testStoreSurvivesRestartAndExplicitReplacementAndDeletion() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

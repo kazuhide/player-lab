@@ -4,8 +4,8 @@ import BitmovinPlayer
 /// Receives only editable drafts. Saving, selecting and restoring cannot invoke PlayerModel.
 struct NativeConfigurationProfilesPanel: View {
     @ObservedObject var session: NativeWorkspaceDraft
-    var sdkVersion = PlayerFactory.sdkVersion
-    @State private var store = try? NativeProfileStore.applicationStore()
+    let sdkVersion: String
+    @State private var store: NativeProfileStore?
     @State private var profiles: [NativeConfigurationProfile] = []
     @State private var selected: UUID?
     @State private var name = ""
@@ -19,6 +19,13 @@ struct NativeConfigurationProfilesPanel: View {
         case replace(NativeConfigurationProfile, UUID), sdk(NativeConfigurationProfile), delete(UUID), clear
     }
     private var selectedProfile: NativeConfigurationProfile? { profiles.first { $0.id == selected } }
+
+    init(session: NativeWorkspaceDraft, sdkVersion: String = PlayerFactory.sdkVersion,
+         store: NativeProfileStore? = try? NativeProfileStore.applicationStore()) {
+        self.session = session
+        self.sdkVersion = sdkVersion
+        _store = State(initialValue: store)
+    }
 
     var body: some View {
         ScrollView {
@@ -87,13 +94,16 @@ struct NativeConfigurationProfilesPanel: View {
                 Button("Replace profile", role: .destructive) { persist(profile, replacing: id) }
             case .sdk(let profile):
                 Button("Revalidate and restore") { restore(profile, confirmed: true) }
+                    .accessibilityIdentifier("configuration.profiles.confirmSDK")
             case .delete(let id):
                 Button("Delete profile", role: .destructive) { update { try await $0.delete(id) } }
+                    .accessibilityIdentifier("configuration.profiles.confirmDelete")
             case .clear:
                 Button("Clear saved profiles", role: .destructive) { update { try await $0.clear() } }
             case nil: EmptyView()
             }
             Button("Cancel", role: .cancel) { pending = nil }
+                .accessibilityIdentifier("configuration.profiles.cancel")
         } message: {
             switch pending {
             case .replace: Text("Replace the saved profile with this name?")
