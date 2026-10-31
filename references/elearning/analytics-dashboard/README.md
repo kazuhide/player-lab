@@ -21,7 +21,7 @@ Open `http://127.0.0.1:9051`. The initial **Demo data** view works without an `.
 
 ## Demo data
 
-The demo contains fictional learning sessions over a fixed UTC day. Lesson and playback-entry filters work locally; **Load demo data** reloads the same sample. Cards, hourly charts and lesson comparisons use these synthetic observations. The displayed period and data source identify the sample; its values are not measured playback results.
+The demo contains fictional learning sessions over a fixed UTC day. Choose **Normal**, **Slow start** or **High rebuffering** to compare deterministic fictional sessions. Lesson and playback-entry filters work locally; **Load demo data** reloads the same sample. Cards, hourly charts and lesson comparisons use these synthetic observations. The displayed period and data source identify the sample; its values are not measured playback results.
 
 ![Demo data in the English learning dashboard](../docs/screenshots/analytics-demo-en.png)
 
@@ -69,6 +69,12 @@ Only Android data for `EDU-FX-01`, `EDU-FX-02`, and `EDU-FX-03` is queried. Play
 Queries explicitly disable optional context columns; the dashboard consumes only the documented metric result shape. Cards query the whole period. Hourly plots and per-video comparisons use separate queries; hourly percentiles are never averaged into a period value. Missing hours are not filled with zero, and line plots do not connect across missing hours. Each chart also has a data table.
 
 The displayed fetch time is when the server received the API response. These aggregate queries do not establish the latest raw sample time. Compare matching periods and video IDs in Bitmovin Dashboard. See the [official metric query recipes](https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1) and [Percentile API reference](https://developer.bitmovin.com/playback/reference/postanalyticsqueriespercentile).
+
+## Query examples and downloads
+
+Open **Query and code** to inspect the selected metric’s definition, request JSON and copyable Node.js server code. It uses the same request generator as the dashboard service. Opening or copying an example does not query Analytics. **Download JSON** and **Download CSV** save the displayed aggregate results with their source, actual period, filters, units, timestamps and availability status.
+
+See [Query examples and result analysis](docs/query-and-analysis.md) for the export fields, a fictional example file and a prompt for manual LLM analysis. The dashboard does not send files to an LLM service.
 
 ## Local server limits
 
