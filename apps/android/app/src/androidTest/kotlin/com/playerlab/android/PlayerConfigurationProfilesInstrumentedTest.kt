@@ -4,9 +4,11 @@ import android.content.Context
 import android.app.LocaleManager
 import android.os.Build
 import android.os.LocaleList
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.SdkSuppress
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -106,5 +108,47 @@ class PlayerConfigurationProfilesInstrumentedTest {
         status("Loaded into drafts. Playback is unchanged.")
         workspaceSetting(ui, "source-offset"); ui.onNodeWithTag("source-offset").assert(hasText("23"))
         ui.runOnIdle { assertSame(owner, controller.player); assertSame(source, controller.configuredSource) }
+    }
+
+    @Test
+    @SdkSuppress(minSdkVersion = 33)
+    fun savedNamesAndAccessibleOptionsStayLiteralInJapanese() {
+        ui.runOnUiThread {
+            requireNotNull(ui.activity.getSystemService(LocaleManager::class.java)).applicationLocales = LocaleList.forLanguageTags("ja")
+        }
+        ui.waitUntil(10_000) { ui.activity.resources.configuration.locales[0].language == "ja" }
+        profiles()
+        val controller = ui.activity.controller
+        val owner = controller.player
+        val source = controller.configuredSource
+        val revision = controller.sourceRevision
+        for (name in listOf("Source", "ソース")) {
+            ui.onNodeWithTag("profile-name").performTextReplacement(name)
+            ui.onNodeWithTag("profile-name").performImeAction()
+            workspaceHideKeyboard(ui)
+            ui.onNodeWithTag("profile-save").assertIsDisplayed().performClick()
+            status("Profile saved.")
+        }
+        assertEquals(listOf("Source", "ソース"),
+            ConfigurationProfileRepository(AndroidConfigurationProfileStorage(ui.activity), BuildConfig.PLAYER_SDK_VERSION).list().map { it.name })
+        for (selected in listOf("Source", "ソース")) {
+            ui.onNodeWithTag("profile-selector").performClick()
+            for (name in listOf("Source", "ソース")) {
+                val option = ui.onNodeWithTag("profile-selector-option-$name").assertIsDisplayed().assertTextEquals(name)
+                val semantics = option.fetchSemanticsNode().config
+                assertEquals(listOf(name), semantics[SemanticsProperties.Text].map { it.text })
+                if (SemanticsProperties.ContentDescription in semantics) {
+                    assertEquals(listOf(name), semantics[SemanticsProperties.ContentDescription])
+                }
+            }
+            ui.onNodeWithTag("profile-selector-option-$selected").performClick()
+            workspaceWaitForPickerDismissal(ui, "profile-selector")
+            ui.onNodeWithTag("profile-selector").assertTextContains(selected, substring = true)
+        }
+        ui.runOnIdle {
+            assertSame(owner, controller.player)
+            assertSame(source, controller.configuredSource)
+            assertEquals(revision, controller.sourceRevision)
+        }
     }
 }

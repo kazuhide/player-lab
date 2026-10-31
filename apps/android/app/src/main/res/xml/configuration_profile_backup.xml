@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
+    <!-- SharedPreferences can retain a rollback copy during an interrupted write. -->
     <exclude domain="sharedpref" path="configuration-profiles.xml" />
+    <exclude domain="sharedpref" path="configuration-profiles.xml.bak" />
 </full-backup-content>

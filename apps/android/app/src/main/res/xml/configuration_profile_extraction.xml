@@ -2,8 +2,10 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="configuration-profiles.xml" />
+        <exclude domain="sharedpref" path="configuration-profiles.xml.bak" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="configuration-profiles.xml" />
+        <exclude domain="sharedpref" path="configuration-profiles.xml.bak" />
     </device-transfer>
 </data-extraction-rules>

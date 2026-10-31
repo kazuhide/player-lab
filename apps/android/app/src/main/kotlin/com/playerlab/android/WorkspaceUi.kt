@@ -248,7 +248,9 @@ internal fun <T> WorkspacePicker(
                             .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(selected == value, onClick = null, enabled = reason == null)
                             Column(Modifier.weight(1f)) {
-                                UiText(title, style = MaterialTheme.typography.bodyMedium,
+                                if (translateChoices) UiText(title, style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (reason == null) 1f else 0.38f))
+                                else Text(title, style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (reason == null) 1f else 0.38f))
                                 reason?.let { UiText(it, style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant) }
