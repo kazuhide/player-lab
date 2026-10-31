@@ -13,7 +13,7 @@
     <header class="page-header">
       <div><p class="app-name">Player Lab</p><h1 id="title">Playback quality</h1></div>
       <div class="header-actions">
-        <a id="dashboard-link" href="https://dashboard.bitmovin.com/analytics" target="_blank" rel="noreferrer">Bitmovin Dashboard</a>
+        <a id="dashboard-link" href="https://dashboard.bitmovin.com/observability/home" target="_blank" rel="noreferrer">Bitmovin Dashboard</a>
         <button id="language" type="button" lang="ja">日本語</button>
       </div>
     </header>
@@ -28,6 +28,7 @@
         <details id="setup" class="setup" hidden><summary data-text="setup">Connection setup</summary><p data-text="setupText">Set the account API key and Analytics license in analytics-web/.env, then restart the server. Keys stay on the server.</p><pre><code>BITMOVIN_API_KEY=
 BITMOVIN_ANALYTICS_LICENSE_KEY=</code></pre><a href="https://github.com/kazuhide/player-lab/tree/main/references/sports-streaming/analytics-web#measured-data" target="_blank" rel="noreferrer" data-text="setupGuide">Setup instructions</a></details>
         <form id="filters" class="filters">
+          <label id="scenario-field"><span data-text="scenario">Demo scenario</span><select id="scenario"><option value="normal" data-text="scenarioNormal">Normal</option><option value="slow-start" data-text="scenarioSlow">Slow start</option><option value="rebuffering" data-text="scenarioRebuffer">High rebuffering</option></select></label>
           <label id="period-field"><span data-text="period">Period</span><select id="period"><option value="24" data-text="last24">Last 24 hours</option><option value="168" data-text="last7">Last 7 days</option><option value="custom" data-text="custom">Custom</option></select></label>
           <label><span data-text="video">Video</span><select id="asset"></select></label>
           <label id="origin-field"><span data-text="startOrigin">Playback entry</span><select id="origin"></select></label>
@@ -40,12 +41,14 @@ BITMOVIN_ANALYTICS_LICENSE_KEY=</code></pre><a href="https://github.com/kazuhide
         <div class="status-line"><p id="status" role="status" aria-live="polite"></p><span id="fetch-time"></span></div>
         <p id="period-summary" class="period-summary"></p>
         <p id="source-summary" class="period-summary"></p>
+        <div class="result-actions" role="group" aria-labelledby="export-heading"><span id="export-heading" data-text="exportResult">Export displayed results</span><button id="export-json" type="button">JSON</button><button id="export-csv" type="button">CSV</button><span id="export-status" role="status" aria-live="polite"></span></div>
         <div id="metrics" class="metrics" aria-busy="false"></div>
         <div class="charts">
           <section class="plot" aria-labelledby="plays-heading"><h2 id="plays-heading" data-text="playsTrend">Plays by hour</h2><div id="plays-chart"></div><details><summary data-text="tableView">Show data table</summary><div id="plays-table" class="table-scroll"></div></details></section>
           <section class="plot" aria-labelledby="startup-heading"><h2 id="startup-heading" data-text="startupTrend">Video startup time by hour</h2><div class="legend"><span data-text="median">Median</span><span data-text="p95">95th percentile</span></div><div id="startup-chart"></div><details><summary data-text="tableView">Show data table</summary><div id="startup-table" class="table-scroll"></div></details></section>
         </div>
         <section class="comparison" aria-labelledby="comparison-heading"><h2 id="comparison-heading" data-text="comparison">Quality by video</h2><div id="comparison-table" class="table-scroll"></div></section>
+        <details id="query-example" class="definitions query-example"><summary data-text="queryAndCode">Query and server code</summary><p id="recipe-context"></p><div class="recipe-selectors"><label><span data-text="metric">Metric</span><select id="recipe-metric"></select></label><label><span data-text="queryShape">Aggregation</span><select id="recipe-shape"></select></label></div><p id="metric-definition"></p><p id="query-conditions"></p><div class="code-heading"><h3 data-text="jsonRequest">JSON request</h3><button id="copy-json" type="button" data-text="copyJson">Copy JSON</button></div><p id="query-endpoint" class="period-summary"></p><pre tabindex="0" aria-labelledby="json-heading"><code id="recipe-json"></code></pre><span id="json-heading" class="visually-hidden" data-text="jsonRequest">JSON request</span><div class="code-heading"><h3 id="node-heading" data-text="serverCode">Node.js server code</h3><button id="copy-code" type="button" data-text="copyCode">Copy code</button></div><pre tabindex="0" aria-labelledby="node-heading"><code id="recipe-code"></code></pre><p data-text="codeNotice">Keep account credentials on the server. Copying this example sends no request.</p><p id="copy-status" role="status" aria-live="polite"></p></details>
         <details class="definitions"><summary data-text="definitions">Metric definitions and data source</summary><p id="definitions-text"></p><p id="sample-time-note" data-text="sampleTimeUnknown">The latest sample timestamp is not available from these aggregated queries. The fetch time records when the server received the API response.</p><a href="https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1" target="_blank" rel="noreferrer" data-text="officialDefinitions">Official metric query recipes</a></details>
       </section>
       <footer><p data-text="scope">Android reference app data only. Receiver playback quality is not inferred from sender data.</p></footer>

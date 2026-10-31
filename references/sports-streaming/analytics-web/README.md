@@ -22,9 +22,9 @@ Open `http://127.0.0.1:9052`. The initial **Demo data** screen works without an 
 
 ## Demo data
 
-The cards, hourly charts and video comparison use fictional playback sessions from a fixed sample day. The page identifies the data as a demo and shows its actual sample period. Video and media-type filters recalculate the local example; **Load demo data** reloads it without contacting Bitmovin. No playback sessions or account measurements are created.
+The cards, hourly charts and video comparison use fictional playback sessions from a fixed sample day. The page identifies the data as a demo and shows its actual sample period. Choose Normal, Slow start or High rebuffering to compare fictional scenarios. Video and media-type filters recalculate the local example; **Load demo data** reloads it without contacting Bitmovin. No playback sessions or account measurements are created.
 
-<img src="../docs/screenshots/analytics-demo-en.png" width="1000" alt="Demo playback-quality dashboard with fictional metrics, hourly charts and video comparisons">
+<img src="docs/screenshots/demo-en.png" width="1000" alt="Demo playback-quality dashboard with fictional metrics, hourly charts and video comparisons">
 
 ## Measured data
 
@@ -44,7 +44,7 @@ npm start
 
 Open `http://127.0.0.1:9052/#measured`, choose the period, video and media type, then select **Fetch data**. Entering this screen or changing a filter does not query Analytics. Each fetch makes new API queries; overlapping identical requests share work already in progress. Missing configuration, no data, valid zero values, partial results and failures are separate states. A failed query never displays demo values as measurements.
 
-<img src="../docs/screenshots/analytics-measured-en.png" width="1000" alt="Measured playback-quality screen before configuration, with connection setup and no demo measurements">
+<img src="docs/screenshots/measured-en.png" width="1000" alt="Measured playback-quality screen before configuration, with connection setup and no demo measurements">
 
 The dashboard reads existing measurements. It does not start collection. Newly collected events may take time to appear in the aggregated results. The fetch time is when the server received an API response; it is not the latest underlying sample timestamp.
 
@@ -65,6 +65,12 @@ Measured queries explicitly disable optional context columns and consume only th
 
 Compare the same period and video IDs in Bitmovin Dashboard. Metric requests follow the [official query recipes](https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1) and [Percentile API reference](https://developer.bitmovin.com/playback/reference/postanalyticsqueriespercentile).
 
+## Queries and export
+
+Open **Query and server code** to read each metric's definition and units and copy JSON or Node.js code for the displayed scope. The examples and real server queries use the same pure query builder. Opening or copying an example does not call Analytics.
+
+**Export displayed results** downloads JSON or CSV while retaining demo/measured provenance, the original period and filters, receipt time, units, missing values, partial failures and earlier-result qualification. See [Export results and analyze them](docs/analysis.md) for the fields and an LLM prompt using a public fictional example.
+
 ## Server limits and checks
 
 The server binds to `127.0.0.1` and validates host/origin. Only fixed static files, `GET /api/config`, and `GET /api/qoe` are served. Clients cannot choose an upstream URL, license, account key, query dimension or platform. This unauthenticated local development server must not be exposed publicly.
@@ -74,6 +80,8 @@ Measured queries cover at most seven days with hourly plots, at most three concu
 ```sh
 npm test
 npm run build
+npx playwright install chromium
+npm run test:browser
 ```
 
-Tests cover synthetic-data filtering, new queries on repeated fetches, query contracts, platform/video filters, pagination, concurrency, rate limits, deadlines, response limits, origin checks, secret-free errors, stale response rejection and chart gaps. `build` checks modules and static assets. No generated bundle or runtime dependency is required.
+Tests cover fictional scenarios and filtering, matching query recipes, JSON/CSV export, secret exclusion, new queries on repeated fetches, query contracts, platform/video filters, pagination, concurrency, rate limits, deadlines, response limits, origin checks, secret-free errors, stale response rejection and chart gaps. `build` checks modules and static assets. No generated bundle or runtime dependency is required.
