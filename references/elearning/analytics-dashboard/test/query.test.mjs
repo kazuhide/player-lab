@@ -188,11 +188,18 @@ test('at most two distinct batches are admitted and capacity recovers after comp
 
 test('queued operations share the absolute batch deadline and do not issue late requests', async () => {
   let calls = 0;
-  const api = service({ timeoutMs: 25, clock: Date.now, fetchImpl: async (_url, request) => {
+  const started = Date.now();
+  let now = started;
+  const api = service({ timeoutMs: 25, clock: () => now, fetchImpl: async (_url, request) => {
     calls += 1;
-    await new Promise((_resolve, reject) => request.signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true }));
+    await new Promise((_resolve, reject) => request.signal.addEventListener('abort', () => {
+      // A real timer can fire before Date.now reaches its millisecond boundary.
+      // Expire the injected batch clock before a queued operation is admitted.
+      now = started + 25;
+      reject(new Error('aborted'));
+    }, { once: true }));
   } });
-  const params = parameters(); params.set('end', new Date(Date.now()).toISOString()); params.set('start', new Date(Date.now() - 3600000).toISOString());
+  const params = parameters(); params.set('end', new Date(started).toISOString()); params.set('start', new Date(started - 3600000).toISOString());
   const result = await api.query(params);
   assert.equal(result.status, 'error');
   assert.equal(calls, 3);
