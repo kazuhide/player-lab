@@ -45,6 +45,19 @@ jobs:
           npm ci --ignore-scripts
           npm test
           npm run build
+      - name: Test dashboard browser interactions without credentials
+        working-directory: references/elearning/analytics-dashboard
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:browser
+      - name: Upload dashboard browser failures
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: elearning-dashboard-browser-failures
+          path: references/elearning/analytics-dashboard/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Install the Android compile platform
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
