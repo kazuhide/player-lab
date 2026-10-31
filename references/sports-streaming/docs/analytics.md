@@ -64,7 +64,7 @@ Analytics custom-data field.
 
 ## Find the playback in Bitmovin Dashboard
 
-1. Open [Bitmovin Dashboard](https://dashboard.bitmovin.com/analytics) with access
+1. Open [Bitmovin Dashboard](https://dashboard.bitmovin.com/observability/home) with access
    to the account that owns your Analytics license.
 2. Select the same Analytics license configured in Android and a period that
    includes the playback you noted.
