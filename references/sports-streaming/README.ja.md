@@ -11,6 +11,8 @@ Google CastにはSDKのリモート操作機能を使います。
 
 アプリ、Gradleラッパー、設定、素材、メディア配信サーバー、分析Webはこのディレクトリ内で完結します。他のPlayer Labアプリや共通ビルド成果物は不要です。
 
+[再生からAnalyticsでの確認まで](docs/analytics.ja.md)では、クリップのデータ収集、Bitmovin Dashboardでの確認、ローカル画面での取得を順に説明しています。
+
 <a id="requirements-and-configuration"></a>
 ## 必要な環境と設定
 

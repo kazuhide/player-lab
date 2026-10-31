@@ -4,6 +4,9 @@
 
 Explore playback quality with synthetic demo data, or fetch this reference app's measured Analytics results. The interface supports English and Japanese. The dashboard and its server run independently of the Android build.
 
+For the path from Android playback to collected results, see
+[From lesson playback to Analytics](../docs/analytics.md).
+
 ## Setup
 
 Use Node.js 24.13 or later within the Node.js 24 release line.

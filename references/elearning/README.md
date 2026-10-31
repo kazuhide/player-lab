@@ -12,6 +12,9 @@ fixture inputs, media publisher and analytics application. It can be copied and
 built independently. It does not use another Player Lab application's code or
 build output.
 
+Follow [From lesson playback to Analytics](docs/analytics.md) to collect a lesson,
+find it in Bitmovin Dashboard and fetch the same data locally.
+
 The optional [playback quality dashboard](analytics-dashboard/README.md) has a
 key-free demo view and a separate view for fetching measured Analytics results.
 

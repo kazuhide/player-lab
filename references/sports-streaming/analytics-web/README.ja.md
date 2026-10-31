@@ -5,6 +5,8 @@
 
 デモデータで再生品質の指標を確認し、Bitmovin Analyticsから実測データを取得できます。画面は日本語と英語に対応し、Androidアプリをビルドせずに単独で起動できます。
 
+Androidでの再生から収集結果を確認するまでの流れは、[再生からAnalyticsでの確認まで](../docs/analytics.ja.md)を参照してください。
+
 <a id="run-locally"></a>
 <a id="setup"></a>
 ## ローカルで起動する
