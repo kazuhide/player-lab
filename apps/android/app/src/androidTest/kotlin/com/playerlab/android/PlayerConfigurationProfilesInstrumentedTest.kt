@@ -1,6 +1,9 @@
 package com.playerlab.android
 
 import android.content.Context
+import android.app.LocaleManager
+import android.os.Build
+import android.os.LocaleList
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -15,10 +18,37 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class PlayerConfigurationProfilesInstrumentedTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
-    @Before fun clearInitialProfiles() = clearStorage()
-    @After fun clearCreatedProfiles() = clearStorage()
-    private fun clearStorage() {
-        ui.activity.getSharedPreferences(AndroidConfigurationProfileStorage.STORE, Context.MODE_PRIVATE).edit().clear().commit()
+    private var previous: Map<String, Any?>? = null
+    private var previousLocale: String? = null
+    @Before fun preserveInitialProfiles() {
+        if (Build.VERSION.SDK_INT >= 33) previousLocale = ui.activity.getSystemService(LocaleManager::class.java)?.applicationLocales?.toLanguageTags()
+        val preferences = ui.activity.getSharedPreferences(AndroidConfigurationProfileStorage.STORE, Context.MODE_PRIVATE)
+        previous = preferences.all.mapValues { (_, value) -> if (value is Set<*>) value.toSet() else value }
+        check(preferences.edit().clear().commit())
+    }
+    @After fun restoreInitialProfiles() {
+        try {
+            val values = previous ?: return
+            val editor = ui.activity.getSharedPreferences(AndroidConfigurationProfileStorage.STORE, Context.MODE_PRIVATE).edit().clear()
+            values.forEach { (key, value) -> when (value) {
+                null -> editor.remove(key)
+                is String -> editor.putString(key, value)
+                is Boolean -> editor.putBoolean(key, value)
+                is Int -> editor.putInt(key, value)
+                is Long -> editor.putLong(key, value)
+                is Float -> editor.putFloat(key, value)
+                is Set<*> -> { check(value.all { it is String }); editor.putStringSet(key, value.filterIsInstance<String>().toSet()) }
+                else -> error("Unsupported preference value type.")
+            } }
+            check(editor.commit())
+        } finally {
+            val languageTags = previousLocale
+            if (Build.VERSION.SDK_INT >= 33 && languageTags != null) ui.runOnUiThread {
+                ui.activity.getSystemService(LocaleManager::class.java)?.let { manager ->
+                    if (manager.applicationLocales.toLanguageTags() != languageTags) manager.applicationLocales = LocaleList.forLanguageTags(languageTags)
+                }
+            }
+        }
     }
     private fun profiles() {
         ui.onNodeWithTag("workspace-settings").performClick()
