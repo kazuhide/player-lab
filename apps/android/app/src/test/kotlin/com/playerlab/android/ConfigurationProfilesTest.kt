@@ -178,4 +178,15 @@ class ConfigurationProfilesTest {
         assertTrue(ConfigurationProfileProblem.entries.all { it.text in UiTextCatalog.resources })
     }
 
+    @Test fun namesRejectCredentialsAcrossAsciiAndUnicodeSpaceSeparators() {
+        assertEquals("Source", ConfigurationProfiles.name("Source"))
+        assertEquals("Buffer\u00a0comparison", ConfigurationProfiles.name("Buffer\u00a0comparison"))
+        for (space in listOf(" ", "\u00a0", "\u2007", "\u2009", "\u202f", "\u3000")) {
+            assertProblem(ConfigurationProfileProblem.Name) { ConfigurationProfiles.name("bEaReR${space}fixture") }
+        }
+        for (credential in listOf("01234567-89ab-cdef-0123-456789abcdef", "x".repeat(32), "BITMOVIN_API_KEY=fixture")) {
+            assertProblem(ConfigurationProfileProblem.Name) { ConfigurationProfiles.name(credential) }
+        }
+    }
+
 }

@@ -82,7 +82,9 @@ internal object ConfigurationProfiles {
     fun name(value: String): String {
         val normalized = Normalizer.normalize(value.trim(), Normalizer.Form.NFC)
         val points = normalized.codePoints().toArray()
-        val credential = Regex("(?iU)(?:bearer\\s+.*|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z0-9_-]{32,})").matches(normalized)
+        // Android's ICU-backed regex rejects Java's embedded U flag. Include
+        // Unicode space separators explicitly so credential checks stay portable.
+        val credential = Regex("(?i)(?:bearer[\\s\\p{Zs}]+.*|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z0-9_-]{32,})").matches(normalized)
         if (points.size !in 1..MAX_NAME || credential || !points.any(Character::isLetterOrDigit) || points.any {
                 !Character.isLetterOrDigit(it) && Character.getType(it) != Character.NON_SPACING_MARK.toInt() && Character.getType(it) != Character.SPACE_SEPARATOR.toInt() && it !in listOf(45, 46, 95, 40, 41, 0xff08, 0xff09)
             }) profileError(ConfigurationProfileProblem.Name)
