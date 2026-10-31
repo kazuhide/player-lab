@@ -5,6 +5,9 @@
 Explore playback-quality metrics with demo data, then fetch measurements from Bitmovin Analytics. The dashboard supports English and Japanese and runs independently of the Android build.
 
 <a id="setup"></a>
+For the path from Android playback to collected results, see
+[From sports playback to Analytics](../docs/analytics.md).
+
 ## Run locally
 
 Use Node.js 24.13 or later within the Node.js 24 release line.

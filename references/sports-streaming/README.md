@@ -16,6 +16,9 @@ The application, Gradle wrapper, configuration, fixtures, media publisher and
 analysis Web application are contained in this directory. Building it does not
 require another Player Lab application or shared build output.
 
+Follow [From sports playback to Analytics](docs/analytics.md) to collect a clip,
+find it in Bitmovin Dashboard and fetch the same data locally.
+
 ## Requirements and configuration
 
 Use JDK 21, Android SDK platform 37 and build tools 36.0.0. The Android
