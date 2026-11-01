@@ -142,7 +142,7 @@ LOCALIZED_FIGURES = {
     'ui-controls': {'en': (301, 546), 'ja': (301, 656)},
     'applied-settings': {'en': (1240, 511), 'ja': (1240, 512)},
     'web-startup-controls': {'en': (1240, 418), 'ja': (1240, 423)},
-    'web-startup-results': {'en': (1240, 634), 'ja': (1240, 663)},
+    'web-startup-results': {'en': (1240, 675), 'ja': (1240, 704)},
 }
 FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
 FIGURE_EXTENSIONS.update({name: 'png' for name in ('web-sdk-differences', 'web-startup-controls', 'web-startup-results')})
