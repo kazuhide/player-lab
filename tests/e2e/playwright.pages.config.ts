@@ -18,7 +18,7 @@ const origin = `http://localhost:${port}`;
 
 export default defineConfig({
   testDir: "./specs",
-  testMatch: ["pages.spec.ts", "user-guide.spec.ts", "api-explorer.spec.ts"],
+  testMatch: ["pages.spec.ts", "user-guide.spec.ts", "api-explorer.spec.ts", "startup-comparison.spec.ts"],
   timeout: 90_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,
