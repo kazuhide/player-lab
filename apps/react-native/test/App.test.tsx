@@ -1665,6 +1665,56 @@ return { isFullscreenActive: false, enterFullscreen() {}, exitFullscreen() {} };
 
 
 describe("named configuration drafts in the mounted React Native App", () => {
+  it.each([["android", "en"], ["android", "ja"], ["ios", "en"], ["ios", "ja"]] as const)(
+    "keeps %s %s profile actions outside scrolling content and retains the mounted profile editor", async (platform, language) => {
+      runtime.os = platform;
+      runtime.window = { width: 402, height: 874, fontScale: 1, scale: 1 };
+      await mount(); await ready(); await toggle("Autoplay", true); await settingsGroup("profiles");
+      if (language === "ja") await press("日本語");
+      const name = "Long profile name that remains fully accessible";
+      const nameLabel = language === "ja" ? "設定名" : "Configuration name";
+      const editor = input(nameLabel);
+      const owner = current(); const loads = owner.load.mock.calls.length; const count = runtime.players.length;
+      await act(async () => editor.props.onChangeText(name));
+      await tap("configuration-profile-save");
+      for (const identifier of ["configuration-profile-name", "configuration-profile-save", "configuration-profile-picker",
+        "configuration-profile-restore", "configuration-profile-delete", "configuration-apply", "configuration-reset"]) {
+        const control = element(identifier === "configuration-profile-name" ? "TextInput" : "Pressable", { testID: identifier });
+        expect(control).toBeDefined();
+        for (let parent = control.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
+      }
+      const picker = element("Pressable", { testID: "configuration-profile-picker" });
+      expect(picker.props.accessibilityValue.text).toBe(name);
+      const closedValue = picker.findAll(node => String(node.type) === "Text" && node.props.children === name);
+      expect(closedValue).toHaveLength(1);
+      expect(closedValue[0]!.props.numberOfLines).toBe(1);
+      await tap("configuration-profile-picker");
+      const option = element("Pressable", { testID: `configuration-profile-picker-option-${name}` });
+      expect(option.props.accessibilityLabel).toBe(name);
+      expect(option.findAll(node => String(node.type) === "Text" && node.props.children === name)[0]!.props.numberOfLines).toBeUndefined();
+      await tap(`configuration-profile-picker-option-${name}`);
+      const details = element("ScrollView", { testID: "configuration-profile-details" });
+      expect(details).toBeDefined();
+      expect(details.findAll(node => String(node.type) === "View" && node.props.testID === "configuration-differences")).toHaveLength(1);
+      expect(details.findAll(node => String(node.type) === "Text" && typeof node.props.children === "string"
+        && /Saves supported|数値・切り替え/.test(node.props.children))).toHaveLength(1);
+      await settingsGroup("source");
+      expect(element("TextInput", { testID: "configuration-profile-name" })).toBe(editor);
+      expect(visible(editor)).toBe(false);
+      await settingsGroup("profiles");
+      expect(input(nameLabel)).toBe(editor);
+      expect(input(nameLabel).props.value).toBe(name);
+      expect(element("Pressable", { testID: "configuration-profile-picker" }).props.accessibilityValue.text).toBe(name);
+      await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+      expect(input(nameLabel)).toBe(editor);
+      await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+      await tap("workspace-nav-code"); await tap("workspace-nav-settings");
+      expect(input(nameLabel)).toBe(editor);
+      expect(element("Pressable", { testID: "configuration-profile-picker" }).props.accessibilityValue.text).toBe(name);
+      expect(current()).toBe(owner); expect(runtime.players.length).toBe(count);
+      expect(owner.load).toHaveBeenCalledTimes(loads); expect(owner.destroy).not.toHaveBeenCalled();
+    });
+
   it.each(["android", "ios"])("persists %s profiles, restores only the draft after restart, applies explicitly and deletes after confirmation", async platform => {
     runtime.os = platform;
     await mount(); await ready();

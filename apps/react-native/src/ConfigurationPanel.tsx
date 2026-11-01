@@ -70,6 +70,17 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         keyboardType={numeric ? (Platform.OS === "android" ? "numeric" : "numbers-and-punctuation") : "default"} style={styles.input} />
     </View>
   );
+  const changes = !compactEditing && differences.length > 0 && <View testID="configuration-differences" style={styles.panel}>
+    <Text style={styles.label}>Changes</Text>
+    {differences.map(change => <View key={change.path} testID={`configuration-difference-${change.path}`} style={styles.field}>
+      <View style={styles.row}>
+        <Text style={styles.badge}>{change.kind === "added" ? "Added" : change.kind === "removed" ? "Removed" : "Changed"}</Text>
+        <Text style={[styles.label, { flexShrink: 1, maxWidth: "100%" }]}>{differenceLabel(change.path)}</Text>
+      </View>
+      <Text style={styles.help}>Before</Text><Text verbatim selectable style={styles.mono}>{change.before}</Text>
+      <Text style={styles.help}>After</Text><Text verbatim selectable style={styles.mono}>{change.after}</Text>
+    </View>)}
+  </View>;
   return (
     <View style={{ flex: 1, minHeight: 0 }} testID="configuration-workspace">
       {!keyboardVisible && <View style={{ padding: 10, gap: 8, flexDirection: "row" }}>
@@ -86,8 +97,13 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       {keyboardVisible && !compactEditing && <View style={{ paddingHorizontal: 12, paddingVertical: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Text>Editing</Text><WorkspaceAction title="Done" onPress={() => Keyboard.dismiss()} />
       </View>}
+      <WorkspacePage active={group === "profiles"}>
+        <ConfigurationProfiles draft={draft} onChange={onChange} platform={platform} keyboardVisible={keyboardVisible}>
+          {group === "profiles" && changes}
+        </ConfigurationProfiles>
+      </WorkspacePage>
+      <WorkspacePage active={group !== "profiles"}>
       <ScrollView ref={editor} {...compactInputEvents} testID="configuration-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
-      <WorkspacePage active={group === "profiles"}><ConfigurationProfiles draft={draft} onChange={onChange} platform={platform} keyboardVisible={keyboardVisible} /></WorkspacePage>
       {group === "source" && <>
         {selected === "url" && field("Source URL", "url")}
         {selected === "type" && <>
@@ -137,23 +153,14 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       <WorkspacePage active={group === "cast"}><CastHostPanel values={draft.apiSettings ?? {}} /></WorkspacePage>
       <WorkspacePage active={group === "arrays"}><NativeArraysPanel values={draft.arraySettings ?? {}} onChange={(arraySettings) => onChange({ ...draft, arraySettings })} /></WorkspacePage>
       <WorkspacePage active={group === "callbacks"}><NativeScriptsPanel value={draft.scripts ?? { allowed: false, bodies: {} }} onChange={(scripts) => onChange({ ...draft, scripts })} /></WorkspacePage>
-      {!compactEditing && differences.length > 0 && <View testID="configuration-differences" style={styles.panel}>
-        <Text style={styles.label}>Changes</Text>
-        {differences.map(change => <View key={change.path} testID={`configuration-difference-${change.path}`} style={styles.field}>
-          <View style={styles.row}>
-            <Text style={styles.badge}>{change.kind === "added" ? "Added" : change.kind === "removed" ? "Removed" : "Changed"}</Text>
-            <Text style={[styles.label, { flexShrink: 1, maxWidth: "100%" }]}>{differenceLabel(change.path)}</Text>
-          </View>
-          <Text style={styles.help}>Before</Text><Text verbatim selectable style={styles.mono}>{change.before}</Text>
-          <Text style={styles.help}>After</Text><Text verbatim selectable style={styles.mono}>{change.after}</Text>
-        </View>)}
-      </View>}
+      {group !== "profiles" && changes}
       </ScrollView>
+      </WorkspacePage>
       <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
         {!compactEditing && <View style={{ gap: 6 }}>
           <Text style={styles.badge}>{changed ? "Unapplied changes" : "Up to date"}</Text>
-          {changed && <Text style={styles.help}>Apply recreates the player and clears the current position.</Text>}
+          {changed && group !== "profiles" && <Text style={styles.help}>Apply recreates the player and clears the current position.</Text>}
         </View>}
         <View style={{ flexDirection: "row", gap: 8 }}>
           {compactEditing && <WorkspaceAction title="Done" testID="configuration-done" onPress={() => Keyboard.dismiss()} />}
