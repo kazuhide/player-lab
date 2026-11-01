@@ -60,7 +60,7 @@ final class NativeProfilesUITests: XCTestCase {
         try launch(app, store: store, language: language)
         try selectSource(app)
         try activate(app.buttons["configuration.profiles.restore"], in: app)
-        let confirm = alertButton(app, identifier: "configuration.profiles.confirmSDK", labels: ["Revalidate and restore", "再検証して復元"])
+        let confirm = try alertButton(app, identifier: "configuration.profiles.confirmSDK", labels: ["Revalidate and restore", "再検証して復元"])
         XCTAssertTrue(confirm.waitForExistence(timeout: 5), "A different SDK needs a visible confirmation")
         XCTAssertEqual(confirm.label, language == "ja" ? "再検証して復元" : "Revalidate and restore")
         capture(app, language: language, stage: "different-sdk-confirmation")
@@ -135,12 +135,32 @@ final class NativeProfilesUITests: XCTestCase {
         XCTAssertEqual(app.buttons["configuration.profiles.selection"].label, language == "ja" ? "保存済みプロファイル" : "Saved profiles")
     }
 
-    private func alertButton(_ app: XCUIApplication, identifier: String, labels: [String]) -> XCUIElement {
+    private func alertButton(_ app: XCUIApplication, identifier: String, labels: [String]) throws -> XCUIElement {
+        #if os(tvOS)
         let identified = app.buttons[identifier]
         if identified.exists { return identified }
         // Native alert presentation can expose the action title rather than
         // SwiftUI's identifier. Keep the fallback inside the actual OS alert.
         return app.alerts.firstMatch.buttons.matching(NSPredicate(format: "label IN %@", labels)).firstMatch
+        #else
+        // iOS can expose both a semantic Button and its native child with the
+        // same identifier/title. Resolve the visible native leaf by its action title
+        // inside the OS alert rather than an identifier on a SwiftUI wrapper.
+        let actions = app.alerts.firstMatch.buttons.matching(NSPredicate(format: "label IN %@", labels))
+        func actionableLeaves() -> [XCUIElement] {
+            actions.allElementsBoundByIndex.filter {
+                $0.descendants(matching: .button).count == 0 && $0.isEnabled && $0.isHittable
+            }
+        }
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            actionableLeaves().count == 1
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed,
+                       "Exactly one visible native alert action must match \(identifier)")
+        let matches = actionableLeaves()
+        XCTAssertEqual(matches.count, 1, "Do not choose an arbitrary duplicate alert action")
+        return try XCTUnwrap(matches.first)
+        #endif
     }
 
     private func observation(_ app: XCUIApplication) throws -> [String: Any] {

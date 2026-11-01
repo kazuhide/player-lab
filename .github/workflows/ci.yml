@@ -348,6 +348,7 @@ jobs:
             -jobs 2 \
             CODE_SIGNING_ALLOWED=NO test
       - name: Test iOS Profiles controls in English and Japanese
+        id: ios_profiles
         run: |
           cd apps/ios
           xcodebuild \
@@ -360,6 +361,7 @@ jobs:
             -parallel-testing-enabled NO -jobs 2 \
             CODE_SIGNING_ALLOWED=NO test
       - name: Test tvOS Profiles controls in English and Japanese
+        if: ${{ !cancelled() && (success() || steps.ios_profiles.outcome == 'failure') }}
         run: |
           simulator_id="$(python3 - <<'PY'
           import json
