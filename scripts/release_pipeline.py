@@ -259,9 +259,16 @@ def verify_package(directory, *, version, sha, run, web_attempt, root=ROOT):
                      run_id=run['id'], web_attempt=web_attempt)
     validation = directory.parent / 'source-validator'
     validation.mkdir()
-    for name in ('package-pages.py', 'guide_routes.py'):
-        (validation / name).write_bytes(source_file(sha, 'scripts/' + name, root=root))
-    command([sys.executable, str(validation / 'package-pages.py'), '--verify-dir', str(directory / 'site'),
+    files = ['scripts/package-pages.py', 'scripts/guide_routes.py']
+    helper = 'encoding/test-streams/local.py'
+    # Older validators are self-contained; any dependency must come from the signed source.
+    if command(['git', 'ls-tree', '--full-tree', sha, '--', helper], cwd=root):
+        files.append(helper)
+    for name in files:
+        target = validation / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source_file(sha, name, root=root))
+    command([sys.executable, str(validation / 'scripts/package-pages.py'), '--verify-dir', str(directory / 'site'),
              '--manifest', str(directory / 'manifest.json')], cwd=root)
     pages = list((directory / 'site').rglob('*.html'))
     check(bool(pages), 'The release must contain public HTML pages.')

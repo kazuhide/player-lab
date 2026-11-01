@@ -5,6 +5,7 @@ from copy import deepcopy
 import os
 from pathlib import Path
 from io import BytesIO
+import runpy
 import stat
 import subprocess
 import tempfile
@@ -20,6 +21,8 @@ from product_version import build_label
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = contract.REPOSITORY
+# This fixture factory only needs root/write; keep the media contract in one place.
+make_media = runpy.run_path(str(ROOT / 'scripts/test-pages-package.py'))['PagesPackageTests'].make_media
 
 
 def invoke(*args, cwd):
@@ -29,8 +32,10 @@ def invoke(*args, cwd):
 class Fixture:
     """No fixture signature is cryptographic proof; only gh's process boundary is mocked."""
 
-    def __init__(self, root):
+    def __init__(self, root, *, with_media=False, track_media_helper=True):
         self.root = root
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.with_media = with_media
         self.source = root / 'source'
         self.source.mkdir()
         self.version = '0.1.0'
@@ -39,12 +44,18 @@ class Fixture:
         self.write(self.source, 'docs/releases/0.1.0.md', self.notes.encode())
         for name in ('package-pages.py', 'guide_routes.py'):
             self.write(self.source, 'scripts/' + name, (ROOT / 'scripts' / name).read_bytes())
+        helper = 'encoding/test-streams/local.py'
+        if with_media and track_media_helper:
+            self.write(self.source, helper, (ROOT / helper).read_bytes())
         invoke('git', 'init', '-q', cwd=self.source)
         invoke('git', '-c', 'user.name=Release Test', '-c', 'user.email=release-test@example.invalid',
                'add', '.', cwd=self.source)
         invoke('git', '-c', 'user.name=Release Test', '-c', 'user.email=release-test@example.invalid',
                'commit', '-qm', 'Public release fixture', cwd=self.source)
         self.sha = invoke('git', 'rev-parse', 'HEAD', cwd=self.source).decode().strip()
+        if with_media and not track_media_helper:
+            # Build an artifact with a helper absent from its claimed source commit.
+            self.write(self.source, helper, (ROOT / helper).read_bytes())
         self.run = self.workflow_run(100, 10, contract.CI_PATH, 'CI', '2026-10-22T00:00:00Z', event='push')
         self.run.update(status='completed', conclusion='success')
         self.jobs = [dict(id=1000 + index, name=name, run_id=100, run_attempt=1, head_sha=self.sha,
@@ -90,10 +101,11 @@ class Fixture:
             self.write(self.root / 'notices', name, b'public license notice')
         extracted = self.root / 'ci-archive'
         extracted.mkdir()
+        media = ['--media-dir', str(make_media(self))] if self.with_media else []
         invoke('python3', str(self.source / 'scripts/package-pages.py'), '--site-dir', str(self.root / 'landing'),
                '--guide-dir', str(self.root / 'guide'), '--web-dir', str(self.root / 'web'),
                '--notices-dir', str(self.root / 'notices'), '--output-dir', str(extracted / 'site'),
-               '--manifest', str(extracted / 'manifest.json'), cwd=self.source)
+               '--manifest', str(extracted / 'manifest.json'), *media, cwd=self.source)
         metadata = {'schemaVersion': 1, 'productVersion': self.version, 'sha': self.sha, 'repository': REPO,
                     'ciRunId': 100, 'ciRunAttempt': 1, 'workflowPath': contract.CI_PATH, 'base': '/player-lab/web/',
                     'publicPlayerKeyConfigured': public_player, 'publicAnalyticsKeyConfigured': public_analytics}
@@ -262,6 +274,46 @@ class ReleaseTests(unittest.TestCase):
         pipeline.recheck_pages(self.f.context(contract.PAGES_PATH), contract.json_load(state.read_bytes()))
         self.assertTrue(any('--bundle' in args for args in self.signature_calls))
         self.assertTrue(all('--deny-self-hosted-runners' in args for args in self.signature_calls))
+
+    def test_media_release_uses_selected_source_helper_through_all_publication_gates(self):
+        self.f = Fixture(self.f.root / 'media-release', with_media=True)
+        helper = 'encoding/test-streams/local.py'
+        expected = invoke('git', 'show', self.f.sha + ':' + helper, cwd=self.f.source)
+        poisoned = b"raise AssertionError('The working-tree helper must not be executed.')\n"
+        self.f.write(self.f.source, helper, poisoned)
+        self.assertEqual(self.publish('promote-media'), 500)
+        names = contract.asset_names(self.f.version)
+        archive = self.f.api.assets[500][names['archive']]
+        self.assertEqual(self.f.api.asset_data[archive['id']], self.f.archive.read_bytes())
+        self.assertEqual((self.f.root / 'promote-media/source-validator' / helper).read_bytes(), expected)
+        site, state = self.prepare('prepare-media', producer=200)
+        self.assertEqual((self.f.root / 'prepare-media/source-validator' / helper).read_bytes(), expected)
+        for name in ['master.m3u8', 'comparison-360p.m3u8', 'comparison-180p.m3u8']:
+            self.assertEqual((site / 'web/media/vod-baseline' / name).read_bytes(),
+                             (self.f.root / 'media/vod-baseline' / name).read_bytes())
+        pipeline.recheck_pages(self.f.context(contract.PAGES_PATH), contract.json_load(state.read_bytes()))
+        self.assertEqual((self.f.source / helper).read_bytes(), poisoned)
+        self.assertTrue(any('--bundle' in args for args in self.signature_calls))
+
+    def test_missing_selected_media_helper_cannot_use_a_working_tree_copy(self):
+        self.f = Fixture(self.f.root / 'missing-helper', with_media=True, track_media_helper=False)
+        helper = 'encoding/test-streams/local.py'
+        self.assertTrue((self.f.source / helper).is_file())
+        self.assertEqual(invoke('git', 'ls-tree', self.f.sha, '--', helper, cwd=self.f.source), b'')
+        with self.assertRaisesRegex(ValueError, 'verification command failed'):
+            self.publish('missing-helper-promotion')
+        self.assertEqual(self.f.api.mutations, [])
+        self.assertEqual(self.f.api.dispatches, [])
+
+    def test_source_without_an_unused_media_helper_remains_verifiable(self):
+        helper = 'encoding/test-streams/local.py'
+        self.assertEqual(invoke('git', 'ls-tree', self.f.sha, '--', helper, cwd=self.f.source), b'')
+        self.f.write(self.f.source, helper, b"raise AssertionError('An unrelated current helper must be ignored.')\n")
+        self.assertEqual(self.publish('helper-free-promotion'), 500)
+        site, state = self.prepare('helper-free-pages')
+        self.assertTrue((site / 'index.html').is_file())
+        pipeline.recheck_pages(self.f.context(contract.PAGES_PATH), contract.json_load(state.read_bytes()))
+        self.assertFalse((self.f.root / 'helper-free-pages/source-validator' / helper).exists())
 
     def test_published_resume_after_original_artifact_metadata_expires_does_not_upload(self):
         self.publish()
