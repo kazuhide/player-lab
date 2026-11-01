@@ -226,15 +226,8 @@ final class PlayerModel: ObservableObject {
         settings.apply(to: config, callbackJournal: callbackJournal)
         settings.advanced.applyUI(to: config, callbackJournal: callbackJournal)
         #if !os(tvOS)
-        var bridge: NativeLiveRewindBridge?
-        if config.styleConfig.userInterfaceType == .bitmovin {
-            let ui = config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
-            ui.customOptions["playerLabLiveRewindEnabled"] = rewindEnabled && settings.sdkTimeShiftEnabled
-            let handler = ui.customMessageHandler ?? CustomMessageHandler()
-            bridge = NativeLiveRewindBridge(handler: handler, journal: callbackJournal)
-            ui.customMessageHandler = handler
-            config.styleConfig.userInterfaceConfig = ui
-        }
+        let bridge = configureLiveRewindUI(config, callbackJournal: callbackJournal,
+                                           enabled: rewindEnabled && settings.sdkTimeShiftEnabled)
         #endif
         let configuredAdsManagerCallback = config.advertisingConfig.onAdsManagerAvailable
         config.advertisingConfig.onAdsManagerAvailable = { [weak callbackJournal] manager in
@@ -258,6 +251,21 @@ final class PlayerModel: ObservableObject {
         return CreatedPlayer(player: result, bridge: bridge)
         #endif
     }
+
+    #if !os(tvOS)
+    /// Builds the UI preference before creating a player that may perform authorization.
+    static func configureLiveRewindUI(_ config: PlayerConfig, callbackJournal: NativeCallbackJournal,
+                                      enabled: Bool) -> NativeLiveRewindBridge? {
+        guard config.styleConfig.userInterfaceType == .bitmovin else { return nil }
+        let ui = config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
+        ui.customOptions["playerLabLiveRewindEnabled"] = enabled
+        let handler = ui.customMessageHandler ?? CustomMessageHandler()
+        let bridge = NativeLiveRewindBridge(handler: handler, journal: callbackJournal)
+        ui.customMessageHandler = handler
+        config.styleConfig.userInterfaceConfig = ui
+        return bridge
+    }
+    #endif
 
     func synchronizeLiveRewindControls() {
         #if !os(tvOS)
