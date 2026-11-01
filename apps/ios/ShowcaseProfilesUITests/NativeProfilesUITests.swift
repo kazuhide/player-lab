@@ -174,7 +174,13 @@ final class NativeProfilesUITests: XCTestCase {
             return remaining
         }
         let alert = app.alerts.firstMatch
-        XCTAssertTrue(alert.waitForExistence(timeout: try remainingBudget()), "The native system alert must appear")
+        _ = try remainingBudget()
+        // Avoid the waiter's first polling interval when the alert is already present.
+        let immediatelyPresent = alert.exists
+        _ = try remainingBudget()
+        if !immediatelyPresent {
+            XCTAssertTrue(alert.waitForExistence(timeout: try remainingBudget()), "The native system alert must appear")
+        }
         _ = try remainingBudget()
         // Bind one evaluation to concrete accessibility elements. Snapshot child
         // traversal below is local; the wait predicate never re-enumerates actions.
