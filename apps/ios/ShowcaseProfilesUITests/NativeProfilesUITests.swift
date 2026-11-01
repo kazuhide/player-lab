@@ -204,7 +204,13 @@ final class NativeProfilesUITests: XCTestCase {
 
     private func waitForSession(_ app: XCUIApplication, autoplay: Bool, safeOverrideAbsent: Bool) {
         let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            guard let state = try? self.observation(app) else { return false }
+            // A native alert can temporarily hide the underlying accessibility
+            // node. Poll without recording a test failure for that intermediate
+            // state; the bounded wait and final session assertions remain strict.
+            let label = app.staticTexts["profiles.test.session"]
+            guard label.exists, let value = label.value as? String,
+                  let decoded = try? JSONSerialization.jsonObject(with: Data(value.utf8)),
+                  let state = decoded as? [String: Any] else { return false }
             return state["autoplay"] as? Bool == autoplay && state["safeOverrideAbsent"] as? Bool == safeOverrideAbsent
         }, object: app)
         XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 5), .completed)

@@ -62,20 +62,20 @@ private struct NativeProfilesUITestView: View {
     }
 }
 
-private struct NativeProfilesSessionObservation: UIViewRepresentable {
+private struct NativeProfilesSessionObservation: View {
     @ObservedObject var session: NativeWorkspaceDraft
     let original: ConfigurationDraft
 
-    func makeUIView(context: Context) -> UILabel {
-        let label = UILabel()
-        label.text = "Draft/session observation; no Player"
-        label.font = .systemFont(ofSize: 11)
-        label.isAccessibilityElement = true
-        label.accessibilityIdentifier = "profiles.test.session"
-        return label
+    var body: some View {
+        // Keep the read-only observation in the same native SwiftUI hierarchy
+        // as the controls, including after their system alerts are dismissed.
+        Text(verbatim: "Draft/session observation; no Player")
+            .font(.system(size: 11))
+            .accessibilityIdentifier("profiles.test.session")
+            .accessibilityValue(Text(verbatim: observationValue))
     }
 
-    func updateUIView(_ label: UILabel, context: Context) {
+    private var observationValue: String {
         let draft = session.value
         let values: [String: Any] = [
             "autoplay": draft.autoplay, "startOffset": draft.startOffset,
@@ -89,8 +89,9 @@ private struct NativeProfilesSessionObservation: UIViewRepresentable {
             "sourceURL": draft.sourceURL, "sdkVersion": PlayerFactory.sdkVersion
         ]
         if let data = try? JSONSerialization.data(withJSONObject: values, options: [.sortedKeys]) {
-            label.accessibilityValue = String(decoding: data, as: UTF8.self)
+            return String(decoding: data, as: UTF8.self)
         }
+        return "Invalid session observation"
     }
 }
 #endif
