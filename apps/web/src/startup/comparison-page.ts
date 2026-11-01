@@ -247,7 +247,7 @@ function render(): void {
   document.documentElement.lang = getLang();
   document.getElementById("comparison-title")!.textContent = pick({ ja: "起動性能の比較", en: "Startup comparison" });
   const guide = document.getElementById("comparison-guide") as HTMLAnchorElement;
-  guide.href = userGuideHref("web-implementation"); guide.textContent = pick({ ja: "実装ガイド", en: "Implementation guide" });
+  guide.href = userGuideHref("web-startup-integration"); guide.textContent = pick({ ja: "実装ガイド", en: "Implementation guide" });
   const languages = document.getElementById("comparison-language")!; languages.replaceChildren();
   for (const [language, label] of [["ja", "日本語"], ["en", "English"]] as const) {
     const button = el("button", label, `lang-btn${getLang() === language ? " active" : ""}`);
