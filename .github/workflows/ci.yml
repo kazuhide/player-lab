@@ -322,6 +322,16 @@ jobs:
           cp apps/ios/Package.resolved apps/ios/Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
       - name: Test iOS configuration without an app license
         run: |
+          cd apps/ios
+          xcodebuild_args=(
+            -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration
+            -derivedDataPath "$RUNNER_TEMP/ios-configuration-tests"
+            -onlyUsePackageVersionsFromResolvedFile
+            -parallel-testing-enabled NO -jobs 2
+            CODE_SIGNING_ALLOWED=NO
+          )
+          xcodebuild "${xcodebuild_args[@]}" \
+            -destination 'generic/platform=iOS Simulator' build-for-testing
           simulator_id="$(python3 - <<'PY'
           import json
           import subprocess
@@ -351,18 +361,22 @@ jobs:
           trap 'exit 130' INT
           trap 'exit 143' TERM
           xcrun simctl bootstatus "$simulator_id" -b
-          cd apps/ios
-          xcodebuild \
-            -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \
-            -destination "platform=iOS Simulator,id=$simulator_id" \
-            -derivedDataPath "$RUNNER_TEMP/ios-configuration-tests" \
-            -onlyUsePackageVersionsFromResolvedFile \
-            -parallel-testing-enabled NO \
-            -jobs 2 \
-            CODE_SIGNING_ALLOWED=NO test
+          xcodebuild "${xcodebuild_args[@]}" \
+            -destination "platform=iOS Simulator,id=$simulator_id" test-without-building
       - name: Test iOS Profiles controls in English and Japanese
         id: ios_profiles
         run: |
+          cd apps/ios
+          xcodebuild_args=(
+            -project Showcase.xcodeproj -scheme Showcase-iOS-ProfilesUI
+            -derivedDataPath "$RUNNER_TEMP/ios-profiles-ui"
+            -onlyUsePackageVersionsFromResolvedFile
+            -only-testing:Showcase-iOSProfilesUITests/NativeProfilesUITests
+            -parallel-testing-enabled NO -jobs 2
+            CODE_SIGNING_ALLOWED=NO
+          )
+          xcodebuild "${xcodebuild_args[@]}" \
+            -destination 'generic/platform=iOS Simulator' build-for-testing
           simulator_id="$IOS_CONFIGURATION_SIMULATOR"
           shutdown_selected_simulator() {
             simulator_test_status=$?
@@ -377,16 +391,9 @@ jobs:
           trap 'exit 130' INT
           trap 'exit 143' TERM
           xcrun simctl bootstatus "$simulator_id" -b
-          cd apps/ios
-          xcodebuild \
-            -project Showcase.xcodeproj -scheme Showcase-iOS-ProfilesUI \
-            -destination "platform=iOS Simulator,id=$IOS_CONFIGURATION_SIMULATOR" \
-            -derivedDataPath "$RUNNER_TEMP/ios-profiles-ui" \
-            -resultBundlePath "$RUNNER_TEMP/apple-profiles-ios.xcresult" \
-            -onlyUsePackageVersionsFromResolvedFile \
-            -only-testing:Showcase-iOSProfilesUITests/NativeProfilesUITests \
-            -parallel-testing-enabled NO -jobs 2 \
-            CODE_SIGNING_ALLOWED=NO test
+          xcodebuild "${xcodebuild_args[@]}" \
+            -destination "platform=iOS Simulator,id=$simulator_id" \
+            -resultBundlePath "$RUNNER_TEMP/apple-profiles-ios.xcresult" test-without-building
       - name: Save iOS Profiles UI results and captures
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -398,6 +405,17 @@ jobs:
       - name: Test tvOS Profiles controls in English and Japanese
         if: ${{ !cancelled() && (success() || steps.ios_profiles.outcome == 'failure') }}
         run: |
+          cd apps/ios
+          xcodebuild_args=(
+            -project Showcase.xcodeproj -scheme Showcase-tvOS-ProfilesUI
+            -derivedDataPath "$RUNNER_TEMP/tvos-profiles-ui"
+            -onlyUsePackageVersionsFromResolvedFile
+            -only-testing:Showcase-tvOSProfilesUITests/NativeProfilesUITests
+            -parallel-testing-enabled NO -jobs 2
+            CODE_SIGNING_ALLOWED=NO
+          )
+          xcodebuild "${xcodebuild_args[@]}" \
+            -destination 'generic/platform=tvOS Simulator' build-for-testing
           simulator_id="$(python3 - <<'PY'
           import json
           import subprocess
@@ -426,16 +444,9 @@ jobs:
           trap 'exit 130' INT
           trap 'exit 143' TERM
           xcrun simctl bootstatus "$simulator_id" -b
-          cd apps/ios
-          xcodebuild \
-            -project Showcase.xcodeproj -scheme Showcase-tvOS-ProfilesUI \
+          xcodebuild "${xcodebuild_args[@]}" \
             -destination "platform=tvOS Simulator,id=$simulator_id" \
-            -derivedDataPath "$RUNNER_TEMP/tvos-profiles-ui" \
-            -resultBundlePath "$RUNNER_TEMP/apple-profiles-tvos.xcresult" \
-            -onlyUsePackageVersionsFromResolvedFile \
-            -only-testing:Showcase-tvOSProfilesUITests/NativeProfilesUITests \
-            -parallel-testing-enabled NO -jobs 2 \
-            CODE_SIGNING_ALLOWED=NO test
+            -resultBundlePath "$RUNNER_TEMP/apple-profiles-tvos.xcresult" test-without-building
       - name: Save tvOS Profiles UI results and captures
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
