@@ -297,12 +297,12 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 386,
+      "line": 394,
       "label": "Source-owned HLS completion"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 300,
+      "line": 308,
       "label": "Reloading the same URL with a new Source"
     },
     {
@@ -344,7 +344,7 @@
       "label": "Readout refresh follows time/source/duration events"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/b02b242232c661360c5304ba3493b511e8e028bd/patches/bitmovin-player-ui%404.23.0.patch#L669",
+      "url": "https://github.com/kazuhide/player-lab/blob/e1c9c754636cd6cf4e00e61976847e2c3133b8b7/patches/bitmovin-player-ui%404.23.0.patch#L669",
       "label": "VOD keyboard seeks use the seekable-range origin"
     },
     {

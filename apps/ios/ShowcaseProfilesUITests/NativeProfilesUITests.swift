@@ -104,24 +104,17 @@ final class NativeProfilesUITests: XCTestCase {
             print("PROFILES_NAME_INPUT nativeRetap=true softwareKeyboardVisible=\(keyboardVisible)")
         }
         #endif
-        #if os(iOS)
-        // Send each character once and observe its native value before the next.
-        // A complete synthetic request alone does not prove that every character
-        // reached the field. Never clear, replace, resend or accept partial text.
-        var prefix = ""
-        for character in "Source" {
-            name.typeText(String(character))
-            prefix.append(character)
-            XCTAssertEqual(name.value as? String, prefix, "Each native character must commit its exact prefix")
-        }
-        #else
+        // Use one native input operation, avoiding separate keyboard-settling
+        // boundaries between characters. The exact native value and the stored
+        // lifecycle below must still acknowledge the complete literal name.
+        // Never clear, replace, resend or accept partial text.
         name.typeText("Source")
-        #endif
-        WorkspaceUITestNavigation.dismissKeyboard(in: app)
-        // Keep the existing final acknowledgment budget and exact-value guard.
+        // Native text delivery can continue after typeText returns. Observe the
+        // complete value within the existing budget before closing the keyboard.
         let committedName = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Source"), object: name)
         XCTAssertEqual(XCTWaiter.wait(for: [committedName], timeout: 5), .completed,
                        "The single native input must commit the complete profile name")
+        WorkspaceUITestNavigation.dismissKeyboard(in: app)
         XCTAssertEqual(name.value as? String, "Source")
         try activate(app.buttons["configuration.profiles.save"], in: app)
         let status = app.staticTexts["configuration.profiles.status"]
@@ -174,7 +167,13 @@ final class NativeProfilesUITests: XCTestCase {
             return remaining
         }
         let alert = app.alerts.firstMatch
-        XCTAssertTrue(alert.waitForExistence(timeout: try remainingBudget()), "The native system alert must appear")
+        _ = try remainingBudget()
+        // Avoid the waiter's first polling interval when the alert is already present.
+        let immediatelyPresent = alert.exists
+        _ = try remainingBudget()
+        if !immediatelyPresent {
+            XCTAssertTrue(alert.waitForExistence(timeout: try remainingBudget()), "The native system alert must appear")
+        }
         _ = try remainingBudget()
         // Bind one evaluation to concrete accessibility elements. Snapshot child
         // traversal below is local; the wait predicate never re-enumerates actions.
@@ -203,10 +202,17 @@ final class NativeProfilesUITests: XCTestCase {
         let action = try XCTUnwrap(eligible.count == 1 ? eligible.first?.element : nil,
                                   "Do not select an arbitrary duplicate alert action")
         #if !os(tvOS)
-        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in action.isHittable }, object: action)
-        XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: try remainingBudget()), .completed,
-                       "The same bound native action must be hittable")
         _ = try remainingBudget()
+        // Predicate expectations first poll after about one second. Observe an
+        // already-hittable bound action before spending that polling interval.
+        let immediatelyHittable = action.isHittable
+        _ = try remainingBudget()
+        if !immediatelyHittable {
+            let hittable = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in action.isHittable }, object: action)
+            XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: try remainingBudget()), .completed,
+                           "The same bound native action must be hittable")
+            _ = try remainingBudget()
+        }
         #endif
         XCTAssertTrue(action.isEnabled, "The native action must remain enabled")
         _ = try remainingBudget()

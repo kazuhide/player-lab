@@ -51,7 +51,7 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/b02b242232c661360c5304ba3493b511e8e028bd/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/e1c9c754636cd6cf4e00e61976847e2c3133b8b7/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README: generate and build the Expo host"
         }
       ]
@@ -443,6 +443,10 @@
       ]
     },
     {
+      "type": "p",
+      "text": "Use numeric for numeric fields on Android and numbers-and-punctuation on iOS. React Native supports numbers-and-punctuation only on iOS; on Android it falls back to a text keyboard, which can enter full-width digits with a Japanese input method. Validate typed and pasted values before applying settings."
+    },
+    {
       "type": "h2",
       "text": "Try tracks, commands and native integrations",
       "id": "useful-features",
@@ -771,6 +775,15 @@
       "path": "apps/react-native/src/profileStorage.ts",
       "line": 1,
       "label": "Private profile storage and failure handling"
+    },
+    {
+      "path": "apps/react-native/src/ConfigurationPanel.tsx",
+      "line": 70,
+      "label": "Platform-specific numeric keyboard"
+    },
+    {
+      "url": "https://reactnative.dev/docs/0.86/textinput#keyboardtype",
+      "label": "React Native 0.86 TextInput keyboard types"
     }
   ]
 }

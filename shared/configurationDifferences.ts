@@ -1,6 +1,6 @@
 const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object"
   && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
-const sensitive = /(?:^|[.\[\]])(?:key|licenseKey|apiKey|privateKey|publicKey)(?:$|[.\[\]])|token|authorization|cookie|password|secret|credential|headers?/i;
+const sensitive = /(?:^|[.\[\]])(?:key|licenseKey|playerKey|apiKey|privateKey|publicKey)(?:$|[.\[\]])|token|authorization|cookie|password|secret|credential|headers?/i;
 const callback = /(?:^|\.)(?:callbacks?|bodies|body)(?:\.|$)/i;
 export const isSensitiveConfigurationPath = (path: string): boolean => sensitive.test(path);
 
@@ -29,7 +29,7 @@ export function redactConfigurationText(text: string): string {
       let name: string;
       try { name = decodeURIComponent(key.replace(/\+/g, " ")); }
       catch { return match; } // Keep malformed data unchanged; it is not an identified credential key.
-      const credential = /^(?:(?:access|refresh|id|session|auth|bearer)[_-]?token|token|api[_-]?key|key|signature|sig|password|credentials?|authorization|auth|secret|client[_-]?secret|awsaccesskeyid|x-amz-(?:signature|credential|security-token)|x-goog-(?:signature|credential))$/i;
+      const credential = /^(?:(?:access|refresh|id|session|auth|bearer)[_-]?token|token|api[_-]?key|playerKey|key|signature|sig|password|credentials?|authorization|auth|secret|client[_-]?secret|awsaccesskeyid|x-amz-(?:signature|credential|security-token)|x-goog-(?:signature|credential))$/i;
       return credential.test(name) ? `${separator}${key}=[redacted]` : match;
     })
     .replace(/\bBearer\s+[^\s,;"']+/gi, "Bearer [redacted]");

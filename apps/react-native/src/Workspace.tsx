@@ -49,9 +49,9 @@ export function WorkspacePage({ active, children, testID }: { active: boolean; c
     importantForAccessibility={active ? "auto" : "no-hide-descendants"}>{children}</View>;
 }
 
-export function WorkspaceChoice({ label, selected, options, onSelect, testID, translateChoices = true, disabled = false }: {
+export function WorkspaceChoice({ label, selected, options, onSelect, testID, translateChoices = true, disabled = false, singleLineValue = false }: {
   label: string; selected: string; options: ReadonlyArray<{ id: string; label: string; unavailable?: string | undefined }>;
-  onSelect: (id: string) => void; testID: string; translateChoices?: boolean; disabled?: boolean;
+  onSelect: (id: string) => void; testID: string; translateChoices?: boolean; disabled?: boolean; singleLineValue?: boolean;
 }): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
@@ -77,7 +77,8 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID, tr
       accessibilityValue={{ text: optionLabel(current?.label ?? selected) }} accessibilityState={{ disabled }} disabled={disabled}
       onPress={() => { Keyboard.dismiss(); setFilter(""); setOpen(true); change(owner, true); }} style={[styles.choiceButton, disabled && styles.disabled]}>
       <Text maxFontSizeMultiplier={1.3} style={styles.choiceLabel}>{label}</Text>
-      <Text verbatim={!translateChoices} maxFontSizeMultiplier={1.3} style={styles.choiceValue}>{current?.label ?? selected}</Text>
+      <Text verbatim={!translateChoices} maxFontSizeMultiplier={1.3} numberOfLines={singleLineValue ? 1 : undefined}
+        ellipsizeMode={singleLineValue ? "tail" : undefined} style={styles.choiceValue}>{current?.label ?? selected}</Text>
     </Pressable>
     {open && <Modal transparent visible onRequestClose={close} animationType="fade" supportedOrientations={["portrait", "landscape"]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>

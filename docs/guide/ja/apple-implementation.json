@@ -623,10 +623,10 @@
       "text": "    private func bindApiPlayerEvents() {\n        guard apiEventsEnabled else { return }\n        let player = self.player\n        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in\n            guard let self, let player, self.player === player else { return }\n            self.recordApiEvent(api, timestamp: timestamp, owner: \"Player\")\n        }\n        playerApiListener = listener\n        if apiEventTransport == .listener { player.add(listener: listener) }\n        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 654,
-        "label": "PlayerModel.swift:654–664"
+        "line": 662,
+        "label": "PlayerModel.swift:662–672"
       },
-      "endLine": 664
+      "endLine": 672
     },
     {
       "type": "h2",
@@ -712,10 +712,10 @@
       "text": "        case .standard:\n            if analyticsLicenseKey.isEmpty { result = PlayerFactory.createPlayer(playerConfig: config) }\n            else { result = PlayerFactory.createPlayer(playerConfig: config, analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))) }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 250,
-        "label": "PlayerModel.swift:250–252"
+        "line": 243,
+        "label": "PlayerModel.swift:243–245"
       },
-      "endLine": 252
+      "endLine": 245
     },
     {
       "type": "steps",

@@ -70,11 +70,11 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     // Install the owner-bearing barrier before native calls can synchronously reenter disposal.
     cleanup = barrier;
     const retiringVideo = video;
-    const initializationConfirmed = initialized;
     let nativeRelease: boolean | undefined;
     barrier.releaseNativeSync = (resetMedia = false) => {
       if (nativeRelease !== undefined) return nativeRelease;
       nativeRelease = false;
+      const initializationConfirmed = initialized;
       try { if (surfaceAttached) retiringVideo.clearSurfaceHandle(options.handle); }
       catch { options.onError("Vega surface cleanup failed"); }
       if (resetMedia && initializationConfirmed) {
@@ -119,8 +119,8 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     let destroyed: Promise<boolean>;
     try { destroyed = Promise.resolve(player?.destroy()).then(() => true, destroyFailed); }
     catch { destroyed = Promise.resolve(destroyFailed()); }
-    if (!initializationConfirmed) barrier.releaseNativeSync();
     void (async () => {
+      // Foreground source changes can wait for initialization; background release remains synchronous.
       await initializing?.catch(() => {});
       // Native release alone does not confirm that the Web SDK stopped using the global shim.
       const sdkReleased = await destroyed;

@@ -1057,18 +1057,18 @@
     {
       "type": "h2",
       "id": "startup-comparison",
-      "text": "Startup comparison"
+      "text": "Player Web X"
     },
     {
       "type": "p",
-      "text": "Open the startup comparison to compare Player Web X, hls.js and Shaka with matched content and disclosed settings. Its guide explains how to select conditions and read individual outcomes and grouped timings."
+      "text": "Read the Player Web X introduction, then use the startup comparison to compare it with hls.js and Shaka Player under matched content and settings."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-comparison/",
-          "label": "Startup comparison: screen and controls"
+          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-comparison/#player-web-x",
+          "label": "Player Web X and startup comparison"
         }
       ]
     }

@@ -438,7 +438,7 @@
     },
     {
       "path": "apps/vega/README.md",
-      "line": 422,
+      "line": 424,
       "label": "Vegaランタイムの確認範囲"
     },
     {
@@ -488,7 +488,7 @@
     },
     {
       "label": "Web起動比較の観測値と条件",
-      "url": "https://github.com/kazuhide/player-lab/blob/b02b242232c661360c5304ba3493b511e8e028bd/docs/web-startup-results-2026-11-01.json"
+      "url": "https://github.com/kazuhide/player-lab/blob/e1c9c754636cd6cf4e00e61976847e2c3133b8b7/docs/web-startup-results-2026-11-01.json"
     }
   ]
 }

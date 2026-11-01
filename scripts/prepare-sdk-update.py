@@ -25,7 +25,7 @@ ANDROID_ARTIFACTS = ('player', 'player-media-session')
 ANDROID_MAVEN = 'https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/'
 # Review this fingerprint with any Gradle changes beyond the two SDK versions.
 # General Kotlin code can add dependencies through APIs other than implementation.
-ANDROID_TEMPLATE_SHA256 = '93832fd0b00c5c5a9e6c093b90d91f1a0b673f94ea9252111436acee77b5e927'
+ANDROID_TEMPLATE_SHA256 = 'c57316875907e3e80df0d285dc821be63d3aad28fd36cc1fed64d1076c098705'
 
 
 def android_candidate(text, old, new, fetch):

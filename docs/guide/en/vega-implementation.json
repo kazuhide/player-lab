@@ -43,7 +43,7 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/b02b242232c661360c5304ba3493b511e8e028bd/apps/vega/README.md#build-the-kepler-application",
+          "url": "https://github.com/kazuhide/player-lab/blob/e1c9c754636cd6cf4e00e61976847e2c3133b8b7/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README: build the Kepler host"
         },
         {
@@ -545,6 +545,10 @@
         [
           "Why does Apply or returning from the background reset playback?",
           "The app replaces the session and reloads the retained source/configuration. It does not restore playback position. Background handling releases native media before the app can be suspended."
+        ],
+        [
+          "What happens if I change the source during initialization?",
+          "While the app is visible, a source change or Apply waits for pending VideoPlayer.initialize() and confirmed cleanup before starting another session. An initialization-abort acknowledgement does not confirm release of a late native allocation, so the host avoids aborting initialization for a foreground change. Background transitions still start synchronous release before JavaScript can be suspended."
         ],
         [
           "What if cleanup is unconfirmed?",

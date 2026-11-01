@@ -146,7 +146,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -181,7 +181,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -216,7 +216,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -251,7 +251,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -406,7 +406,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -441,7 +441,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -476,7 +476,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -511,7 +511,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -569,7 +569,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -724,7 +724,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -754,12 +754,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -789,12 +789,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -829,7 +829,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -864,7 +864,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -899,7 +899,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -934,7 +934,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -969,7 +969,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1139,12 +1139,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1179,7 +1179,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1809,7 +1809,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1839,7 +1839,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1869,7 +1869,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1899,7 +1899,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1929,7 +1929,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1964,7 +1964,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -1999,7 +1999,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2034,7 +2034,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2069,7 +2069,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2104,7 +2104,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2139,7 +2139,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2169,12 +2169,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2209,7 +2209,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2244,7 +2244,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2279,7 +2279,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2314,7 +2314,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2384,12 +2384,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2419,7 +2419,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2634,7 +2634,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -2684,12 +2684,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -2724,7 +2724,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -3079,7 +3079,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -3114,7 +3114,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -3149,7 +3149,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -3199,7 +3199,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -3229,7 +3229,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -3259,7 +3259,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -3309,7 +3309,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -3339,12 +3339,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3374,12 +3374,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3469,12 +3469,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3504,12 +3504,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3539,12 +3539,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3574,12 +3574,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3609,12 +3609,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3644,12 +3644,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3679,12 +3679,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3714,12 +3714,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3749,12 +3749,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3784,12 +3784,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3819,12 +3819,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -3854,12 +3854,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -4114,7 +4114,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4149,7 +4149,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4184,7 +4184,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4219,7 +4219,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4254,7 +4254,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4289,7 +4289,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4324,7 +4324,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4359,7 +4359,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4394,7 +4394,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4429,7 +4429,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4464,7 +4464,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4499,7 +4499,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4534,7 +4534,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4569,7 +4569,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4604,7 +4604,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4639,7 +4639,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4674,7 +4674,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4769,7 +4769,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4804,7 +4804,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -4834,12 +4834,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -4869,12 +4869,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -4989,7 +4989,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5024,7 +5024,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5059,7 +5059,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5094,7 +5094,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5129,7 +5129,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5164,7 +5164,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5219,7 +5219,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5314,7 +5314,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5349,7 +5349,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5384,7 +5384,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5419,7 +5419,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5474,7 +5474,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -5504,7 +5504,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6189,7 +6189,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6219,7 +6219,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6414,7 +6414,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6449,7 +6449,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6484,7 +6484,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6519,7 +6519,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6654,7 +6654,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6689,7 +6689,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6724,7 +6724,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6759,7 +6759,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6809,7 +6809,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6844,7 +6844,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6879,7 +6879,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6909,7 +6909,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6944,7 +6944,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -6974,7 +6974,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -7544,7 +7544,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 596,
+            "line": 604,
             "symbol": "player.load(playlistConfig: config)"
           },
           {
@@ -7564,7 +7564,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           },
           {
@@ -7584,7 +7584,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 580,
+            "line": 588,
             "symbol": "player.load(sourceConfig: config)"
           },
           {
@@ -8104,7 +8104,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 560,
+            "line": 568,
             "symbol": "player.unload()"
           },
           {
@@ -8304,12 +8304,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8339,12 +8339,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8374,12 +8374,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8409,12 +8409,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8449,7 +8449,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8479,12 +8479,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8514,12 +8514,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8549,12 +8549,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8584,12 +8584,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8619,12 +8619,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8654,12 +8654,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8689,12 +8689,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8724,12 +8724,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -8739,7 +8739,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 248,
+            "line": 241,
             "symbol": "case .core: result = PlayerCoreFactory.createPlayer(playerConfig: config)"
           },
           {
@@ -8799,7 +8799,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 662,
+            "line": 670,
             "symbol": "if apiEventTransport == .listener { player.add(listener: listener) }"
           },
           {
@@ -8819,7 +8819,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 668,
+            "line": 676,
             "symbol": "if let listener = playerApiListener, !player.isDestroyed { player.remove(listener: listener) }"
           },
           {
@@ -8849,7 +8849,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 744,
+            "line": 752,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -8869,7 +8869,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 744,
+            "line": 752,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -8879,7 +8879,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 249,
+            "line": 242,
             "symbol": "case .legacy: result = PlayerFactory.create(playerConfig: config)"
           },
           {
@@ -9236,7 +9236,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9266,12 +9266,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9301,12 +9301,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9326,7 +9326,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 744,
+            "line": 752,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -9381,7 +9381,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9551,7 +9551,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9581,7 +9581,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9611,7 +9611,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9641,7 +9641,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9816,7 +9816,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9851,7 +9851,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9886,7 +9886,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9921,7 +9921,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9956,7 +9956,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -9991,7 +9991,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -10026,7 +10026,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -10061,7 +10061,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -10096,7 +10096,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -10131,7 +10131,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -10681,12 +10681,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -10726,12 +10726,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -10761,12 +10761,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -10796,12 +10796,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -10831,12 +10831,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -10866,12 +10866,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -10901,12 +10901,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -10931,12 +10931,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -10966,12 +10966,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11001,12 +11001,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11031,12 +11031,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11066,12 +11066,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11096,12 +11096,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11126,12 +11126,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11201,7 +11201,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 690,
+            "line": 698,
             "symbol": "if apiEventTransport == .listener { source.add(listener: listener) }"
           },
           {
@@ -11221,7 +11221,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 698,
+            "line": 706,
             "symbol": "if let listener = sourceApiListener { apiSource?.remove(listener: listener) }"
           },
           {
@@ -11251,7 +11251,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 744,
+            "line": 752,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -11361,12 +11361,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11396,12 +11396,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11431,12 +11431,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11526,12 +11526,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11556,12 +11556,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11586,12 +11586,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -11746,7 +11746,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -11781,7 +11781,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -11816,7 +11816,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -11846,7 +11846,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -11881,7 +11881,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -11911,12 +11911,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -11951,7 +11951,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12046,7 +12046,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12081,7 +12081,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12136,7 +12136,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12171,7 +12171,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12206,7 +12206,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12281,7 +12281,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12316,7 +12316,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12351,7 +12351,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12386,7 +12386,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12641,7 +12641,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12676,7 +12676,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12711,7 +12711,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12766,7 +12766,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12801,7 +12801,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12836,7 +12836,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12871,7 +12871,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12906,7 +12906,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12941,7 +12941,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -12976,7 +12976,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13011,7 +13011,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13046,7 +13046,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13081,7 +13081,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13116,7 +13116,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13151,7 +13151,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13186,7 +13186,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13221,7 +13221,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13256,7 +13256,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13526,7 +13526,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 714,
+            "line": 722,
             "symbol": "if apiEventTransport == .listener { view.add(listener: listener) }"
           },
           {
@@ -13546,7 +13546,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 722,
+            "line": 730,
             "symbol": "if let listener = viewApiListener { view.remove(listener: listener) }"
           },
           {
@@ -13591,7 +13591,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13626,7 +13626,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13661,7 +13661,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13896,7 +13896,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13931,7 +13931,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -13966,7 +13966,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14001,7 +14001,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14174,7 +14174,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14209,7 +14209,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14244,7 +14244,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14279,7 +14279,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14434,7 +14434,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14469,7 +14469,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14504,7 +14504,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14539,7 +14539,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14597,7 +14597,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14752,7 +14752,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14782,12 +14782,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14826,7 +14826,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14861,7 +14861,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14896,7 +14896,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14931,7 +14931,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -14966,7 +14966,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15116,12 +15116,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15156,7 +15156,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15234,12 +15234,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15269,7 +15269,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15464,7 +15464,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15514,12 +15514,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -15554,7 +15554,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15729,7 +15729,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15764,7 +15764,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15799,7 +15799,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -15869,12 +15869,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -15904,12 +15904,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -15999,12 +15999,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16034,12 +16034,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16069,12 +16069,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16104,12 +16104,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16139,12 +16139,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16174,12 +16174,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16209,12 +16209,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16244,12 +16244,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16279,12 +16279,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16314,12 +16314,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -16574,7 +16574,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16609,7 +16609,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16644,7 +16644,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16679,7 +16679,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16714,7 +16714,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16749,7 +16749,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16784,7 +16784,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16819,7 +16819,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16854,7 +16854,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16889,7 +16889,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16924,7 +16924,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16959,7 +16959,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -16994,7 +16994,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17089,7 +17089,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17124,7 +17124,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17154,12 +17154,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -17189,12 +17189,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -17309,7 +17309,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17344,7 +17344,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17379,7 +17379,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17414,7 +17414,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17449,7 +17449,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17484,7 +17484,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17539,7 +17539,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17634,7 +17634,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17669,7 +17669,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17704,7 +17704,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17739,7 +17739,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17794,7 +17794,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17929,7 +17929,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -17964,7 +17964,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18099,7 +18099,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18134,7 +18134,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18169,7 +18169,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18204,7 +18204,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18254,7 +18254,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18289,7 +18289,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18324,7 +18324,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18354,7 +18354,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18389,7 +18389,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18419,7 +18419,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -18989,7 +18989,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 596,
+            "line": 604,
             "symbol": "player.load(playlistConfig: config)"
           },
           {
@@ -19009,7 +19009,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           },
           {
@@ -19029,7 +19029,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 580,
+            "line": 588,
             "symbol": "player.load(sourceConfig: config)"
           },
           {
@@ -19549,7 +19549,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 560,
+            "line": 568,
             "symbol": "player.unload()"
           },
           {
@@ -19749,12 +19749,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -19784,12 +19784,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -19819,12 +19819,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -19854,12 +19854,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -19894,7 +19894,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -19924,12 +19924,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -19959,12 +19959,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -19994,12 +19994,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20029,12 +20029,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20064,12 +20064,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20099,12 +20099,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20134,12 +20134,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20149,7 +20149,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 248,
+            "line": 241,
             "symbol": "case .core: result = PlayerCoreFactory.createPlayer(playerConfig: config)"
           },
           {
@@ -20209,7 +20209,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 662,
+            "line": 670,
             "symbol": "if apiEventTransport == .listener { player.add(listener: listener) }"
           },
           {
@@ -20229,7 +20229,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 668,
+            "line": 676,
             "symbol": "if let listener = playerApiListener, !player.isDestroyed { player.remove(listener: listener) }"
           },
           {
@@ -20259,7 +20259,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 744,
+            "line": 752,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -20279,7 +20279,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 744,
+            "line": 752,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -20289,7 +20289,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 249,
+            "line": 242,
             "symbol": "case .legacy: result = PlayerFactory.create(playerConfig: config)"
           },
           {
@@ -20626,7 +20626,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20656,12 +20656,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20671,7 +20671,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 293,
+            "line": 301,
             "symbol": "let config = PlayerViewConfig()"
           }
         ],
@@ -20691,7 +20691,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 744,
+            "line": 752,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -20861,7 +20861,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20891,7 +20891,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20921,7 +20921,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -20951,7 +20951,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21126,7 +21126,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21161,7 +21161,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21196,7 +21196,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21231,7 +21231,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21266,7 +21266,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21301,7 +21301,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21336,7 +21336,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21371,7 +21371,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21406,7 +21406,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -21441,7 +21441,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -22011,12 +22011,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22056,12 +22056,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22091,12 +22091,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22126,12 +22126,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22161,12 +22161,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22196,12 +22196,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22231,12 +22231,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22266,12 +22266,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22296,12 +22296,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22331,12 +22331,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22366,12 +22366,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22396,12 +22396,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22431,12 +22431,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22461,12 +22461,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22491,12 +22491,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22566,7 +22566,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 690,
+            "line": 698,
             "symbol": "if apiEventTransport == .listener { source.add(listener: listener) }"
           },
           {
@@ -22586,7 +22586,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 698,
+            "line": 706,
             "symbol": "if let listener = sourceApiListener { apiSource?.remove(listener: listener) }"
           },
           {
@@ -22616,7 +22616,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 744,
+            "line": 752,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -22726,12 +22726,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22761,12 +22761,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22796,12 +22796,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22891,12 +22891,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22921,12 +22921,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -22951,12 +22951,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 317,
+            "line": 325,
             "symbol": "player.load(source: source)"
           }
         ],
@@ -23111,7 +23111,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23141,7 +23141,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23171,12 +23171,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 312,
+            "line": 320,
             "symbol": "sourceSettings.makeSourceConfig(callbackJournal:"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23211,7 +23211,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23306,7 +23306,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23341,7 +23341,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23396,7 +23396,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23431,7 +23431,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23466,7 +23466,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23541,7 +23541,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23656,7 +23656,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23691,7 +23691,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23726,7 +23726,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23761,7 +23761,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23796,7 +23796,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23831,7 +23831,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23866,7 +23866,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23901,7 +23901,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -23936,7 +23936,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24191,7 +24191,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24226,7 +24226,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24261,7 +24261,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24316,7 +24316,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24351,7 +24351,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24386,7 +24386,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24421,7 +24421,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24456,7 +24456,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24491,7 +24491,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24526,7 +24526,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24561,7 +24561,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24596,7 +24596,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24631,7 +24631,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24666,7 +24666,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24701,7 +24701,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -24736,7 +24736,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -25006,7 +25006,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 714,
+            "line": 722,
             "symbol": "if apiEventTransport == .listener { view.add(listener: listener) }"
           },
           {
@@ -25026,7 +25026,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 722,
+            "line": 730,
             "symbol": "if let listener = viewApiListener { view.remove(listener: listener) }"
           },
           {
@@ -25071,7 +25071,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -25106,7 +25106,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -25141,7 +25141,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -25336,7 +25336,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -25371,7 +25371,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -25406,7 +25406,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],
@@ -25441,7 +25441,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 251,
+            "line": 244,
             "symbol": "PlayerFactory.createPlayer(playerConfig: config)"
           }
         ],

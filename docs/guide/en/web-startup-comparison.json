@@ -22,8 +22,25 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/test-results/#web-startup-2026-11-01",
           "label": "Recorded startup comparison (2026-11-01)"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/kazuhide/player-lab/b02b242232c661360c5304ba3493b511e8e028bd/docs/web-startup-results-2026-11-01.json",
+          "label": "Recorded report data (JSON)"
         }
       ]
+    },
+    {
+      "type": "h2",
+      "id": "player-web-x",
+      "text": "Player Web X"
+    },
+    {
+      "type": "p",
+      "text": "Player Web X is Bitmovin's Web playback SDK. It offers ready-made format bundles as well as individual packages, and supports plugins for additional functionality. This comparison uses its public @bitmovin/player-web-x npm package and native Player and Source APIs."
+    },
+    {
+      "type": "p",
+      "text": "The main Web lab uses Player v8 for configuration, UI themes and API inspection. This separate comparison focuses on startup timing and the settings needed for a matched playback test. Web X runs through its native APIs, alongside hls.js and Shaka Player, without the v8 compatibility layer."
     },
     {
       "type": "h2",
@@ -206,6 +223,18 @@
     }
   ],
   "sources": [
+    {
+      "url": "https://bitmovin.com/player-web-x",
+      "label": "Player Web X product overview"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/player-web-x-getting-started",
+      "label": "Web X bundles, packages and native API setup"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/player-web-x-v8-compatibility",
+      "label": "Player v8 compatibility and its limits"
+    },
     {
       "url": "https://wicg.github.io/video-rvfc/",
       "label": "Video-frame callback definitions"

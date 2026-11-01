@@ -43,7 +43,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/b02b242232c661360c5304ba3493b511e8e028bd/apps/vega/README.md#build-the-kepler-application",
+          "url": "https://github.com/kazuhide/player-lab/blob/e1c9c754636cd6cf4e00e61976847e2c3133b8b7/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README：Keplerホストのビルド"
         },
         {
@@ -545,6 +545,10 @@
         [
           "適用やバックグラウンドから戻ると位置が変わります。",
           "アプリはセッションを置き換えて、保持していたソースと設定を読み直します。以前の再生位置は復元しません。バックグラウンドへ移るときは、実行が停止される前にネイティブメディアを解放します。"
+        ],
+        [
+          "初期化中にソースを変更するとどうなりますか？",
+          "アプリの表示中にソースを変更したり設定を適用したりすると、VideoPlayer.initialize()の完了と前のセッションの解放を待ってから次のセッションを作ります。初期化の中止を受け付けたという応答だけでは、後から確保されるネイティブメディアの解放完了を確認できないためです。バックグラウンドへ移るときは、JavaScriptが停止する前に同期解放を始めます。"
         ],
         [
           "解放を確認できないという表示が出ました。",
