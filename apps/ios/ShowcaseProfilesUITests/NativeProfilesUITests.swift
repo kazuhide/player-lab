@@ -105,8 +105,14 @@ final class NativeProfilesUITests: XCTestCase {
         }
         #endif
         name.typeText("Source")
-        XCTAssertEqual(name.value as? String, "Source")
         WorkspaceUITestNavigation.dismissKeyboard(in: app)
+        // Native input and SwiftUI accessibility values can settle separately.
+        // Observe the single typed value after committing the native keyboard;
+        // never replace, retry, or accept a partial profile name.
+        let committedName = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Source"), object: name)
+        XCTAssertEqual(XCTWaiter.wait(for: [committedName], timeout: 5), .completed,
+                       "The single native input must commit the complete profile name")
+        XCTAssertEqual(name.value as? String, "Source")
         try activate(app.buttons["configuration.profiles.save"], in: app)
         let status = app.staticTexts["configuration.profiles.status"]
         let updated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in

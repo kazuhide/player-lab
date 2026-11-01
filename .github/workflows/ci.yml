@@ -350,6 +350,7 @@ jobs:
       - name: Test iOS Profiles controls in English and Japanese
         id: ios_profiles
         run: |
+          xcrun simctl bootstatus "$IOS_CONFIGURATION_SIMULATOR" -b
           cd apps/ios
           xcodebuild \
             -project Showcase.xcodeproj -scheme Showcase-iOS-ProfilesUI \
@@ -386,6 +387,7 @@ jobs:
           raise SystemExit('No available Apple TV simulator was found for the Profiles UI tests.')
           PY
           )"
+          xcrun simctl bootstatus "$simulator_id" -b
           cd apps/ios
           xcodebuild \
             -project Showcase.xcodeproj -scheme Showcase-tvOS-ProfilesUI \
