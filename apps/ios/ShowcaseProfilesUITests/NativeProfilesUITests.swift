@@ -203,10 +203,17 @@ final class NativeProfilesUITests: XCTestCase {
         let action = try XCTUnwrap(eligible.count == 1 ? eligible.first?.element : nil,
                                   "Do not select an arbitrary duplicate alert action")
         #if !os(tvOS)
-        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in action.isHittable }, object: action)
-        XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: try remainingBudget()), .completed,
-                       "The same bound native action must be hittable")
         _ = try remainingBudget()
+        // Predicate expectations first poll after about one second. Observe an
+        // already-hittable bound action before spending that polling interval.
+        let immediatelyHittable = action.isHittable
+        _ = try remainingBudget()
+        if !immediatelyHittable {
+            let hittable = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in action.isHittable }, object: action)
+            XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: try remainingBudget()), .completed,
+                           "The same bound native action must be hittable")
+            _ = try remainingBudget()
+        }
         #endif
         XCTAssertTrue(action.isEnabled, "The native action must remain enabled")
         _ = try remainingBudget()
