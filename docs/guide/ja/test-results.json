@@ -10,7 +10,7 @@
     },
     {
       "type": "p",
-      "text": "Apple M5、32 GiB、Headless Chromium 156.0.8078.4、1440×1000で測定しました。HTTP/2とBrotli/gzipを使い、本番用ファイルを同じMac内で配信しました。素材は60秒のBig Buck Bunny HLSで、同一条件では同じ画質と英語音声を使い、ミュート・先頭位置・通常速度で再生しました。SDKはPlayer Web X 10.3.1、hls.js 1.7.4、Shaka Player 5.3.3です。"
+      "text": "Apple M5、32 GiB、Headless Chromium 156.0.8078.4、1440×1000で測定しました。HTTP/2とBrotli/gzipを使い、本番用ファイルを同じMac内で配信しました。素材は60秒のBig Buck Bunny HLSで、同一条件では同じ画質と英語音声を使い、ミュート・先頭位置・通常速度で再生しました。SDKはPlayer Web X 10.3.1、hls.js 1.7.4、Shaka Player 5.3.3です。記録した測定はlocalhostでPlayerキーを空にして実施し、Analyticsと広告は無効にしました。"
     },
     {
       "type": "p",

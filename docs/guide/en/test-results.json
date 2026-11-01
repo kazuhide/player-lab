@@ -10,7 +10,7 @@
     },
     {
       "type": "p",
-      "text": "Measured on Apple M5, 32 GiB, Headless Chromium 156.0.8078.4 at 1440×1000. Production files were served within the same Mac over HTTP/2 with Brotli/gzip. Each comparison used the same fixed-quality rendition and English audio from a 60-second Big Buck Bunny HLS asset, muted from the beginning at normal speed. SDKs: Player Web X 10.3.1, hls.js 1.7.4 and Shaka Player 5.3.3."
+      "text": "Measured on Apple M5, 32 GiB, Headless Chromium 156.0.8078.4 at 1440×1000. Production files were served within the same Mac over HTTP/2 with Brotli/gzip. Each comparison used the same fixed-quality rendition and English audio from a 60-second Big Buck Bunny HLS asset, muted from the beginning at normal speed. SDKs: Player Web X 10.3.1, hls.js 1.7.4 and Shaka Player 5.3.3. The recorded measurements used localhost with an empty Player key; Analytics and advertising were disabled."
     },
     {
       "type": "p",
