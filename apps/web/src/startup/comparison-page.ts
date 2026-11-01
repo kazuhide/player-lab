@@ -7,6 +7,7 @@ import { unavailableTrial, type BrowserTrial } from "./runner";
 import { MAX_RESULTS, compareCohort, createTrialResult, makeTrialOrder, summarizeTrials, type Metric, type TrialResult } from "./model";
 import { planScreening, selectStartupTuning, type TuningSelection } from "./calibration";
 import { createComparisonExport } from "./export";
+import { captureEnvironment, utcFromEpochMs, type EnvironmentSnapshot } from "./environment";
 
 const engines: EngineId[] = ["web-x", "shaka", "hls"];
 const names: Record<EngineId, string> = { "web-x": "Player Web X", shaka: "Shaka Player", hls: "hls.js" };
@@ -14,6 +15,7 @@ interface RecordEntry {
   engine: EngineId; contentId: ContentId; sdkMode: SdkMode; profile: StartupProfile;
   tuning: StartupTuning; result: BrowserTrial; measurement: TrialResult;
   run: number; seed: number; phase: "comparison" | "screening" | "confirmation";
+  measuredAt: string; environment: EnvironmentSnapshot;
 }
 const records: RecordEntry[] = [];
 const selections = new Map<number, TuningSelection>();
@@ -135,7 +137,8 @@ function renderResults(): void {
   save.addEventListener("click", () => {
     try {
       const exported = createComparisonExport(records.map((entry) => ({ run: entry.run, seed: entry.seed,
-        phase: entry.phase, measurement: entry.measurement, observations: entry.result })));
+        phase: entry.phase, measuredAt: entry.measuredAt, environment: entry.environment,
+        measurement: entry.measurement, observations: entry.result })), new Date().toISOString());
       const url = URL.createObjectURL(new Blob([JSON.stringify(exported, null, 2)], { type: "application/json" }));
       const anchor = el("a"); anchor.href = url; anchor.download = "player-lab-startup-results.json"; anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
@@ -213,6 +216,11 @@ async function compare(contentId: ContentId, calibrate = false): Promise<void> {
       status.replaceChildren(statusText, stop);
       statusText.textContent = `${names[engine]} ${SDK_VERSIONS[engine]} · ${phaseLabel(phase)} (${index + 1}/${tasks.length})`;
       const selectedAt = index === 0 ? acceptedAt : performance.timeOrigin + performance.now();
+      const measuredAt = utcFromEpochMs(selectedAt);
+      const environment = captureEnvironment({ userAgent: navigator.userAgent,
+        hardwareConcurrency: navigator.hardwareConcurrency,
+        deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
+        innerWidth: window.innerWidth, innerHeight: window.innerHeight, devicePixelRatio: window.devicePixelRatio });
       const result = current && !controller.signal.aborted
         ? await current.start(contentId, snapshot.profile, tuning, controller.signal, selectedAt)
           .catch(() => unavailableTrial(controller.signal.aborted ? "aborted" : "initialization-failed"))
@@ -225,7 +233,7 @@ async function compare(contentId: ContentId, calibrate = false): Promise<void> {
       catch { measurement = createTrialResult({ context, status: "failure", failureCode: "invalid-playback",
         selectionAtMs: 0, observedAtMs: {} }); }
       records.push({ engine, contentId, sdkMode: snapshot.sdkMode, profile: snapshot.profile, tuning,
-        result, measurement, run, seed, phase });
+        result, measurement, run, seed, phase, measuredAt, environment });
       current?.close(); if (frame === current) frame = null;
       renderResults();
       if (calibrate && index + 1 === screeningLength && !controller.signal.aborted) {

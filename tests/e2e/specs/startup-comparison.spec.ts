@@ -50,15 +50,44 @@ function nullableNumber(value: unknown, signed = false): void {
 
 /** Check the downloaded public boundary, rather than serializing internal SDK state in the test. */
 function expectSafeExport(value: ExportedComparison): void {
-  exactKeys(value, ["schemaVersion", "clock", "trials"]);
-  expect(value.schemaVersion).toBe(1);
+  exactKeys(value, ["schemaVersion", "exportedAt", "clock", "trials"]);
+  expect(value.schemaVersion).toBe(2);
+  const utc = (date: string): void => {
+    expect(date).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
+    expect(new Date(date).toISOString()).toBe(date);
+  };
+  utc(value.exportedAt);
   expect(value.clock).toBe("selection-relative-ms");
   expect(Array.isArray(value.trials)).toBe(true);
   expect(value.trials.length).toBeGreaterThan(0);
   const serialized = JSON.stringify(value);
-  expect(serialized).not.toMatch(/https?:|blob:|data:|license|authorization|password|token|metadata|stack|headers|sourceUrl/i);
+  expect(serialized).not.toMatch(/https?:|blob:|data:|license|authorization|password|token|metadata|stack|headers|sourceUrl|userAgent|hostname|deviceModel/i);
   for (const trial of value.trials) {
-    exactKeys(trial, ["run", "seed", "phase", "measurement", "statistics"]);
+    exactKeys(trial, ["run", "seed", "phase", "measuredAt", "environment", "measurement", "statistics"]);
+    utc(trial.measuredAt);
+    exactKeys(trial.environment, ["browserFamily", "browserMajorVersion", "osFamily", "logicalProcessorCount",
+      "approximateDeviceMemoryGiB", "viewportWidthCssPixels", "viewportHeightCssPixels", "devicePixelRatio"]);
+    for (const [field, observation] of Object.entries(trial.environment)) {
+      exactKeys(observation, ["value", "reason"]);
+      if (observation.value === null) expect(["unavailable", "unrecognized"]).toContain(observation.reason);
+      else {
+        expect(observation.reason).toBeNull();
+        if (field === "browserFamily") expect(["chromium", "firefox", "safari"]).toContain(observation.value);
+        else if (field === "osFamily") expect(["android", "ios", "macos", "windows", "linux"]).toContain(observation.value);
+        else {
+          expect(typeof observation.value).toBe("number");
+          expect(Number.isFinite(observation.value)).toBe(true);
+          expect(observation.value).toBeGreaterThan(0);
+          const maximum: Record<string, number> = { browserMajorVersion: 9999, logicalProcessorCount: 4096,
+            approximateDeviceMemoryGiB: 65536, viewportWidthCssPixels: 100000, viewportHeightCssPixels: 100000,
+            devicePixelRatio: 16 };
+          expect(observation.value).toBeLessThanOrEqual(maximum[field]!);
+          if (!["approximateDeviceMemoryGiB", "devicePixelRatio"].includes(field)) {
+            expect(Number.isSafeInteger(observation.value)).toBe(true);
+          }
+        }
+      }
+    }
     expect(Number.isSafeInteger(trial.run)).toBe(true);
     expect(trial.run).toBeGreaterThan(0);
     expect(Number.isInteger(trial.seed)).toBe(true);
@@ -249,8 +278,17 @@ test("candidate evaluation exports every outcome and ranks only frozen confirmat
   // This new cohort has 36 actual trials; the existing 90-second test deadline remains unchanged.
   await expect(page.locator(".startup-trials tbody tr")).toHaveCount(36, { timeout: 75_000 });
   await expect(stop).toHaveCount(0);
+  const originalViewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 1280, height: 800 });
   const exported = await downloadResults(page);
   expect(exported.trials).toHaveLength(36);
+  expect(new Set(exported.trials.map((trial) => trial.measuredAt)).size).toBeGreaterThan(1);
+  expect(exported.exportedAt).not.toBe(exported.trials[0]!.measuredAt);
+  for (const trial of exported.trials) {
+    expect(trial.environment.viewportWidthCssPixels).toEqual({ value: originalViewport.width, reason: null });
+    expect(trial.environment.viewportHeightCssPixels).toEqual({ value: originalViewport.height, reason: null });
+    expect(trial.environment.browserFamily).toEqual({ value: "chromium", reason: null });
+  }
   const screening = exported.trials.filter((trial) => trial.phase === "screening");
   const confirmation = exported.trials.filter((trial) => trial.phase === "confirmation");
   expect(screening).toHaveLength(18);
