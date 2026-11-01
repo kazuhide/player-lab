@@ -55,6 +55,8 @@ class AppleCIWorkflowTests(unittest.TestCase):
                 testing = ["${xcodebuild_args[@]}", "-destination", "platform=" + platform + " Simulator,id=$simulator_id"]
                 if selected_tests:
                     testing += ["-resultBundlePath", "$RUNNER_TEMP/apple-profiles-" + platform.lower() + ".xcresult"]
+                else:
+                    testing += ["-resultBundlePath", "$RUNNER_TEMP/ios-configuration.xcresult"]
                 self.assertEqual(phases, [
                     ["${xcodebuild_args[@]}", "-destination", "generic/platform=" + platform + " Simulator", "build-for-testing"],
                     testing + ["test-without-building"],
@@ -62,6 +64,32 @@ class AppleCIWorkflowTests(unittest.TestCase):
                 self.assertIn('simctl bootstatus "$simulator_id" -b', shell)
                 self.assertIn("trap 'exit 130' INT", shell)
                 self.assertIn("trap 'exit 143' TERM", shell)
+
+    def test_configuration_results_are_retained_before_profiles(self):
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+        name = "      - name: Save iOS configuration test results\n"
+        step = workflow.split(name, 1)[1].split("\n      - ", 1)[0]
+        self.assertLess(workflow.index("      - name: " + self.stages[0][0] + "\n"), workflow.index(name))
+        self.assertLess(workflow.index(name), workflow.index("      - name: " + self.stages[1][0] + "\n"))
+
+        def assert_retention(candidate):
+            for line in (
+                "        if: always()",
+                "        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4",
+                "          name: apple-ios-configuration-results",
+                "          path: ${{ runner.temp }}/ios-configuration.xcresult",
+                "          if-no-files-found: warn",
+                "          retention-days: 7",
+            ):
+                self.assertIn(line, candidate.splitlines())
+
+        assert_retention(step)
+        for original, replacement in (
+            ("if: always()", "if: success()"),
+            ("path: ${{ runner.temp }}/ios-configuration.xcresult", "path: ${{ runner.temp }}/different.xcresult"),
+        ):
+            with self.subTest(mutation=replacement), self.assertRaises(AssertionError):
+                assert_retention(step.replace(original, replacement, 1))
 
     def test_selected_device_cleanup_preserves_the_original_failure(self):
         for name, *_ in self.stages:
