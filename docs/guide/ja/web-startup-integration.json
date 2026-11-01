@@ -1,0 +1,230 @@
+{
+  "id": "web-startup-integration",
+  "title": "起動比較の実装",
+  "lead": "各SDKのAPIを使い、ブラウザーの観測、SDK固有の通知、設定条件を分けて記録します。",
+  "blocks": [
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-comparison/",
+          "label": "画面と操作：比較を実行する"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/",
+          "label": "Webの実装ガイド"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "sdk-adapters",
+      "text": "各SDKのAPIを使う"
+    },
+    {
+      "type": "p",
+      "text": "試行ごとに新しい文書とvideo要素を用意し、読み込みや再生要求の前に監視を登録します。この比較では起動時の動作を試すために必要な公開設定をアダプターへ渡します。hls.jsやShakaの全APIを編集する画面ではありません。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "SDKの組み込み",
+        "読み込み・再生・破棄"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "playerx-hlsバンドルのPlayer(config)を使い、sources.addとsources.attachVideoでソースを接続します。先に監視を登録するため、準備中はデータを読み込まない状態にします。loadControl=2でデータを読み込み、Readyを待たずにsource.playを要求します。試行後はPlayerをdisposeします。"
+        ],
+        [
+          "hls.js",
+          "外部音声に対応する完全版のESM（JavaScriptの標準モジュール形式）を使います。Hlsを生成し、attachMedia(video)、loadSource(url)の直後にvideo.playを要求します。新規の暗号化されていないMediaSource再生を対象とし、終了時はdestroyします。"
+        ],
+        [
+          "Shaka Player",
+          "公式のHLS専用ES2021版を使い、polyfill（ブラウザーの機能差を補う処理）を登録してから、videoを引数に渡さずにPlayerを生成します。configureがtrueを返すことを確認し、attach(video)を待った後、load(url, 0, \"application/x-mpegurl\")とvideo.playを並行して要求します。両方のPromiseを観測し、終了時はdestroyの完了を待ちます。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "設定が拒否された試行を、既定設定で成功した試行として扱いません。Shakaはconfigureがfalseでも一部の有効な項目を適用する場合があるため、その候補は破棄します。中止や終了時には、アプリが登録したSDK・videoの監視とフレーム通知も解除します。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "SDK固有の通知",
+        "この比較での意味"
+      ],
+      "rows": [
+        [
+          "Player Web Xのready / playing",
+          "実際のSourceイベントを記録します。標準APIにはload完了のPromiseがありません。"
+        ],
+        [
+          "hls.jsのhlsManifestParsed",
+          "マニフェスト解析の通知をSDKの準備完了として記録します。videoのplayingや、load完了のPromiseとは扱いません。"
+        ],
+        [
+          "Shakaのloaded",
+          "loadedイベントとloadのPromiseを別に記録します。startedは再生の進捗に関するイベントで、実再生前にも出るため、SDK Playingの代わりには使いません。"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "clock-and-metrics",
+      "text": "同じ時計で区間を定義する"
+    },
+    {
+      "type": "p",
+      "text": "コンテンツ選択、SDK取得、アダプターの処理、ブラウザーの通知には、親ページの同じperformanceの時計を使います。選択を受け付けた時刻を基準に記録します。選択前に取得したSDKの時刻は負になる場合がありますが、選択時に取得する条件の時計の誤差を0へ補正して隠すことはしません。処理は重なるため、各区間を足して全体の所要時間とはしません。"
+    },
+    {
+      "type": "p",
+      "text": "再生開始時間（Play → Playing）は、アプリが実際に再生を要求してから、videoのplaying通知を観測するまでです。このアプリでVSTとして比較する区間を明示したもので、選択からPlayingまでの時間とは分けます。後者には選択後のSDK取得やPlayer生成も含みます。Playから動くフレームまでの区間では、映像の時刻が進んだフレームの通知を別に記録します。"
+    },
+    {
+      "type": "p",
+      "text": "最初のフレームの時刻はrequestVideoFrameCallbackの通知を受けたときに同じ時計で記録します。このAPIは合成処理へ渡されたフレームを通知しますが、測っているのはコールバックの観測時刻です。metadata.presentationTimeや物理画面への表示時刻ではありません。負荷によって通知が遅れる場合があり、ブラウザーが時計の精度を下げる場合もあります。実際に0となった値は0のまま残します。"
+    },
+    {
+      "type": "note",
+      "text": "停止中のフレームが再生要求より前に通知される場合があります。選択からフレームまでの値は残しますが、Playからフレームまでの区間はend-before-startの理由付きの欠損とし、0を作りません。再生成功の判定には、playing、実際の再生の進行、対応APIがある場合のフレームの進行も必要です。loadeddataは別に記録し、欠けたフレームの代わりにはしません。"
+    },
+    {
+      "type": "h2",
+      "id": "configuration-candidates",
+      "text": "設定候補と対象範囲"
+    },
+    {
+      "type": "p",
+      "text": "単一画質の同じHLS、言語ラベルenの同じ音声、先頭位置、通常速度、ミュートの条件をそろえます。比較には任意のAnalytics収集、広告、SDKのUIを追加しません。公開UIのHTTPキャッシュはブラウザーが管理します。選択前のSDK取得は、HTTPキャッシュが温かいことを示す条件ではありません。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "設定の分類",
+        "扱いと理由"
+      ],
+      "rows": [
+        [
+          "読み込みと保持時間",
+          "hls.jsではmaxBufferLength、maxMaxBufferLength、backBufferLength、frontBufferFlushThresholdを組み合わせます。Shakaではstreaming.bufferingGoalとbufferBehindを使います。起動向けの保持時間の候補は前方12秒・後方6秒です。時間の目標であり、全メモリの上限ではありません。"
+        ],
+        [
+          "範囲を限定した調整",
+          "hls.jsのenableWorkerはtrue/false、Shakaのstreaming.segmentPrefetchLimitは0/1/2を評価します。hls.jsには同じバージョンのワーカーを同梱します。ShakaのrebufferingGoalには既定値の0を使います。"
+        ],
+        [
+          "Player Web Xのデータ取得",
+          "この新規ソースの再生比較にはloadControl=2（Data）を使います。0（Nothing）と1（Metadata）は取得なし・マニフェストのみを指定するAPIとして利用できますが、この比較の再生候補からは除外します。標準のHLSバンドルには、他のSDKと同じバッファ設定APIはありません。"
+        ],
+        [
+          "他の機能と互換設定",
+          "他の配信形式、コンテンツ保護、オフライン、キャスト、広告、ライブ専用の操作は、この暗号化されていないHLSの起動比較では使いません。非推奨の設定やv8互換用の型を、標準Web Xの調整APIとして扱うこともしません。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "公開設定は、共通条件、起動時の候補、他の機能、非推奨・互換用の設定、対象外の拡張に分けて検討しています。用途の整理であり、全ての設定APIを実行したという意味ではありません。候補の評価には「選択からPlayingまで」を使い、選んだ設定で新たに確認試行を実行します。この短い素材で開始が速かった設定だけで、全ての端末や通信環境で滑らかに省メモリで再生できるとは判断しません。"
+    },
+    {
+      "type": "h2",
+      "id": "diagnostics",
+      "text": "診断値の意味と制限"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "ShakaのgetStats().loadLatencyとtimeToFirstFrameは、SDK独自の定義と秒の単位を保ちます。loadLatencyはloadedmetadataまで、timeToFirstFrameはSDKのフレーム通知またはloadeddataの代替処理までです。共通指標とは起点や観測方法が異なります。",
+        "標準Web Xバンドルには、実際のメディア経路、選択音声の言語、ワーカーの稼働や、この比較で使う遅延・帯域統計を取得する公開APIがありません。該当欄は理由とともにnullまたはunknownとし、欠損だけで性能が悪いとは判断しません。",
+        "hls.jsでは接続されたMediaSourceの実体を確認します。Shakaでは実際のMediaSource再生モードを確認しますが、通常のMediaSourceかManagedMediaSourceかまでは識別できない場合があります。その場合はMediaSource方式として記録します。enableWorkerを指定しただけでは、稼働した証拠にはなりません。",
+        "JavaScriptのヒープ差分は、取得できるJavaScriptヒープだけの値です。デコーダー、GPU、ワーカーやプロセス全体のメモリではありません。メインスレッドの長い処理もCPU全体の使用率ではありません。Resource Timingの転送量は観測できた項目に限られ、0だけで通信がなかったとは判断しません。"
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "faq",
+      "text": "実装のFAQ"
+    },
+    {
+      "type": "h3",
+      "id": "startup-validity",
+      "text": "起動の成功で何を確認するか"
+    },
+    {
+      "type": "p",
+      "text": "アダプターの開始処理と実際の再生の確認を完了し、後片付けを終えた試行を成功として扱います。短い起動確認であり、連続視聴や再バッファリングの検証結果ではありません。実運用へ設定を取り込む前には、別に継続した再生も確認します。"
+    },
+    {
+      "type": "h3",
+      "id": "analytics-vst",
+      "text": "AnalyticsのVSTと同じ値か"
+    },
+    {
+      "type": "p",
+      "text": "この画面の再生開始時間はPlay要求からvideoのplaying通知までです。Bitmovin AnalyticsのVIDEO_STARTUPTIMEはPlayからTimeChangedまでを使い、STARTUPTIMEにはPLAYER_STARTUPTIMEも含みます。CollectorにはSDKごとの挙動もあります。この比較ではCollectorを有効にせず、ブラウザーの通知からDashboardの値を作ることもしません。収集とDashboardでの確認はAnalyticsの実装ガイドを参照してください。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-qoe-analytics/",
+          "label": "Analytics / Observabilityの組み込み"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-metrics/",
+          "label": "Analyticsの指標と定義"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/player-web-x-getting-started",
+      "label": "Player Web Xの組み込み"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/load-control",
+      "label": "Web Xのデータ取得方針"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/sourceapi-playbackapi",
+      "label": "Web XのSource / Playback API"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/player-web-x-v8-compatibility",
+      "label": "Web Xのv8互換層の範囲"
+    },
+    {
+      "url": "https://github.com/video-dev/hls.js/blob/v1.7.4/docs/API.md",
+      "label": "hls.js 1.7.4の公開設定とイベント"
+    },
+    {
+      "url": "https://github.com/shaka-project/shaka-player/blob/v5.3.3/lib/player.js",
+      "label": "Shaka Player 5.3.3の公開APIの動作"
+    },
+    {
+      "url": "https://github.com/shaka-project/shaka-player/blob/v5.3.3/lib/util/player_configuration.js",
+      "label": "Shaka 5.3.3の設定の既定値"
+    },
+    {
+      "url": "https://wicg.github.io/video-rvfc/",
+      "label": "映像フレーム通知の時刻と制限"
+    },
+    {
+      "url": "https://www.w3.org/TR/hr-time-3/",
+      "label": "High Resolution Timeと時計の精度"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/which-metrics-related-to-the-startup-time-are-collected-by-bitmovin",
+      "label": "Bitmovin Analyticsの起動時間の定義"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming/transferSize",
+      "label": "Resource Timingの転送量を取得できる条件"
+    }
+  ]
+}

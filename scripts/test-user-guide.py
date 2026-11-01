@@ -115,7 +115,7 @@ class GuideTests(unittest.TestCase):
 
     def test_all_chapters_and_reference_groups_are_public_in_both_languages(self):
         self.assertEqual(set(self.pages), GUIDE_FILES)
-        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 182)
+        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 186)
         for language in ('en', 'ja'):
             fields = [field for group in self.content[language]['settings']['groups'] for field in group['fields']]
             self.assertEqual(len(fields), 144)
@@ -328,7 +328,7 @@ class GuideTests(unittest.TestCase):
             web = self.content[language]['web-screen-controls']
             self.assertEqual([b['id'] for b in web['blocks'] if b['type'] == 'h2'], [
                 'screen', 'themes', 'sources-tracks', 'player-source-settings', 'sdk-settings',
-                'applied-code', 'ui-settings', 'external-displays'])
+                'applied-code', 'ui-settings', 'external-displays', 'startup-comparison'])
             figures = {b['file'] for b in web['blocks'] if b['type'] == 'figure'}
             self.assertTrue({'overview', 'custom-premiere', 'source-controls', 'config',
                              'web-sdk-differences', 'sdk-callback'}.issubset(figures))
@@ -356,7 +356,8 @@ class GuideTests(unittest.TestCase):
                     self.assertTrue(any(item['url'] == chapter + '/' + section + '/' for item in search))
                 self.assertTrue(any(b['type'] == 'code' and 'source' in b for b in document['blocks']))
                 self.assertTrue(any(b['type'] == 'figure' for b in document['blocks']))
-            for chapter in ('web-player-config', 'web-ui-customization'):
+            for chapter in ('web-player-config', 'web-ui-customization',
+                            'web-startup-comparison', 'web-startup-integration'):
                 self.assertIn('<nav class="guide-onpage"', self.pages[route_file(language, chapter)].decode())
 
     def test_implementation_sections_keep_code_images_bookmarks_and_platform_context(self):
@@ -487,7 +488,7 @@ class GuideTests(unittest.TestCase):
                 parsed[name] = parser
         known = set(self.pages) | GUIDE_ASSETS | {
             'index.html', 'ja/index.html', 'styles.css', 'assets/favicon.svg',
-            'web/index.html', 'web/guide.html', 'web/media/ATTRIBUTION.txt',
+            'web/index.html', 'web/guide.html', 'web/comparison.html', 'web/media/ATTRIBUTION.txt',
             'web/notices/BITMOVIN-PLAYER-NOTICE.txt',
         }
         for name, parser in parsed.items():

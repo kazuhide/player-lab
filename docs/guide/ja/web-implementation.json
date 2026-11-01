@@ -492,6 +492,15 @@
       "text": "SDKのgetSource()は、Errorの後も最後に読み込んだ設定を返す場合があります。アプリはその設定だけで再生可能と判断せず、SourceLoadedまたはPlayerの置き換えまでエラー状態を保持します。状態の取得や、条件を満たす設定変更・復帰操作は引き続き使えます。"
     },
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-integration/",
+          "label": "起動比較：各SDKの組み込み・時刻・設定"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "id": "faq",
       "text": "実装時によくある疑問",

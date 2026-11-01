@@ -4,6 +4,7 @@ CHAPTERS = {
     'start': 'start', 'local-setup': 'start', 'native-overview': 'start',
     'web-screen-controls': 'web', 'web-implementation': 'web',
     'web-player-config': 'web', 'web-ui-customization': 'web',
+    'web-startup-comparison': 'web', 'web-startup-integration': 'web',
     'native-apple': 'apple', 'apple-implementation': 'apple',
     'native-android': 'android', 'android-implementation': 'android',
     'native-react-native': 'react-native', 'react-native-implementation': 'react-native',
@@ -37,10 +38,12 @@ IMPLEMENTATION_PAGES = {
 }
 OPERATION_GUIDES = ('web-screen-controls', 'native-apple', 'native-android',
                     'native-react-native', 'native-vega')
-CHILD_CHAPTERS = frozenset(('web-player-config', 'web-ui-customization'))
+CHILD_CHAPTERS = frozenset(('web-player-config', 'web-ui-customization',
+                            'web-startup-comparison', 'web-startup-integration'))
 CHAPTER_PARENTS = {
     **IMPLEMENTATION_PAGES,
     'web-player-config': 'web-implementation', 'web-ui-customization': 'web-implementation',
+    'web-startup-comparison': 'web-screen-controls', 'web-startup-integration': 'web-implementation',
     'web-screen-themes': 'web-screen-controls', 'web-sources-tracks': 'web-screen-controls',
     'web-ui-settings': 'web-screen-controls',
 }

@@ -1,0 +1,183 @@
+{
+  "id": "web-startup-comparison",
+  "title": "Web startup comparison",
+  "lead": "Compare startup behavior under disclosed playback conditions and inspect individual outcomes before reading a summary.",
+  "blocks": [
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/web/comparison.html",
+          "label": "Open startup comparison"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
+          "label": "Implementation: adapters, timing and configuration"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "conditions",
+      "text": "Choose comparison conditions"
+    },
+    {
+      "type": "p",
+      "text": "Choose a player or All players, then choose SDK import mode, settings and trials per player. Each trial records the SDK version. Both resolutions use a fixed-quality HLS rendition and the same en-labelled audio track."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Setting",
+        "Meaning"
+      ],
+      "rows": [
+        [
+          "SDK import: On selection",
+          "Import and evaluate the SDK after the accepted content selection; this time is included in selection-based timings."
+        ],
+        [
+          "SDK import: Before selection",
+          "Import only the SDK before selecting content. Player creation and media loading still belong to the trial."
+        ],
+        [
+          "Common conditions + SDK defaults",
+          "Keep the common playback conditions while retaining vendor defaults for other settings."
+        ],
+        [
+          "Common conditions + startup settings",
+          "Use the documented startup settings. Open Configuration candidates to change the hls.js worker or Shaka segment prefetch limit. The Web X playback policy remains Data (2)."
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "SDK import mode does not establish a cold or warm HTTP cache. The public screen uses browser-managed caching. Keep browser, network, resolution and import mode consistent when comparing results."
+    },
+    {
+      "type": "h2",
+      "id": "run-and-stop",
+      "text": "Start and stop"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose the player, SDK import mode, settings and Trials per player. Wait until the content buttons become available.",
+        "Select Compare this video on the required resolution. Trials run one at a time, each with a fresh video document.",
+        "Keep the tab in the foreground. Stop or moving the page to the background cancels the run, including preparation between trials. Completed results remain available."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Playback starts muted, from the beginning, at normal speed. A successful trial requires the adapter’s start operation to complete, a native playing event and advancing media. Moving frames are also checked when video-frame callbacks are supported. SDK Ready alone is insufficient."
+    },
+    {
+      "type": "h3",
+      "id": "evaluate-candidates",
+      "text": "Evaluate candidates before confirmation"
+    },
+    {
+      "type": "p",
+      "text": "For automatic evaluation, choose All players, Common conditions + startup settings and at least six trials per player, then select Evaluate candidates and compare on a content card. The app evaluates the hls.js worker values true/false and Shaka prefetch limits 0/1/2; Web X keeps Data (2). It selects each player’s candidate using the median Selection → Playing time, then runs new confirmation trials with those settings fixed."
+    },
+    {
+      "type": "p",
+      "text": "Candidate evaluation and confirmation are separate phases. Both remain in the individual records and JSON, while the current summary uses confirmation only. Incomplete screening or no fully successful candidate keeps that player’s explicit fallback: hls.js worker enabled, Shaka prefetch 0 or Web X Data (2), with a reason. A selected candidate is not a proven optimum."
+    },
+    {
+      "type": "p",
+      "text": "When all players are selected, trials are interleaved in balanced blocks. The recorded seed determines the order; the order changes between runs. This avoids always giving the same player the first position without running players concurrently."
+    },
+    {
+      "type": "h2",
+      "id": "results",
+      "text": "Read individual and grouped results"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Observation",
+        "How to read it"
+      ],
+      "rows": [
+        [
+          "Playing from selection",
+          "Accepted content selection to the video element’s playing event. This includes SDK import after selection when that mode is used."
+        ],
+        [
+          "Playback startup (Play → Playing)",
+          "Video startup time (VST) is defined here as the app’s play request to native video playing. It differs from Bitmovin Analytics VIDEO_STARTUPTIME."
+        ],
+        [
+          "First frame callback",
+          "Selection to entry into the first video-frame callback. This is the callback-observation time, not compositor submission or physical-display time."
+        ],
+        [
+          "Play → moving frame",
+          "Play request to a later frame callback whose media time has advanced. Read it separately from the first paused frame."
+        ],
+        [
+          "SDK Ready / SDK Playing",
+          "Vendor events with their original names and meanings. They are not interchangeable across players."
+        ],
+        [
+          "Missing or failed observations",
+          "Read the status and reason. An unavailable observation remains missing; it is not a zero-millisecond success."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Groups keep player version, content, SDK import mode, settings, cache condition and explicit tuning values separate. n counts successful trials with a valid value for the selected metric. Failure, cancellation and missing counts remain visible; a trial can be both failed and missing a metric."
+    },
+    {
+      "type": "p",
+      "text": "Median describes the middle of the successful values. p95 uses the nearest-rank method: sort the values and take rank ceil(0.95 × n). With few trials, p95 can equal the maximum. Read n and the outcome counts alongside both statistics."
+    },
+    {
+      "type": "note",
+      "text": "A smallest-median label requires matching conditions and versions, all players, equal successful sample counts of at least five per player, and no failures, cancellations or missing values for that metric. Exact ties stay ties. The label applies to that cohort, not every stream, device or network."
+    },
+    {
+      "type": "h2",
+      "id": "save-results",
+      "text": "Save and clear results"
+    },
+    {
+      "type": "p",
+      "text": "Select Save JSON before leaving the page to keep the trial conditions, sequence seed, phase, individual outcomes and observations. The export includes safe content identifiers and settings; it excludes license keys, source URLs, request headers, raw SDK errors and SDK metadata objects. Clear results removes the records currently displayed."
+    },
+    {
+      "type": "h2",
+      "id": "missing-results",
+      "text": "When a result is missing"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "If the browser rejects play or the Player license/domain is invalid, retain the failure and check the reason before repeating. Player Web X uses the existing Web license setup.",
+        "If first-frame timing is unavailable, check browser support. Playing or loadeddata is not used to fabricate a frame timestamp.",
+        "If no smallest-median label appears, check outcome counts and comparison conditions. A single trial is useful for inspecting behavior, but does not meet the comparison sample requirement."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and Web license configuration"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
+          "label": "Timing definitions, settings and implementation FAQ"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://wicg.github.io/video-rvfc/",
+      "label": "Video-frame callback definitions"
+    }
+  ]
+}
