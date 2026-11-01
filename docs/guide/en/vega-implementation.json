@@ -547,6 +547,10 @@
           "The app replaces the session and reloads the retained source/configuration. It does not restore playback position. Background handling releases native media before the app can be suspended."
         ],
         [
+          "What happens if I change the source during initialization?",
+          "While the app is visible, a source change or Apply waits for pending VideoPlayer.initialize() and confirmed cleanup before starting another session. An initialization-abort acknowledgement does not confirm release of a late native allocation, so the host avoids aborting initialization for a foreground change. Background transitions still start synchronous release before JavaScript can be suspended."
+        ],
+        [
           "What if cleanup is unconfirmed?",
           "Inactive status means that the owner no longer accepts SDK calls; it does not report completion of native cleanup. Recreate Vega player waits for the existing cleanup barrier before starting another owner. Restart the app if native player release or initialization cancellation is unconfirmed. Repeated Apply cannot confirm release."
         ],

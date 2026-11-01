@@ -264,7 +264,9 @@ position; an inconsistent date can place an interstitial outside the media.
 
 ## Background behavior
 
-Foreground Apply keeps the native media valid until the Bitmovin player's
+Foreground source changes and Apply wait for any pending
+`VideoPlayer.initialize()` to finish. Native media stays valid until the Bitmovin
+player's
 `destroy()` fulfills, then detaches the owned surface and calls
 `deinitializeSync(1000)`. During background transition, the AppState handler
 retires callbacks, clears the owned surface and resets the retired media element
