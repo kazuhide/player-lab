@@ -360,6 +360,14 @@ jobs:
             -only-testing:Showcase-iOSProfilesUITests/NativeProfilesUITests \
             -parallel-testing-enabled NO -jobs 2 \
             CODE_SIGNING_ALLOWED=NO test
+      - name: Save iOS Profiles UI results and captures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: apple-profiles-ios-ui-results
+          path: ${{ runner.temp }}/apple-profiles-ios.xcresult
+          if-no-files-found: warn
+          retention-days: 7
       - name: Test tvOS Profiles controls in English and Japanese
         if: ${{ !cancelled() && (success() || steps.ios_profiles.outcome == 'failure') }}
         run: |
@@ -388,14 +396,12 @@ jobs:
             -only-testing:Showcase-tvOSProfilesUITests/NativeProfilesUITests \
             -parallel-testing-enabled NO -jobs 2 \
             CODE_SIGNING_ALLOWED=NO test
-      - name: Save isolated Apple Profiles UI results and captures
+      - name: Save tvOS Profiles UI results and captures
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: apple-profiles-ui-results
-          path: |
-            ${{ runner.temp }}/apple-profiles-ios.xcresult
-            ${{ runner.temp }}/apple-profiles-tvos.xcresult
+          name: apple-profiles-tvos-ui-results
+          path: ${{ runner.temp }}/apple-profiles-tvos.xcresult
           if-no-files-found: warn
           retention-days: 7
       - name: Build iOS app (simulator)

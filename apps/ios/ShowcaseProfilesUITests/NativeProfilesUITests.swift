@@ -94,6 +94,16 @@ final class NativeProfilesUITests: XCTestCase {
     private func saveSource(_ app: XCUIApplication) throws {
         let name = app.textFields["configuration.profiles.name"]
         try activate(name, in: app)
+        #if os(iOS)
+        // A tappable field can show a caret before the first keyboard is ready.
+        // Re-tap once if needed; hardware input need not show a software keyboard.
+        // typeText still checks real keyboard focus and the value assertion below.
+        if !app.keyboards.firstMatch.waitForExistence(timeout: 2) {
+            try activate(name, in: app)
+            let keyboardVisible = app.keyboards.firstMatch.waitForExistence(timeout: 3)
+            print("PROFILES_NAME_INPUT nativeRetap=true softwareKeyboardVisible=\(keyboardVisible)")
+        }
+        #endif
         name.typeText("Source")
         XCTAssertEqual(name.value as? String, "Source")
         WorkspaceUITestNavigation.dismissKeyboard(in: app)
@@ -137,11 +147,27 @@ final class NativeProfilesUITests: XCTestCase {
 
     private func alertButton(_ app: XCUIApplication, identifier: String, labels: [String]) throws -> XCUIElement {
         #if os(tvOS)
-        let identified = app.buttons[identifier]
-        if identified.exists { return identified }
-        // Native alert presentation can expose the action title rather than
-        // SwiftUI's identifier. Keep the fallback inside the actual OS alert.
-        return app.alerts.firstMatch.buttons.matching(NSPredicate(format: "label IN %@", labels)).firstMatch
+        let actions = app.alerts.firstMatch.buttons.matching(NSPredicate(format: "label IN %@", labels))
+        func nativeActions() -> [XCUIElement] {
+            let matches = actions.allElementsBoundByIndex.filter {
+                $0.isEnabled && $0.frame.width > 0 && $0.frame.height > 0
+            }
+            if matches.count == 1 { return matches }
+            // tvOS focuses the native parent, while SwiftUI puts the identifier
+            // on its unfocused child. Resolve that one physical alert action.
+            return matches.filter { candidate in
+                let child = candidate.descendants(matching: .button).matching(identifier: identifier)
+                return child.count == 1 && candidate.frame == child.element(boundBy: 0).frame
+            }
+        }
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            nativeActions().count == 1
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed,
+                       "Exactly one native alert action must match \(identifier)")
+        let matches = nativeActions()
+        XCTAssertEqual(matches.count, 1, "Do not select an unfocused semantic child")
+        return try XCTUnwrap(matches.first)
         #else
         // iOS can expose both a semantic Button and its native child with the
         // same identifier/title. Resolve the visible native leaf by its action title
