@@ -104,11 +104,21 @@ final class NativeProfilesUITests: XCTestCase {
             print("PROFILES_NAME_INPUT nativeRetap=true softwareKeyboardVisible=\(keyboardVisible)")
         }
         #endif
+        #if os(iOS)
+        // Send each character once and observe its native value before the next.
+        // A complete synthetic request alone does not prove that every character
+        // reached the field. Never clear, replace, resend or accept partial text.
+        var prefix = ""
+        for character in "Source" {
+            name.typeText(String(character))
+            prefix.append(character)
+            XCTAssertEqual(name.value as? String, prefix, "Each native character must commit its exact prefix")
+        }
+        #else
         name.typeText("Source")
+        #endif
         WorkspaceUITestNavigation.dismissKeyboard(in: app)
-        // Native input and SwiftUI accessibility values can settle separately.
-        // Observe the single typed value after committing the native keyboard;
-        // never replace, retry, or accept a partial profile name.
+        // Keep the existing final acknowledgment budget and exact-value guard.
         let committedName = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Source"), object: name)
         XCTAssertEqual(XCTWaiter.wait(for: [committedName], timeout: 5), .completed,
                        "The single native input must commit the complete profile name")
@@ -151,48 +161,62 @@ final class NativeProfilesUITests: XCTestCase {
         XCTAssertEqual(app.buttons["configuration.profiles.selection"].label, language == "ja" ? "保存済みプロファイル" : "Saved profiles")
     }
 
+    private enum AlertObservationError: Error { case readinessBudgetExpired }
+
     private func alertButton(_ app: XCUIApplication, identifier: String, labels: [String]) throws -> XCUIElement {
+        let deadline = ProcessInfo.processInfo.systemUptime + 5
+        func remainingBudget() throws -> TimeInterval {
+            let remaining = deadline - ProcessInfo.processInfo.systemUptime
+            guard remaining > 0 else {
+                XCTFail("The native alert must resolve within the existing five-second readiness budget")
+                throw AlertObservationError.readinessBudgetExpired
+            }
+            return remaining
+        }
+        let alert = app.alerts.firstMatch
+        XCTAssertTrue(alert.waitForExistence(timeout: try remainingBudget()), "The native system alert must appear")
+        _ = try remainingBudget()
+        // Bind one evaluation to concrete accessibility elements. Snapshot child
+        // traversal below is local; the wait predicate never re-enumerates actions.
+        let actions = alert.buttons.matching(NSPredicate(format: "label IN %@", labels))
+            .allElementsBoundByAccessibilityElement
+        _ = try remainingBudget()
+        let observed = try actions.map { element -> (element: XCUIElement, snapshot: any XCUIElementSnapshot) in
+            let snapshot = try element.snapshot()
+            _ = try remainingBudget()
+            return (element, snapshot)
+        }
+        let enabled = observed.filter {
+            $0.snapshot.isEnabled && $0.snapshot.frame.width > 0 && $0.snapshot.frame.height > 0
+        }
         #if os(tvOS)
-        let actions = app.alerts.firstMatch.buttons.matching(NSPredicate(format: "label IN %@", labels))
-        func nativeActions() -> [XCUIElement] {
-            let matches = actions.allElementsBoundByIndex.filter {
-                $0.isEnabled && $0.frame.width > 0 && $0.frame.height > 0
-            }
-            if matches.count == 1 { return matches }
-            // tvOS focuses the native parent, while SwiftUI puts the identifier
-            // on its unfocused child. Resolve that one physical alert action.
-            return matches.filter { candidate in
-                let child = candidate.descendants(matching: .button).matching(identifier: identifier)
-                return child.count == 1 && candidate.frame == child.element(boundBy: 0).frame
-            }
+        let eligible = enabled.count == 1 ? enabled : enabled.filter { candidate in
+            // tvOS focuses a native parent while SwiftUI identifies its child.
+            // Retain the same unique-child and exact physical-frame conditions.
+            let children = buttonDescendants(candidate.snapshot).filter { $0.identifier == identifier }
+            return children.count == 1 && candidate.snapshot.frame == children[0].frame
         }
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            nativeActions().count == 1
-        }, object: app)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed,
-                       "Exactly one native alert action must match \(identifier)")
-        let matches = nativeActions()
-        XCTAssertEqual(matches.count, 1, "Do not select an unfocused semantic child")
-        return try XCTUnwrap(matches.first)
         #else
-        // iOS can expose both a semantic Button and its native child with the
-        // same identifier/title. Resolve the visible native leaf by its action title
-        // inside the OS alert rather than an identifier on a SwiftUI wrapper.
-        let actions = app.alerts.firstMatch.buttons.matching(NSPredicate(format: "label IN %@", labels))
-        func actionableLeaves() -> [XCUIElement] {
-            actions.allElementsBoundByIndex.filter {
-                $0.descendants(matching: .button).count == 0 && $0.isEnabled && $0.isHittable
-            }
-        }
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            actionableLeaves().count == 1
-        }, object: app)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed,
-                       "Exactly one visible native alert action must match \(identifier)")
-        let matches = actionableLeaves()
-        XCTAssertEqual(matches.count, 1, "Do not choose an arbitrary duplicate alert action")
-        return try XCTUnwrap(matches.first)
+        let eligible = enabled.filter { buttonDescendants($0.snapshot).isEmpty }
         #endif
+        XCTAssertEqual(eligible.count, 1, "Exactly one native alert action must match \(identifier)")
+        let action = try XCTUnwrap(eligible.count == 1 ? eligible.first?.element : nil,
+                                  "Do not select an arbitrary duplicate alert action")
+        #if !os(tvOS)
+        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in action.isHittable }, object: action)
+        XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: try remainingBudget()), .completed,
+                       "The same bound native action must be hittable")
+        _ = try remainingBudget()
+        #endif
+        XCTAssertTrue(action.isEnabled, "The native action must remain enabled")
+        _ = try remainingBudget()
+        return action
+    }
+
+    private func buttonDescendants(_ snapshot: any XCUIElementSnapshot) -> [any XCUIElementSnapshot] {
+        snapshot.children.flatMap { child in
+            (child.elementType == .button ? [child] : []) + buttonDescendants(child)
+        }
     }
 
     private func observation(_ app: XCUIApplication) throws -> [String: Any] {
