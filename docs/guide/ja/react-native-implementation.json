@@ -443,6 +443,10 @@
       ]
     },
     {
+      "type": "p",
+      "text": "数値欄のkeyboardTypeはAndroidでnumeric、iOSでnumbers-and-punctuationにします。iOS専用のnumbers-and-punctuationをAndroidで使うと文字入力用のキーボードが表示され、日本語入力で全角数字が入る場合があります。貼り付けによる入力も含め、適用前に数値を検証します。"
+    },
+    {
       "type": "h2",
       "text": "トラック・API操作・ネイティブ連携を試す",
       "id": "useful-features",
@@ -771,6 +775,15 @@
       "path": "apps/react-native/src/profileStorage.ts",
       "line": 1,
       "label": "アプリ専用の保存先と失敗時の処理"
+    },
+    {
+      "path": "apps/react-native/src/ConfigurationPanel.tsx",
+      "line": 70,
+      "label": "OSに応じた数値入力キーボード"
+    },
+    {
+      "url": "https://reactnative.dev/docs/0.86/textinput#keyboardtype",
+      "label": "React Native 0.86のTextInputとキーボード種別"
     }
   ]
 }
