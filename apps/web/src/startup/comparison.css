@@ -1,0 +1,33 @@
+/* Reuse Player Lab's typography and tokens; the video and results are the focus. */
+.startup-settings { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: end; }
+.startup-settings label { display: grid; gap: .3rem; font-size: .82rem; color: var(--muted); }
+.startup-settings label { min-width: 0; max-width: 100%; }
+.startup-settings select { max-width: 100%; min-width: 0; }
+.startup-settings select, .startup-button { min-height: 40px; padding: .45rem .7rem; border: 1px solid #c6ccd7; border-radius: 7px; background: var(--card); color: var(--ink); font: inherit; }
+.startup-button { cursor: pointer; font-size: .85rem; }
+.startup-button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.startup-button:disabled { opacity: .55; cursor: default; }
+.startup-settings select:focus-visible, .startup-button:focus-visible, .startup-card:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
+.startup-controls, .startup-results { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; margin: 0 0 1rem; }
+.startup-candidates { margin-top: .8rem; }
+.startup-candidates summary, .startup-detail summary { cursor: pointer; font-size: .85rem; }
+.startup-candidates .startup-settings { padding-top: .7rem; }
+.startup-content { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0; }
+.startup-card { border: 1px solid var(--line); border-radius: 7px; padding: .75rem; flex: 1 1 220px; }
+.startup-card h2 { margin: 0 0 .35rem; font-size: .95rem; }
+.startup-card p, .startup-note { color: var(--muted); font-size: .82rem; line-height: 1.6; margin: .35rem 0; }
+.startup-card button { margin: .35rem .4rem 0 0; }
+.startup-stage { max-width: 720px; margin: 0 auto 1rem; background: #111; border-radius: 7px; overflow: hidden; }
+.startup-stage iframe { width: 100%; aspect-ratio: 16 / 9.7; border: 0; display: block; }
+.startup-status { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; font-size: .85rem; min-height: 42px; }
+.startup-scroll { overflow-x: auto; }
+.startup-results h2 { font-size: 1rem; margin: 0 0 .75rem; }
+.startup-table { border-collapse: collapse; width: 100%; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.startup-table th, .startup-table td { padding: .55rem .65rem; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.startup-table th:first-child, .startup-table td:first-child { text-align: left; }
+.startup-table caption { text-align: left; font-weight: 600; padding: .7rem 0; }
+.startup-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+.startup-detail { margin-top: .6rem; border-top: 1px solid var(--line); padding-top: .6rem; }
+.startup-detail pre { font: .75rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); padding: .75rem; }
+.startup-warning { color: #9c3918; }
+@media (max-width: 480px) { .startup-controls, .startup-results { padding: .75rem; } .startup-settings label { flex: 1 1 130px; } }

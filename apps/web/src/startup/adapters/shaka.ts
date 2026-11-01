@@ -67,7 +67,7 @@ export const createAdapter: CreateAdapter = async (context) => {
       audioLanguage: "Null until an active variant exposes a valid audio language tag.",
       workerActive: "No public per-instance signal proves a transmuxer worker was activated.",
       loadLatencySeconds: "SDK seconds from its load clock to loadedmetadata, not selection-to-play; non-finite or negative values are unavailable.",
-      timeToFirstFrameSeconds: "SDK seconds to its video-frame callback or loadeddata fallback, not the common compositor timestamp; non-finite or negative values are unavailable.",
+      timeToFirstFrameSeconds: "SDK seconds to its own video-frame callback or loadeddata fallback, not the common callback-observation clock; non-finite or negative values are unavailable.",
       bandwidthEstimateBps: "The SDK bandwidth estimate is in bits per second; non-finite or negative values are unavailable.",
     },
     unavailable: {

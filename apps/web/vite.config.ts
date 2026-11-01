@@ -52,6 +52,8 @@ export default defineConfig(({ mode }) => {
           input: {
             main: fileURLToPath(new URL("./index.html", import.meta.url)),
             guide: fileURLToPath(new URL("./guide.html", import.meta.url)),
+            comparison: fileURLToPath(new URL("./comparison.html", import.meta.url)),
+            comparisonRunner: fileURLToPath(new URL("./comparison-runner.html", import.meta.url)),
           },
         },
       },
@@ -99,6 +101,8 @@ export default defineConfig(({ mode }) => {
         input: {
           main: fileURLToPath(new URL("./index.html", import.meta.url)),
           guide: fileURLToPath(new URL("./guide.html", import.meta.url)),
+          comparison: fileURLToPath(new URL("./comparison.html", import.meta.url)),
+          comparisonRunner: fileURLToPath(new URL("./comparison-runner.html", import.meta.url)),
         },
       },
     },
