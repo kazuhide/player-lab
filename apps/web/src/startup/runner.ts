@@ -62,6 +62,7 @@ export async function runBrowserTrial(options: {
   let active = true;
   let finished = false;
   let session: AdapterSession | null = null;
+  let startSettled = false;
   let sdkCode: number | null = null;
   let firstMediaTime: number | null = null;
   let frameHandle: number | null = null;
@@ -95,7 +96,7 @@ export async function runBrowserTrial(options: {
       record("advanced");
       // A browser without rVFC can still prove playing and advancing. Its frame
       // timing remains absent; loadeddata is never used as a frame substitute.
-      if (session && (!frameCallbackAvailable || marks.firstMovingFrame !== undefined)) complete(null);
+      if (session && startSettled && (!frameCallbackAvailable || marks.firstMovingFrame !== undefined)) complete(null);
     }
   };
   const frame = (_now: number, metadata: VideoFrameCallbackMetadata) => {
@@ -140,7 +141,10 @@ export async function runBrowserTrial(options: {
     });
     if (finished) { await created.dispose(); return; }
     session = created;
-    void created.start().catch(() => { if (!finished) complete("load-failed"); });
+    void created.start().then(() => {
+      startSettled = true;
+      checkAdvancement();
+    }, () => { if (!finished) complete("load-failed"); });
   })().catch(() => { if (!finished) complete("initialization-failed"); });
 
   let failure = await terminal;
