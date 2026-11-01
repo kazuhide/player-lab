@@ -22,6 +22,11 @@
       "text": "Choose comparison conditions"
     },
     {
+      "type": "figure",
+      "file": "web-startup-controls",
+      "caption": "Comparison conditions with Configuration candidates expanded."
+    },
+    {
       "type": "p",
       "text": "Choose a player or All players, then choose SDK import mode, settings and trials per player. Each trial records the SDK version. Both resolutions use a fixed-quality HLS rendition and the same en-labelled audio track."
     },
@@ -92,6 +97,11 @@
       "type": "h2",
       "id": "results",
       "text": "Read individual and grouped results"
+    },
+    {
+      "type": "figure",
+      "file": "web-startup-results",
+      "caption": "Summary and individual outcomes after one playback per player. The screen does not display a ranking because this run has too few trials."
     },
     {
       "type": "table",
