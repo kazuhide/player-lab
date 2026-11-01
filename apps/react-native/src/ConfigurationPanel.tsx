@@ -66,7 +66,8 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         placeholder={key === "subtitleLanguage" ? "en-US" : key === "poster" || key === "subtitleUrl" ? "Optional URL"
           : key === "url" ? "https://example.com/master.m3u8" : key === "maxBitrate" ? "No limit" : numeric ? "SDK default" : ""}
         placeholderTextColor="#6c7d92"
-        autoCapitalize="none" autoCorrect={false} keyboardType={numeric ? "numbers-and-punctuation" : "default"} style={styles.input} />
+        autoCapitalize="none" autoCorrect={false}
+        keyboardType={numeric ? (Platform.OS === "android" ? "numeric" : "numbers-and-punctuation") : "default"} style={styles.input} />
     </View>
   );
   return (

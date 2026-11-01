@@ -247,6 +247,32 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it.each([["android", "numeric"], ["ios", "numbers-and-punctuation"]] as const)(
+    "uses the supported numeric keyboard on %s without changing text editors or applying drafts", async (os, keyboardType) => {
+      runtime.os = os;
+      await mount();
+      const owner = current();
+      for (const field of ["url", "title", "poster"]) {
+        await basicField("source", field);
+        const label = field === "url" ? "Source URL" : field === "title" ? "Source title" : "Poster URL";
+        expect(input(label).props.keyboardType).toBe("default");
+        expect(input(label).props.autoCorrect).toBe(false);
+      }
+      for (const [group, field, label, value] of [
+        ["source", "startOffset", "Start offset (seconds)", "-2.5"],
+        ["player", "forwardDuration", "Forward buffer (seconds)", "8.5"],
+        ["player", "maxBitrate", "Maximum bitrate (bits per second)", "2500000"],
+      ] as const) {
+        await basicField(group, field);
+        expect(input(label).props.keyboardType).toBe(keyboardType);
+        await act(async () => input(label).props.onChangeText(value));
+        expect(input(label).props.value).toBe(value);
+      }
+      expect(current()).toBe(owner);
+      expect(runtime.players).toHaveLength(1);
+      expect(owner.destroy).not.toHaveBeenCalled();
+    });
+
   it("connects the native UI preference channel and sends paused changes without reloading", async () => {
     await act(async () => { screen = create(<App />); });
     await ready();
