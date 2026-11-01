@@ -492,6 +492,15 @@
       "text": "SDK getSource() can retain the last successfully loaded configuration after Error. The app therefore keeps the failure state for that Player until SourceLoaded or Player replacement, instead of treating the retained configuration as a playable source. State queries and valid configuration or recovery commands remain available."
     },
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
+          "label": "Startup comparison: native SDK integration, timing and tuning"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "id": "faq",
       "text": "Frequently asked implementation questions",
