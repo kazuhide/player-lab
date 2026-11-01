@@ -353,9 +353,14 @@ jobs:
           PY
           )"
           echo "IOS_CONFIGURATION_SIMULATOR=$simulator_id" >> "$GITHUB_ENV"
+          retain_selected_simulator=0
           shutdown_selected_simulator() {
             simulator_test_status=$?
             trap - EXIT INT TERM
+            if [ "$simulator_test_status" -eq 0 ] && [ "$retain_selected_simulator" -eq 1 ]; then
+              echo "Keeping the selected iPhone booted for the Profiles UI suite."
+              exit 0
+            fi
             if ! xcrun simctl shutdown "$simulator_id"; then
               echo "::error::Could not shut down the selected test simulator."
               if [ "$simulator_test_status" -eq 0 ]; then simulator_test_status=1; fi
@@ -369,6 +374,7 @@ jobs:
           xcodebuild "${xcodebuild_args[@]}" \
             -destination "platform=iOS Simulator,id=$simulator_id" \
             -resultBundlePath "$RUNNER_TEMP/ios-configuration.xcresult" test-without-building
+          retain_selected_simulator=1
       - name: Save iOS configuration test results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -389,8 +395,6 @@ jobs:
             -parallel-testing-enabled NO -jobs 2
             CODE_SIGNING_ALLOWED=NO
           )
-          xcodebuild "${xcodebuild_args[@]}" \
-            -destination 'generic/platform=iOS Simulator' build-for-testing
           simulator_id="$IOS_CONFIGURATION_SIMULATOR"
           shutdown_selected_simulator() {
             simulator_test_status=$?
@@ -404,6 +408,8 @@ jobs:
           trap shutdown_selected_simulator EXIT
           trap 'exit 130' INT
           trap 'exit 143' TERM
+          xcodebuild "${xcodebuild_args[@]}" \
+            -destination 'generic/platform=iOS Simulator' build-for-testing
           xcrun simctl bootstatus "$simulator_id" -b
           xcodebuild "${xcodebuild_args[@]}" \
             -destination "platform=iOS Simulator,id=$simulator_id" \
@@ -416,6 +422,30 @@ jobs:
           path: ${{ runner.temp }}/apple-profiles-ios.xcresult
           if-no-files-found: warn
           retention-days: 7
+      - name: Stop the selected iPhone before tvOS
+        if: always()
+        run: |
+          if [ -z "${IOS_CONFIGURATION_SIMULATOR:-}" ]; then
+            exit 0
+          fi
+          simulator_id="$IOS_CONFIGURATION_SIMULATOR"
+          simulator_state="$(python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          inventory = json.loads(subprocess.check_output(
+              ['xcrun', 'simctl', 'list', 'devices', 'available', '-j'], text=True))
+          for devices in inventory['devices'].values():
+              for device in devices:
+                  if device.get('udid') == os.environ['IOS_CONFIGURATION_SIMULATOR']:
+                      print(device['state'])
+                      raise SystemExit(0)
+          raise SystemExit('The selected iPhone was not found during cleanup.')
+          PY
+          )"
+          if [ "$simulator_state" != "Shutdown" ]; then
+            xcrun simctl shutdown "$simulator_id"
+          fi
       - name: Test tvOS Profiles controls in English and Japanese
         if: ${{ !cancelled() && (success() || steps.ios_profiles.outcome == 'failure') }}
         run: |
