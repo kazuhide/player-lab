@@ -22,8 +22,25 @@
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/test-results/#web-startup-2026-11-01",
           "label": "記録済みの起動比較（2026-11-01）"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/kazuhide/player-lab/b02b242232c661360c5304ba3493b511e8e028bd/docs/web-startup-results-2026-11-01.json",
+          "label": "記録済みのレポートデータ（JSON）"
         }
       ]
+    },
+    {
+      "type": "h2",
+      "id": "player-web-x",
+      "text": "Player Web X"
+    },
+    {
+      "type": "p",
+      "text": "Player Web XはBitmovinのWeb向けプレイヤーSDK（組み込み用ライブラリ）です。機能をまとめたバンドルを使うほか、必要な機能のパッケージを組み合わせたり、プラグインで機能を追加したりできます。比較画面は公開npmパッケージの@bitmovin/player-web-xを使い、Web XのPlayer APIとSource APIで再生を制御します。"
+    },
+    {
+      "type": "p",
+      "text": "通常のWeb版はPlayer v8を使い、設定やテーマ、APIを試すための画面です。起動比較はWeb X、hls.js、Shaka Playerを対象とする別画面で、開始時間と比較用の設定を扱います。Web Xにはv8互換レイヤーを使わず、Web XのAPIを直接呼び出します。"
     },
     {
       "type": "h2",
@@ -206,6 +223,18 @@
     }
   ],
   "sources": [
+    {
+      "url": "https://bitmovin.com/player-web-x",
+      "label": "Player Web Xの製品概要"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/player-web-x-getting-started",
+      "label": "Web Xのバンドル・パッケージ・APIの導入手順"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/player-web-x-v8-compatibility",
+      "label": "Player v8との互換性と制約"
+    },
     {
       "url": "https://wicg.github.io/video-rvfc/",
       "label": "映像フレーム通知の定義"

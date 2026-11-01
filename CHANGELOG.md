@@ -5,14 +5,28 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 
 ## Unreleased
 
-- Apply the live-rewind preference to the embedded iOS, iPadOS and React Native
-  controls without replacing playback. Explain the tvOS System UI limitation
-  beside its disabled runtime preference.
-- Disable API operations when the current source, ad, track or display target
-  does not meet their prerequisites. Check again before execution and retain
-  selected operations and argument drafts across source changes.
-- Keep the Web live-rewind buttons consistent with the embedded seek bar and
-  document advertising, insertion and Analytics notification prerequisites.
+## 0.2.0
+
+- Add a separate Web startup comparison for Player Web X, hls.js and Shaka
+  Player, with common playback conditions, SDK import modes, candidate screening
+  and independent confirmation. Publish the dated comparison tables and data;
+  results remain specific to their recorded conditions.
+- Save comparison outcomes, settings, SDK versions, timing intervals and safe
+  observations as JSON. Schema 2 adds save and trial-start UTC timestamps and
+  coarse startup environments, retaining explicit reasons for unknown values.
+- Add named configuration profiles across the Web and native labs, with local
+  drafts and SDK-version checks before applying a saved profile.
+- Add independent Android learning and sports streaming references, with
+  English and Japanese setup and implementation guides. Their optional quality
+  dashboards separate key-free demo data from explicitly fetched Analytics
+  results and support report exports and Bitmovin Dashboard links.
+- Apply live-rewind preferences to supported embedded controls and disable API
+  operations whose current source or playback state does not meet prerequisites.
+  Preserve operation selections and argument drafts across source changes.
+- Introduce Player Web X in the English and Japanese Web guide and home pages,
+  while keeping the Player v8 configuration and UI lab as the main Web app.
+
+See the [release notes](docs/releases/0.2.0.md) for setup and comparison limits.
 
 ## 0.1.5
 

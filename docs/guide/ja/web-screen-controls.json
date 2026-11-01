@@ -1057,18 +1057,18 @@
     {
       "type": "h2",
       "id": "startup-comparison",
-      "text": "起動比較"
+      "text": "Player Web X"
     },
     {
       "type": "p",
-      "text": "起動比較では素材と設定条件をそろえてPlayer Web X、hls.js、Shakaを比較します。条件の選び方、個別の成否、所要時間の集計は専用のガイドで説明します。"
+      "text": "Player Web Xの概要と、hls.js、Shaka Playerとの起動比較を別ページで説明しています。条件を選んで再生し、個別の成否と所要時間を確認できます。"
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-comparison/",
-          "label": "起動比較の画面と操作"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-comparison/#player-web-x",
+          "label": "Player Web Xと起動比較"
         }
       ]
     }

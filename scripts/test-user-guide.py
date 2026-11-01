@@ -334,6 +334,26 @@ class GuideTests(unittest.TestCase):
                              'web-sdk-differences', 'sdk-callback'}.issubset(figures))
             self.assertTrue(any(b['type'] == 'h3' for b in web['blocks']))
 
+    def test_web_x_introduction_is_reachable_with_the_live_comparison_and_recorded_data(self):
+        dataset = ('https://raw.githubusercontent.com/kazuhide/player-lab/'
+                   'b02b242232c661360c5304ba3493b511e8e028bd/'
+                   'docs/web-startup-results-2026-11-01.json')
+        for language in ('en', 'ja'):
+            with self.subTest(language=language):
+                landing = Links()
+                landing.feed((ROOT / 'site' / ('ja/index.html' if language == 'ja' else 'index.html')).read_text())
+                self.assertIn('guide/web-startup-comparison/#player-web-x', landing.links)
+                self.assertIn(('../' if language == 'ja' else '') + 'web/comparison.html', landing.links)
+                self.assertIn('guide/test-results/#web-startup-2026-11-01', landing.links)
+                comparison = Links()
+                comparison.feed(self.pages[route_file(language, 'web-startup-comparison')].decode())
+                self.assertIn('player-web-x', comparison.ids)
+                self.assertIn(dataset, comparison.links)
+                operation = self.content[language]['web-screen-controls']
+                self.assertTrue(any(block['type'] == 'links' and any(
+                    item['url'].endswith('/web-startup-comparison/#player-web-x')
+                    for item in block['items']) for block in operation['blocks']))
+
     def test_subheadings_are_escaped_and_keep_their_section_bookmarks(self):
         self.assertEqual(render_block({'type': 'h3', 'text': 'API <value>'}, 'en',
                                       route_file('en', 'web-screen-controls'), 'api-detail'),
