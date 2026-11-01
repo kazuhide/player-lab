@@ -29,7 +29,7 @@ async function boot(): Promise<void> {
   video.playbackRate = 1;
   performance.setResourceTimingBufferSize(1000);
   let preloaded: { start: number; end: number } | undefined;
-  if (mode === "preloaded") preloaded = await preloadEngine(engine as EngineId);
+  if (mode === "preloaded") preloaded = await preloadEngine(engine as EngineId, parent.performance);
   window.addEventListener("message", async (event: MessageEvent<unknown>) => {
     if (event.source !== parent || event.origin !== location.origin || typeof event.data !== "object" || !event.data) return;
     const data = event.data as Record<string, unknown>;
@@ -46,7 +46,7 @@ async function boot(): Promise<void> {
       engine: engine as EngineId, video, container, url: source.href,
       licenseKey: import.meta.env.VITE_BITMOVIN_PLAYER_LICENSE_KEY ?? "",
       selectedAt: data.selectedAt, profile: data.profile as "default" | "startup",
-      tuning: data.tuning, signal: controller.signal, ...(preloaded ? { preloaded } : {}),
+      tuning: data.tuning, signal: controller.signal, clock: parent.performance, ...(preloaded ? { preloaded } : {}),
     });
     reply("result", { result });
   });
