@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SourceConfig } from "bitmovin-player";
 
 const runtime = vi.hoisted(() => ({
+  profileData: null as string | null, profileWriteFailure: false,
   players: [] as Array<{ config: object; load: ReturnType<typeof vi.fn>; destroy: ReturnType<typeof vi.fn>; listeners: Map<string, Set<() => void>> }>,
   videos: [] as Array<{ deinitializeSync: ReturnType<typeof vi.fn> }>,
   initialization: null as Promise<void> | null,
@@ -13,7 +14,7 @@ const runtime = vi.hoisted(() => ({
   appStateListeners: new Set<(state: string) => void>(),
 }));
 vi.mock("react-native", () => ({
-  Button: "Button", Pressable: "Pressable", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
+  Modal: "Modal", Button: "Button", Pressable: "Pressable", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
   StyleSheet: { create: <T,>(styles: T) => styles },
   NativeModules: {},
   Platform: { OS: "android", Version: 36 },
@@ -35,6 +36,11 @@ vi.mock("bitmovin-player/modules/bitmovinplayer-core", async () => {
     NetworkRequestApi: { Fetch: "fetch", XHR: "xhr" },
   };
 });
+
+vi.mock("../src/profileStorage", () => ({ createProfileIO: () => ({
+  read: async () => runtime.profileData,
+  write: async (value: string) => { if (runtime.profileWriteFailure) throw new Error("storage unavailable"); runtime.profileData = value; },
+}) }));
 
 vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
   KeplerVideoSurfaceView: "KeplerVideoSurfaceView",
@@ -107,6 +113,7 @@ function vodState() {
 }
 beforeEach(() => {
   vi.stubGlobal("crypto", undefined);
+  runtime.profileData = null; runtime.profileWriteFailure = false;
   runtime.players.length = 0;
   runtime.videos.length = 0;
   runtime.initialization = null;
@@ -917,5 +924,54 @@ describe("Vega configuration in the mounted App and media session", () => {
     await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("fresh-surface"));
     expect(runtime.players).toHaveLength(2);
     expect(current().load).toHaveBeenCalledWith(expect.objectContaining({ dash: "https://example.com/latest.mpd" }));
+  });
+});
+
+
+async function profileTap(testID: string) { await act(async () => element("Pressable", { testID }).props.onPress()); }
+describe("named configuration drafts in the mounted Vega App", () => {
+  it("saves and restores after restart without SDK effects until the existing Apply action, then deletes durably", async () => {
+    await mount(); await press("Show configuration");
+    await act(async () => element("Switch", { accessibilityLabel: "Autoplay" }).props.onValueChange(false));
+    await profileTap("configuration-profile-toggle"); await text("Configuration name", "Autoplay test");
+    const original = current(); const count = runtime.players.length; const loads = original.load.mock.calls.length;
+    await profileTap("configuration-profile-save");
+    expect(runtime.profileData).toContain("Autoplay test");
+    expect(runtime.players.length).toBe(count); expect(original.load).toHaveBeenCalledTimes(loads); expect(original.destroy).not.toHaveBeenCalled();
+    await act(async () => screen.unmount()); await mount();
+    const restarted = current(); const restartedCount = runtime.players.length; const restartedLoads = restarted.load.mock.calls.length;
+    await profileTap("configuration-profile-toggle"); await profileTap("configuration-profile-restore");
+    expect(runtime.players.length).toBe(restartedCount); expect(restarted.load).toHaveBeenCalledTimes(restartedLoads); expect(restarted.destroy).not.toHaveBeenCalled();
+    await press("Show configuration"); expect(element("Switch", { accessibilityLabel: "Autoplay" }).props.value).toBe(false);
+    await press("Apply and recreate player");
+    expect(runtime.players.length).toBe(restartedCount + 1);
+    expect(Reflect.get(current().config, "playback").autoplay).toBe(false);
+    await profileTap("configuration-profile-delete"); await profileTap("configuration-profile-cancel");
+    expect(runtime.profileData).toContain("Autoplay test");
+    await profileTap("configuration-profile-delete"); await profileTap("configuration-profile-confirm");
+    expect(JSON.parse(runtime.profileData!).profiles).toEqual([]);
+  });
+  it.each(["Source", "Default"])("requires SDK mismatch confirmation and preserves the opaque %s name in Japanese", async profileName => {
+    await mount(); await profileTap("configuration-profile-toggle"); await text("Configuration name", profileName); await profileTap("configuration-profile-save");
+    const envelope = JSON.parse(runtime.profileData!); envelope.profiles[0].sdkVersion = "99.0.0"; runtime.profileData = JSON.stringify(envelope);
+    await act(async () => screen.unmount()); await mount(); await profileTap("configuration-profile-toggle");
+    const original = current(); const count = runtime.players.length; const loads = original.load.mock.calls.length;
+    await profileTap("configuration-profile-restore"); await profileTap("configuration-profile-cancel");
+    await profileTap("configuration-profile-restore"); await profileTap("configuration-profile-confirm");
+    expect(runtime.players.length).toBe(count); expect(original.load).toHaveBeenCalledTimes(loads); expect(original.destroy).not.toHaveBeenCalled();
+    await press("日本語"); await profileTap("configuration-profile-picker");
+    expect(element("Pressable", { testID: "configuration-profile-option-0" }).props.accessibilityLabel).toBe(profileName);
+    await profileTap("configuration-profile-option-0");
+  });
+  it("reports failed saves and refuses corrupt stored data without changing playback", async () => {
+    await mount(); await profileTap("configuration-profile-toggle"); await text("Configuration name", "Failed write");
+    const original = current(); const count = runtime.players.length; const loads = original.load.mock.calls.length;
+    runtime.profileWriteFailure = true; await profileTap("configuration-profile-save");
+    expect(runtime.profileData).toBeNull();
+    expect(screen.root.findAll(node => String(node.type) === "Text" && node.props.children === "Saved configurations could not be read or written.")).toHaveLength(1);
+    runtime.profileWriteFailure = false; runtime.profileData = "corrupt";
+    await profileTap("configuration-profile-retry");
+    expect(screen.root.findAll(node => String(node.type) === "Text" && node.props.children === "This saved configuration contains unsupported or invalid fields.")).toHaveLength(1);
+    expect(runtime.players.length).toBe(count); expect(original.load).toHaveBeenCalledTimes(loads); expect(original.destroy).not.toHaveBeenCalled();
   });
 });

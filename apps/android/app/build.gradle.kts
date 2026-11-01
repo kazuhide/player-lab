@@ -35,7 +35,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
 }
 
 dependencies {
@@ -72,3 +72,11 @@ dependencies {
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
+
+// Read the declared pin so release automation can keep its direct dependency literals.
+val profilePlayerDependency = configurations.getByName("implementation").dependencies
+    .singleOrNull { it.name == "player" }
+    ?: error("Expected one declared Player dependency for configuration profiles.")
+val profilePlayerVersion = profilePlayerDependency.version
+    ?: error("The Player SDK version is required for configuration profiles.")
+android.defaultConfig.buildConfigField("String", "PLAYER_SDK_VERSION", "\"$profilePlayerVersion\"")

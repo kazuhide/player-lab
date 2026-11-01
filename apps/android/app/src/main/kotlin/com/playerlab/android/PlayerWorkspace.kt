@@ -119,16 +119,17 @@ internal fun PlayerWorkspace(controller: PlayerController) {
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     RetainedWorkspacePage(tab == WorkspaceTab.Settings) {
                         Column(Modifier.fillMaxSize()) {
-                            WorkspaceHeader(!keyboardVisible) { WorkspacePicker("Configuration", if (settingsPage == "SDK overrides") settingsPage else configuration.group,
-                                listOf("Source", "Player", "SDK overrides").map { it to it },
+                            WorkspaceHeader(!keyboardVisible) { WorkspacePicker("Configuration", if (settingsPage in listOf("SDK overrides", "Profiles")) settingsPage else configuration.group,
+                                listOf("Source", "Player", "SDK overrides", "Profiles").map { it to it },
                                 "settings-page", compact = true, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
                                 settingsPage = it
-                                if (it != "SDK overrides") { configuration.group = it; configuration.selected = configurationItems.first { item -> item.group == it }.id }
+                                if (it in listOf("Source", "Player")) { configuration.group = it; configuration.selected = configurationItems.first { item -> item.group == it }.id }
                                 focus.clearFocus()
                             } }
                             Box(Modifier.weight(1f)) {
-                                RetainedWorkspacePage(settingsPage != "SDK overrides") { ConfigurationPanel(controller, configuration) }
+                                RetainedWorkspacePage(settingsPage in listOf("Source", "Player")) { ConfigurationPanel(controller, configuration) }
                                 RetainedWorkspacePage(settingsPage == "SDK overrides") { ApiConfigurationPanel(controller, overrides) }
+                                RetainedWorkspacePage(settingsPage == "Profiles") { ConfigurationProfilesPanel(configuration, overrides) }
                             }
                         }
                     }

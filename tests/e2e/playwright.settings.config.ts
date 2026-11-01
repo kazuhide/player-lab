@@ -6,7 +6,7 @@ if (!process.env.E2E_SETTINGS_MEDIA_DIR) {
 
 export default defineConfig({
   testDir: "./specs",
-  testMatch: ["settings-state.spec.ts", "api-explorer.spec.ts", "discovery.spec.ts"],
+  testMatch: ["settings-state.spec.ts", "api-explorer.spec.ts", "discovery.spec.ts", "configuration-profiles.spec.ts"],
   timeout: 30_000,
   expect: { timeout: 5_000 },
   fullyParallel: false,

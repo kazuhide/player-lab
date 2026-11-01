@@ -49,9 +49,9 @@ export function WorkspacePage({ active, children, testID }: { active: boolean; c
     importantForAccessibility={active ? "auto" : "no-hide-descendants"}>{children}</View>;
 }
 
-export function WorkspaceChoice({ label, selected, options, onSelect, testID }: {
+export function WorkspaceChoice({ label, selected, options, onSelect, testID, translateChoices = true, disabled = false }: {
   label: string; selected: string; options: ReadonlyArray<{ id: string; label: string; unavailable?: string | undefined }>;
-  onSelect: (id: string) => void; testID: string;
+  onSelect: (id: string) => void; testID: string; translateChoices?: boolean; disabled?: boolean;
 }): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
@@ -60,11 +60,12 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
   useEffect(() => () => change(owner, false), [change, owner]);
   const { language } = useLocale();
   const compact = useWindowDimensions().height < 500;
+  const optionLabel = (value: string) => translateChoices ? translateCopy(value, language) : value;
   const current = options.find(option => option.id === selected);
   const query = filter.toLocaleLowerCase();
-  const matches = options.filter(option => `${option.id} ${option.label} ${translateCopy(option.label, language)}`.toLocaleLowerCase().includes(query));
+  const matches = options.filter(option => `${option.id} ${option.label} ${optionLabel(option.label)}`.toLocaleLowerCase().includes(query));
   const exactMatch = (option: { id: string; label: string }) =>
-    [option.id, option.label, translateCopy(option.label, language)].some(value => {
+    [option.id, option.label, optionLabel(option.label)].some(value => {
       const normalized = value.toLocaleLowerCase();
       return normalized === query || normalized.slice(normalized.lastIndexOf(".") + 1) === query;
     });
@@ -73,10 +74,10 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
   const close = () => { Keyboard.dismiss(); setOpen(false); change(owner, false); };
   return <View style={styles.choice}>
     <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={label}
-      accessibilityValue={{ text: translateCopy(current?.label ?? selected, language) }}
-      onPress={() => { Keyboard.dismiss(); setFilter(""); setOpen(true); change(owner, true); }} style={styles.choiceButton}>
+      accessibilityValue={{ text: optionLabel(current?.label ?? selected) }} accessibilityState={{ disabled }} disabled={disabled}
+      onPress={() => { Keyboard.dismiss(); setFilter(""); setOpen(true); change(owner, true); }} style={[styles.choiceButton, disabled && styles.disabled]}>
       <Text maxFontSizeMultiplier={1.3} style={styles.choiceLabel}>{label}</Text>
-      <Text maxFontSizeMultiplier={1.3} style={styles.choiceValue}>{current?.label ?? selected}</Text>
+      <Text verbatim={!translateChoices} maxFontSizeMultiplier={1.3} style={styles.choiceValue}>{current?.label ?? selected}</Text>
     </Pressable>
     {open && <Modal transparent visible onRequestClose={close} animationType="fade" supportedOrientations={["portrait", "landscape"]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -90,10 +91,10 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
           </View>
           <ScrollView keyboardShouldPersistTaps="handled" style={styles.options}>
             {matches.map(option => <Pressable key={option.id} testID={`${testID}-option-${option.id}`}
-              accessibilityRole="button" accessibilityLabel={option.label} accessibilityState={{ selected: selected === option.id, disabled: Boolean(option.unavailable) }}
+              verbatim={!translateChoices} accessibilityRole="button" accessibilityLabel={optionLabel(option.label)} accessibilityState={{ selected: selected === option.id, disabled: Boolean(option.unavailable) }}
               disabled={Boolean(option.unavailable)} accessibilityHint={option.unavailable ? translateCopy(option.unavailable, language) : undefined}
               onPress={() => { if (!option.unavailable) { onSelect(option.id); close(); } }} style={[styles.option, selected === option.id && styles.selectedTab, option.unavailable && styles.disabled]}>
-              <View style={{ flex: 1 }}><Text style={styles.optionText}>{option.label}</Text>
+              <View style={{ flex: 1 }}><Text verbatim={!translateChoices} style={styles.optionText}>{option.label}</Text>
               {option.unavailable && <Text style={styles.choiceLabel}>{option.unavailable}</Text>}</View>
               {selected === option.id && <Text accessibilityElementsHidden>✓</Text>}
             </Pressable>)}

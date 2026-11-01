@@ -51,7 +51,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/ade5442bf8c92ded898b60031d1800498e15ced6/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/d8de54d2dc9899c2acfd1749d65c65833637ac10/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README：Expoホストの生成とビルド"
         }
       ]
@@ -241,6 +241,68 @@
     {
       "type": "p",
       "text": "コールバックの欄にはJSONではなくJavaScript関数の本体を入力します。編集した関数を組み込むには、実行を許可してから適用します。ハンドラーの生成処理は適用とプレイヤーの再作成時に、SDKのコールバックはSDKから呼ばれた時に動作します。コールバックを設定した状態でソースのサンプルを選ぶ場合もプレイヤーを再作成します。コードは隔離されずにこのアプリ内で実行します。ネットワークのコールバックはPromiseを返せますが、同期コールバックは同期的に返す必要があります。戻り値は選択した関数の要件に照らして検証し、DRMのコールバックにはライセンスURLが必要です。"
+    },
+    {
+      "type": "h3",
+      "id": "named-configurations",
+      "text": "設定に名前を付けて保存・再利用する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "「設定」で保存する設定を編集してから、「設定区分」→「保存した設定」を開きます。",
+        "設定名を入力して「下書きを保存」を押します。同名の設定がある場合は、置き換えるか確認します。",
+        "保存した設定を選び、「下書きに読み込む」を押します。「変更」で内容を確認してから「設定を適用」を押すと、Playerを作成し直します。保存や読み込みだけではSDKの呼び出し、ソースの再読み込み、再生状態の変更は行いません。",
+        "「保存した設定を削除」を押し、確認すると選択中の設定を削除します。保存した設定はアプリを再起動しても利用できます。"
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "保存範囲",
+        "動作"
+      ],
+      "rows": [
+        [
+          "基本設定",
+          "ソース形式、開始位置と基準、自動再生、ミュート、先読みバッファ量、最大ビットレート。"
+        ],
+        [
+          "組み込みソース",
+          "公開URLと形式が組み込みソースに完全一致した場合だけ、プリセットIDを保存します。任意URLは保存しません。プリセットを保存していない設定を読み込む場合は、現在のURLが残ります。"
+        ],
+        [
+          "詳細設定",
+          "再生、バッファ、画質の自動選択、ライブ再生、一部のUI・Tweak設定のうち、明示的に対応した数値・真偽値・固定選択値です。許可項目の一覧はconfigurationProfiles.tsにあります。iOSホストとAndroidホストでは、別々に保存します。"
+        ],
+        [
+          "保存しない項目",
+          "Player・Analytics・DRMのキー、認証情報とヘッダー、任意URL、タイトルなどの自由入力、字幕、リスト、コールバック、スクリプト、メタデータ、実行時のリソース。これらの項目には、読み込み時も現在の下書きの値が残ります。"
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.77
+      ]
+    },
+    {
+      "type": "p",
+      "text": "読み込み時は保存対象の設定を一式置き換えます。保存時に未指定だった対応項目は、後から詳細設定で値を入れていても、未指定に戻ります。保存対象外の入力は変更しません。設定名はUnicodeの合成形（NFC）に正規化し、合成後のコードポイント数で1〜48文字に制限します。保存上限は20件、1件8 KiB、全体128 KiBです。未対応の保存形式、プラットフォーム、項目、型、破損データはエラーになります。保存時とSDKバージョンが異なる場合は、対応項目と値を検証した上で、読み込むか確認します。自動では適用しません。"
+    },
+    {
+      "type": "code",
+      "title": "Playerへ適用せず、編集用データだけを復元する",
+      "text": "export function restoreProfile(profile: ConfigurationProfile, current: ConfigurationDraft, platform: ProfilePlatform, confirmSdk = false): ConfigurationDraft {\n  const validated = validateProfile(profile, platform);\n  if (validated.sdkVersion !== CURRENT_SDK_VERSION && !confirmSdk) throw new ConfigurationProfileError(\"sdk\");\n  const preset = validated.sourcePreset === null ? null : presetForId(validated.sourcePreset, platform);\n  return draftFromProfile(validated, current, preset);\n}",
+      "source": {
+        "path": "apps/react-native/src/configurationProfiles.ts",
+        "line": 187,
+        "label": "configurationProfiles.ts:187–192"
+      },
+      "endLine": 192
+    },
+    {
+      "type": "p",
+      "text": "Expoホストでは、検証済みのJSONをexpo-file-systemでアプリ専用のdocuments領域に保存します。導入バージョンのFile.moveのiOS実装は上書き先を先に削除するため、置き換え前の内容をバックアップに残します。書き込みの中断で主ファイルが消えた場合は、「保存した設定を復旧」で確認してから前回の一覧に戻せます。下書きへの読み込みや設定の適用は行いません。主ファイルが壊れている場合は、黙ってバックアップへ切り替えずエラーを表示します。この機能による暗号化は行いません。OSのバックアップに含まれる場合があります。保存と読み込みにアカウントAPIやネットワーク通信は不要です。"
     },
     {
       "type": "h2",
@@ -699,6 +761,16 @@
       "path": "apps/react-native/src/liveRewindChannel.ts",
       "line": 1,
       "label": "埋め込みUIへ設定を伝える処理"
+    },
+    {
+      "path": "apps/react-native/src/configurationProfiles.ts",
+      "line": 1,
+      "label": "ローカル設定の許可項目・検証・下書きへの復元"
+    },
+    {
+      "path": "apps/react-native/src/profileStorage.ts",
+      "line": 1,
+      "label": "アプリ専用の保存先と失敗時の処理"
     }
   ]
 }

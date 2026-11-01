@@ -487,4 +487,40 @@
     <string name="ui_api_vr_callback_required" formatted="false">選択した更新コールバックを登録してください。</string>
     <string name="ui_api_surface_ready_required" formatted="false">SurfaceViewの有効な描画先が必要です。</string>
     <string name="ui_api_texture_view_required" formatted="false">PlayerViewConfigでTextureViewを選んで適用してください。</string>
+    <string name="ui_profiles">プロファイル</string>
+    <string name="ui_profile_selected">保存したプロファイル</string>
+    <string name="ui_profile_choose">プロファイルを選択</string>
+    <string name="ui_profile_name">プロファイル名</string>
+    <string name="ui_profile_save">保存</string>
+    <string name="ui_profile_restore">下書きへ読み込む</string>
+    <string name="ui_profile_delete">削除</string>
+    <string name="ui_profile_fields">保存する項目</string>
+    <string name="ui_profile_empty">保存したプロファイルはありません。</string>
+    <string name="ui_profile_saved">プロファイルを保存しました。</string>
+    <string name="ui_profile_deleted">プロファイルを削除しました。</string>
+    <string name="ui_profile_restored">下書きへ読み込みました。再生にはまだ反映していません。</string>
+    <string name="ui_profile_drafts_only">下書きへ読み込み、各設定を確認してから適用します。</string>
+    <string name="ui_profile_replace_title">保存済みの内容を置き換えますか？</string>
+    <string name="ui_profile_sdk_different">SDKのバージョンが異なります</string>
+    <string name="ui_profile_clear">保存したプロファイルを削除</string>
+    <string name="ui_profile_clear_title">保存したプロファイルをすべて削除しますか？</string>
+    <string name="ui_profile_delete_title">このプロファイルを削除しますか？</string>
+    <string name="ui_profile_clear_notice">保存したプロファイルを削除します。現在の下書きと再生は変わりません。</string>
+    <string name="ui_profile_delete_notice">選択したプロファイルを削除します。現在の下書きと再生は変わりません。</string>
+    <string name="ui_profile_scope">PlayerとSourceの基本設定、および対応するSDKの数値・真偽値（true/false）・選択項目を保存します。映像はアプリに用意したストリームのIDだけを保存します。</string>
+    <string name="ui_profile_excluded">入力したURL、タイトル、ポスター、字幕、認証情報、ヘッダー、メタデータ、Analyticsの設定、スクリプトは保存しません。未対応のSDK設定とテーマの選択も保存対象外です。</string>
+    <string name="ui_profile_retained">保存対象外の項目は読み込み時の下書きの値を残します。Source、Player、SDK設定を確認し、それぞれの適用操作で反映してください。</string>
+    <string name="ui_profile_local">プロファイルはこの端末に保存し、アプリを起動し直しても残ります。最大20件、名前は48文字までです。外部への出力や自動再生は行いません。</string>
+    <string name="ui_profile_error_name">認証情報やリンクを含まない短い名前を入力してください。</string>
+    <string name="ui_profile_error_exists">同じ名前のプロファイルがあります。</string>
+    <string name="ui_profile_error_missing">選択したプロファイルは削除されています。</string>
+    <string name="ui_profile_error_limit">保存件数または保存サイズの上限に達しました。</string>
+    <string name="ui_profile_error_version">保存形式のバージョンに対応していません。</string>
+    <string name="ui_profile_error_platform">別のプラットフォーム用のプロファイルです。</string>
+    <string name="ui_profile_error_unsupported">未対応の設定が含まれています。下書きは変更していません。</string>
+    <string name="ui_profile_error_invalid">保存内容または下書きの値が不正です。下書きは変更していません。</string>
+    <string name="ui_profile_error_storage">保存先を利用できません。操作の完了を確認できませんでした。</string>
+    <string name="ui_profile_error_sdk">SDKのバージョンが異なります。確認してから下書きへ読み込んでください。</string>
+    <string name="ui_profile_sdk_version">保存時のSDK: %1$s</string>
+    <string name="ui_profile_sdk_warning">このプロファイルはSDK %1$s、現在のアプリは%2$sです。既知の設定項目は検証済みです。下書きへ読み込んで内容を確認してから適用してください。</string>
 </resources>

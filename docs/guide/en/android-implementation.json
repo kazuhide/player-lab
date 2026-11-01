@@ -367,6 +367,57 @@
       "text": "Execution is bounded, with no Java, Android or Player object access. Invalid results or exhausted budgets use the documented fallback. Zero calls means the SDK has not invoked that path. The interpreter is an app helper."
     },
     {
+      "type": "h3",
+      "id": "saved-configurations",
+      "text": "Save and restore configuration drafts"
+    },
+    {
+      "type": "p",
+      "text": "In Settings, select Profiles to keep named evaluation settings in this Android app. A profile stores supported draft values, not SDK objects or current playback state. Saving or selecting a profile does not apply settings, reload a source or run an API."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Edit Source, Player or supported staged SDK settings, then choose Profiles. Enter a name and select Save profile. Replacing an existing name requires confirmation.",
+        "After an app restart, open Profiles, choose the saved name and select Load draft. If the SDK version has changed, review the warning and confirm before any draft is restored.",
+        "Review Source, Player and SDK overrides, then use their existing Apply actions for the sections you want to change. A supported override that was absent from the saved profile is cleared from the draft; excluded current fields remain unchanged.",
+        "To remove a saved entry, select it and use Delete profile. Deleting a profile does not change current drafts or playback."
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Saved subset",
+        "Excluded or retained at restore"
+      ],
+      "widths": [
+        0.5,
+        0.5
+      ],
+      "rows": [
+        [
+          "Basic Player settings: autoplay, muted start, live time shifting, buffers, bitrate cap, preload, rebuffering, stability balance, audio-language priority and retry delays.",
+          "Player/Analytics/DRM keys, authentication headers, metadata, callback/script content and runtime observations are not saved."
+        ],
+        [
+          "Basic Source settings: format, poster persistence, start offset/reference, live target latency, audio-language priority and legacy constructor. A known built-in stream is stored by its ID.",
+          "Custom URLs, title, poster URL and external subtitle fields are not saved. These fields retain their current draft values; re-enter the desired custom URL and verify its format before applying."
+        ],
+        [
+          "Explicitly supported numeric, true/false and choice SDK overrides, including playback focus/seek, adaptation, live timing, surface and scaling, and built-in Web UI options.",
+          "Other SDK settings and the theme selector are excluded. Load draft replaces the supported subset as a set, so later supported overrides do not remain accidentally enabled."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Profiles support up to 20 entries and names up to 48 Unicode code points. The bounded local format records the Android platform, format version and SDK provenance. Unsupported formats, unknown fields, invalid values and storage failures are reported without applying a partial profile. A different SDK version permits review of validated known settings after confirmation; it does not silently apply them."
+    },
+    {
+      "type": "p",
+      "text": "The profile preferences file is private to this app and excluded from Android backup and device transfer. There is no profile export or automatic restoration at startup. The saved list remains available until you delete entries, clear app storage or uninstall the app. SDK licenses and other session-only configuration continue to use their existing local settings."
+    },
+    {
       "type": "h2",
       "text": "Change the player UI and screen layout",
       "id": "ui-customization",
@@ -450,10 +501,10 @@
       "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                liveRewindViewConfig(controller.apiOverrides.view(playerViewConfig(uiMode, television)), controller.timeShiftEnabled))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
-        "line": 183,
-        "label": "PlayerWorkspace.kt:183–197"
+        "line": 184,
+        "label": "PlayerWorkspace.kt:184–198"
       },
-      "endLine": 197
+      "endLine": 198
     },
     {
       "type": "p",
@@ -1087,6 +1138,18 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-android-samples/blob/main/BasicPlaybackTVKotlin/src/main/java/com/bitmovin/samples/tv/playback/basic/MainActivity.kt",
       "label": "Official Android TV dedicated media-key example"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationProfiles.kt",
+      "label": "Profile allowlist, validation and draft-only restoration"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationProfilesPanel.kt",
+      "label": "Saving, choosing, reviewing and deleting local profiles"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/AndroidConfigurationProfileStorage.kt",
+      "label": "Private profile storage and confirmed writes"
     }
   ]
 }

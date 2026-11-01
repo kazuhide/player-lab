@@ -6,6 +6,7 @@ import { WorkspaceAction, WorkspaceChoice, WorkspacePage } from "./Workspace";
 import { NativeSettingsPanel } from "./NativeSettingsPanel";
 import { NativeArraysPanel } from "./NativeArraysPanel";
 import { NativeScriptsPanel } from "./NativeScriptsPanel";
+import { ConfigurationProfiles } from "./ConfigurationProfilesPanel";
 import { CastHostPanel } from "./CastHostPanel";
 import { panelStyles as styles } from "./panelStyles";
 import type { ConfigurationDifference } from "./differenceValues";
@@ -41,7 +42,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   const compactInputEvents = Platform.OS === "android" && compactBasicEditing
     ? { onLayout: revealCompactInput, onContentSizeChange: revealCompactInput } : {};
   const groups = [{ id: "source", label: "Source" }, { id: "player", label: "Player" },
-    { id: "ui", label: "UI settings" }, { id: "sdk", label: "SDK overrides" }, { id: "arrays", label: "Subtitles and ads" },
+    { id: "profiles", label: "Saved configurations" }, { id: "ui", label: "UI settings" }, { id: "sdk", label: "SDK overrides" }, { id: "arrays", label: "Subtitles and ads" },
     { id: "callbacks", label: "JavaScript callbacks" }, { id: "cast", label: "Cast startup settings" }];
   const sourceFields = [{ id: "url", label: "Source URL" }, { id: "type", label: "Source type" },
     { id: "title", label: "Source title" }, { id: "poster", label: "Poster URL" },
@@ -85,6 +86,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         <Text>Editing</Text><WorkspaceAction title="Done" onPress={() => Keyboard.dismiss()} />
       </View>}
       <ScrollView ref={editor} {...compactInputEvents} testID="configuration-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
+      <WorkspacePage active={group === "profiles"}><ConfigurationProfiles draft={draft} onChange={onChange} platform={platform} keyboardVisible={keyboardVisible} /></WorkspacePage>
       {group === "source" && <>
         {selected === "url" && field("Source URL", "url")}
         {selected === "type" && <>

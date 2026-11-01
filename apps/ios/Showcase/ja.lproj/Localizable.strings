@@ -646,3 +646,37 @@
 "Enable BitmovinUserInterfaceConfig.customMessageHandler and apply the player configuration first." = "先にBitmovinUserInterfaceConfig.customMessageHandlerを有効にし、プレイヤー設定を適用してください。";
 "tvOS System UI does not support changing rewind control visibility during playback." = "tvOSのSystem UIでは、再生中に巻き戻し操作の表示を切り替えられません。";
 "This control requires the bundled Player Lab Web UI." = "この操作にはアプリに同梱されたPlayer Lab Web UIが必要です。";
+
+/* Named configuration profiles */
+"Profiles" = "プロファイル";
+"Profile name" = "プロファイル名";
+"Saved profiles" = "保存済みプロファイル";
+"Choose a profile" = "プロファイルを選択";
+"Save" = "保存";
+"Save profile" = "プロファイルを保存";
+"Restore draft" = "下書きに復元";
+"Delete" = "削除";
+"Delete profile" = "プロファイルを削除";
+"Saved fields" = "保存する項目";
+"Saved SDK: %@ · Current SDK: %@" = "保存時のSDK：%@・現在のSDK：%@";
+"Clear saved profiles" = "保存済みプロファイルを消去";
+"Replace profile" = "プロファイルを置換";
+"Revalidate and restore" = "再検証して復元";
+"Profiles save a limited settings subset on this device. Restore only edits the draft; use Apply separately." = "プロファイルには設定の一部をこの端末に保存します。復元は下書きだけを変更します。適用は別途行ってください。";
+"Saves playback flags, start position, track language preferences, bitrate, buffer, scaling and 19 supported primitive SDK overrides. A built-in public source is saved only when its exact URL and type match. Other URLs, titles, posters, metadata, credentials, headers and scripts stay in the current draft." = "再生フラグ、開始位置、トラックの言語設定、ビットレート、バッファ、拡大方法、対応するSDKの19項目を保存します。公開の組込み素材は、URLと形式が完全に一致した場合だけ保存します。そのほかのURL、タイトル、ポスター、メタデータ、認証情報、ヘッダー、スクリプトは現在の下書きに残します。";
+"Up to 20 profiles; 1–48 Unicode code points per name, 8 KiB per profile and 128 KiB in total. iOS and tvOS profiles are separate and excluded from backup." = "最大20件まで保存できます。名前はUnicodeの1〜48コードポイント、1件8KiB、全体128KiBが上限です。iOSとtvOSの保存データは別々で、バックアップには含めません。";
+"Replace the saved profile with this name?" = "同じ名前の保存済みプロファイルを置き換えますか？";
+"This profile uses a different SDK version. Revalidate the supported fields and restore them to the draft? Playback will not change." = "保存時と現在のSDKのバージョンが異なります。対応項目を再検証して下書きに復元しますか？再生状態は変わりません。";
+"Delete the selected saved profile? The draft and playback will not change." = "選択した保存済みプロファイルを削除しますか？下書きと再生状態は変わりません。";
+"Clear all saved profiles on this device? The draft and playback will not change." = "この端末の保存済みプロファイルをすべて消去しますか？下書きと再生状態は変わりません。";
+"Profile restored to draft. Review the settings, then use Apply." = "下書きに復元しました。設定を確認してから適用してください。";
+"Saved profiles updated. The draft and playback are unchanged." = "保存済みプロファイルを更新しました。下書きと再生状態は変わっていません。";
+"Saved profiles contain unsupported data. Clear saved profiles to start again." = "保存済みプロファイルに対応していないデータが含まれています。保存済みプロファイルを消去すると、保存をやり直せます。";
+"Use a profile name of 1–48 characters: letters, numbers, spaces, or . - _ ( )." = "名前は1〜48文字で入力してください。文字、数字、空白、. - _ ( )を使えます。";
+"Profiles are limited to 20 entries, 8 KiB per entry and 128 KiB in total." = "保存できるのは20件、1件8KiB、全体128KiBまでです。";
+"A profile with this name already exists. Confirm replacement." = "同じ名前のプロファイルがあります。置き換えるか確認してください。";
+"This profile was saved with a different SDK. Confirm restoration after revalidation." = "保存時と現在のSDKが異なります。再検証してから復元を確認してください。";
+"Saved profiles could not be read. Existing saved data was retained." = "保存済みプロファイルを読み込めませんでした。保存データはそのまま残しています。";
+"Profiles could not be saved. Existing saved data was retained." = "プロファイルを保存できませんでした。これまでの保存データはそのまま残しています。";
+
+"Some profile fields are invalid in the draft. Correct them before saving." = "下書きの保存対象の項目に正しくない値があります。修正してから保存してください。";

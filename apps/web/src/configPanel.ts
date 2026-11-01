@@ -16,7 +16,7 @@
  * the separate schema-driven API explorer. The control panel handles UI behavior
  * and live rewind through PlaybackConfig.timeShift.
  */
-import type { PlayerAPI, PlayerConfig, SourceConfig, DynamicAdaptationConfig } from "bitmovin-player";
+import { Player, type PlayerAPI, type PlayerConfig, type SourceConfig, type DynamicAdaptationConfig } from "bitmovin-player";
 import { pick, userGuideHref, type L } from "./i18n";
 import { DomLocalization } from "./domLocalization";
 import { configurationValueText, redactConfigurationText, sameConfigurationValue } from "../../../shared/configurationDifferences";
@@ -25,6 +25,8 @@ import { infoChip } from "./infoChip";
 import { applyErrorMessage, configValue, type ApplyOutcome } from "./configState";
 import { javascriptValue } from "./configurationCode";
 import { mountConfigurationCodeView } from "./configurationCodeView";
+import { createProfileRules, validateProfileValues, ProfileError } from "./configurationProfiles";
+import { mountConfigurationProfiles } from "./configurationProfilesView";
 
 /** A minimal recursive partial — PlayerConfig is deeply nested (playback, tweaks, …). */
 export type DeepPartial<T> = { [K in keyof T]?: (T[K] extends object ? DeepPartial<T[K]> : T[K]) | undefined };
@@ -163,6 +165,11 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   const statuses = new Map<Mode, HTMLElement>();
   const resetButtons = new Map<Mode, HTMLButtonElement>();
   const resetters = new Map<FieldDef, () => void>();
+  const profileReaders = new Map<FieldDef, () => string | boolean>();
+  const profileSetters = new Map<FieldDef, (value: string | boolean | null) => void>();
+  const profileUnsets = new Set<FieldDef>();
+  const profileAppliedValues = new Map<FieldDef, unknown>();
+  let profiles: ReturnType<typeof mountConfigurationProfiles> | undefined;
 
   function refreshStatus(): void {
     for (const [mode, element] of statuses) {
@@ -176,6 +183,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   }
 
   function refreshButtons(): void {
+    profiles?.refresh();
     for (const [mode, button] of resetButtons) button.disabled = pending || !groups.some(group => group.mode === mode && group.fields.some(field => staged.has(field)));
     if (applyRecreateBtn) {
       applyRecreateBtn.disabled = pending || !recreateDirty || [...invalid.values()].includes("recreate");
@@ -585,6 +593,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "options.persistentPoster",
+          configPath: "options.persistentPoster",
           kind: "bool",
           initial: false,
           doc: { ja: "再生中もポスター画像を表示します。音声のみのソースで画像を残したい場合に使います。", en: "Keep the poster visible during playback, for example when an audio-only source should retain an image." },
@@ -593,6 +602,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "options.startOffset (s)",
+          configPath: "options.startOffset",
           kind: "number",
           initial: "",
           hint: pick({ ja: "ライブは負値で端から", en: "Negative = behind the live edge" }),
@@ -602,6 +612,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "options.startOffsetTimelineReference",
+          configPath: "options.startOffsetTimelineReference",
           kind: "enum",
           initial: "",
           doc: { ja: "startOffset の基準点。ライブ端からのオフセットには end を指定します。", en: "Reference point for startOffset. Use end to offset from the live edge." },
@@ -750,6 +761,13 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     },
   ];
   const groups = makeGroups();
+  const profileFields = groups.filter(group => group.mode !== "runtime").flatMap(group => group.fields.filter(field => field.configPath).map(field => ({
+    field, key: `${group.mode === "reload" ? "SourceConfig" : "PlayerConfig"}.${field.configPath!}`,
+  })));
+  const profileRules = createProfileRules(profileFields.map(({ key, field }) => ({ key, kind: field.kind,
+    ...(field.options ? { options: field.options.map(option => option.value) } : {}), ...(field.min !== undefined ? { min: field.min } : {}),
+  })));
+  const profileFieldKeys = new Map(profileFields.filter(({ key }) => profileRules.has(key)).map(({ key, field }) => [field, key]));
 
   // --- Render ---
   container.innerHTML = "";
@@ -762,6 +780,31 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   labels.text(guide, { ja: "設定の使い方", en: "Configuration guide" });
   head.append(h2, guide);
   container.appendChild(head);
+  profiles = mountConfigurationProfiles(container, {
+    rules: profileRules, sdkVersion: Player.version, busy: () => pending,
+    capture: () => {
+      const values: Record<string, unknown> = {};
+      for (const { key, field } of profileFields) {
+        if (!profileRules.has(key)) continue;
+        if (invalid.has(field)) throw new ProfileError("setting");
+        const raw = staged.has(field) ? profileReaders.get(field)?.() : profileAppliedValues.get(field);
+        values[key] = profileUnsets.has(field) || raw === "" || raw === undefined || raw === null ? null
+          : field.kind === "number" && typeof raw === "string" ? Number(raw)
+          : field.kind !== "bool" && typeof raw === "number" && field.kind !== "number" ? String(raw) : raw;
+      }
+      return validateProfileValues(values, profileRules);
+    },
+    restore: values => {
+      if (pending) throw new ProfileError("busy");
+      const validated = validateProfileValues(values, profileRules);
+      for (const { key, field } of profileFields) {
+        if (!profileRules.has(key)) continue;
+        const value = validated[key];
+        profileSetters.get(field)?.(value === null || value === undefined ? null : field.kind === "bool" ? Boolean(value) : String(value));
+      }
+      refreshButtons();
+    },
+  });
 
   let fieldId = 0;
   function field(def: FieldDef, mode: Mode): HTMLElement {
@@ -793,7 +836,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       : raw === "" || raw === undefined ? undefined : def.kind === "number" ? Number(raw) : String(raw);
     let appliedValue: unknown = fieldValue(def.initial);
     const renderDifference = () => {
-      const after = fieldValue(rawValues.get(def));
+      const after = profileUnsets.has(def) ? undefined : fieldValue(rawValues.get(def));
       const draft = staged.has(def) && (invalid.has(def) || !sameConfigurationValue(appliedValue, after));
       row.classList.toggle("is-dirty", draft);
       difference.hidden = !draft;
@@ -822,7 +865,8 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       }
       sel.addEventListener("change", () => apply(sel.value));
       input = sel;
-      labels.bind(() => [...sel.options].forEach((option, index) => { option.textContent = def.options?.[index]?.label ?? option.value; }));
+      labels.bind(() => [...sel.options].forEach(option => { option.textContent = def.options?.find(entry => entry.value === option.value)?.label
+        ?? (option.dataset.profileDefault ? pick({ ja: "（上書きなし）", en: "(no override)" }) : option.value); }));
     } else {
       const inp = document.createElement("input");
       inp.type = def.kind === "number" ? "number" : "text";
@@ -836,23 +880,31 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     }
     function sync(force = false): void {
       let applied: unknown;
+      let readApplied = false;
       const failed = failedOwners.get(mode);
       const retain = failed && failed.player === options.getPlayer() && (mode !== "reload" || failed.source === options.getSource());
       if (failed && !retain) failedOwners.delete(mode);
-      try { applied = retain || mode === "recreate" && !options.getPlayer() ? appliedValue : def.read?.(); }
+      try {
+        const keep = retain || mode === "recreate" && !options.getPlayer();
+        applied = keep ? appliedValue : def.read?.(); readApplied = !keep;
+      }
       catch { /* Runtime APIs can be unavailable before a source loads. */ }
+      if (!pending && readApplied && profileFieldKeys.has(def)) profileAppliedValues.set(def, applied);
       const value = applied ?? def.initial;
       if (!pending) appliedValue = fieldValue(value);
       if (!pending && mode !== "runtime" && staged.has(def) && !invalid.has(def)
-        && sameConfigurationValue(appliedValue, fieldValue(rawValues.get(def)))) {
-        staged.delete(def); rawValues.delete(def); rebuildDraft(mode); refreshButtons();
+        && sameConfigurationValue(appliedValue, profileUnsets.has(def) ? undefined : fieldValue(rawValues.get(def)))) {
+        staged.delete(def); rawValues.delete(def); profileUnsets.delete(def); rebuildDraft(mode); refreshButtons();
       }
       renderDifference();
+      if (input instanceof HTMLInputElement && input.type === "checkbox") input.indeterminate = profileUnsets.has(def);
       if (staged.has(def) || !force && document.activeElement === input) return;
       if (input instanceof HTMLInputElement && input.type === "checkbox") input.checked = Boolean(value);
       else input.value = typeof value === "number" && !Number.isFinite(value) ? "" : String(value);
     }
-    function apply(value: string | boolean): void {
+    function apply(value: string | boolean, unset = false): void {
+      if (unset) profileUnsets.add(def); else profileUnsets.delete(def);
+      if (input instanceof HTMLInputElement && input.type === "checkbox") input.indeterminate = unset;
       if (mode !== "runtime") {
         staged.add(def);
         rawValues.set(def, value);
@@ -860,7 +912,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         if (!pending) outcomes.delete(mode);
         refreshStatus();
       }
-      const message = def.validate?.(value) ?? (input instanceof HTMLInputElement && input.type === "number" && input.validity.badInput
+      const message = unset ? undefined : def.validate?.(value) ?? (input instanceof HTMLInputElement && input.type === "number" && input.validity.badInput
         ? pick({ ja: "有効な数値を入力してください。", en: "Enter a valid number." }) : undefined);
       if (message) {
         invalid.set(def, mode);
@@ -878,17 +930,34 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       input.removeAttribute("aria-describedby");
       error.textContent = "";
       error.hidden = true;
-      if (mode !== "runtime" && !pending && sameConfigurationValue(appliedValue, fieldValue(value))) {
+      if (mode !== "runtime" && !pending && sameConfigurationValue(appliedValue, unset ? undefined : fieldValue(value))) {
         staged.delete(def); rawValues.delete(def);
+        profileUnsets.delete(def);
         rebuildDraft(mode);
         renderDifference(); refreshButtons();
         return;
       }
-      def.apply(value);
+      if (unset && def.configPath && mode !== "runtime") {
+        if (mode === "reload") stageSource(def.configPath, undefined);
+        else stagePlayer(def.configPath, undefined);
+      } else def.apply(value);
       if (mode === "runtime") sync();
       refreshButtons();
     }
     readers.push(sync);
+    if (mode !== "runtime") {
+      profileReaders.set(def, () => input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value);
+      profileSetters.set(def, value => {
+        if (input instanceof HTMLInputElement && input.type === "checkbox") input.checked = value === null ? Boolean(def.initial) : Boolean(value);
+        else {
+          if (value === null && input instanceof HTMLSelectElement && ![...input.options].some(option => option.value === "")) {
+            const option = new Option(pick({ ja: "（上書きなし）", en: "(no override)" }), ""); option.dataset.profileDefault = "true"; input.append(option);
+          }
+          input.value = value === null ? "" : String(value);
+        }
+        apply(value === null ? "" : value, value === null);
+      });
+    }
     resetters.set(def, () => {
       input.removeAttribute("aria-invalid"); input.removeAttribute("aria-describedby");
       error.textContent = ""; error.hidden = true;
@@ -948,7 +1017,11 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     if (mode === "reload") sourceOverrides = {};
     else playerOverrides = {};
     const fields = groups.filter(group => group.mode === mode).flatMap(group => group.fields);
-    for (const field of fields) if (staged.has(field) && !invalid.has(field)) field.apply(rawValues.get(field)!);
+    for (const field of fields) if (staged.has(field) && !invalid.has(field)) {
+      if (profileUnsets.has(field) && field.configPath) {
+        if (mode === "reload") stageSource(field.configPath, undefined); else stagePlayer(field.configPath, undefined);
+      } else field.apply(rawValues.get(field)!);
+    }
     if (mode === "reload") reloadDirty = fields.some(field => staged.has(field));
     else recreateDirty = fields.some(field => staged.has(field));
   }
@@ -967,6 +1040,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         failedOwners.delete(mode);
         for (const [field, revision] of submitted) if (revisions.get(field) === revision) {
           staged.delete(field); rawValues.delete(field);
+          profileUnsets.delete(field);
         }
         rebuildDraft(mode);
       }
@@ -993,6 +1067,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       if (pending) return;
       for (const group of groups.filter(group => group.mode === mode)) for (const field of group.fields) {
         staged.delete(field); invalid.delete(field); rawValues.delete(field);
+        profileUnsets.delete(field);
         revisions.set(field, (revisions.get(field) ?? 0) + 1);
         resetters.get(field)?.();
       }
@@ -1106,6 +1181,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         group.fields.forEach((field, fieldIndex) => Object.assign(field, translated[index]!.fields[fieldIndex]));
       });
       labels.refresh();
+      profiles?.relocalize();
       refreshStatus();
       codeView.relocalize();
     },

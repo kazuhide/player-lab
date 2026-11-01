@@ -51,7 +51,7 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/ade5442bf8c92ded898b60031d1800498e15ced6/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/d8de54d2dc9899c2acfd1749d65c65833637ac10/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README: generate and build the Expo host"
         }
       ]
@@ -241,6 +241,68 @@
     {
       "type": "p",
       "text": "The callbacks editor accepts JavaScript function bodies rather than JSON. Enable execution and Apply to install edited functions. Handler factories run on Apply and player recreation; SDK callbacks run when the SDK invokes them. Selecting a source preset with configured callbacks also recreates the Player. Code runs inside this app without a sandbox. Network callbacks may return a Promise, while synchronous callbacks must return synchronously. Return values are checked against the selected contract and DRM callbacks require their license URL."
+    },
+    {
+      "type": "h3",
+      "id": "named-configurations",
+      "text": "Save and reuse named configuration drafts"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Edit the settings to keep in Settings, then open Configuration → Saved configurations.",
+        "Enter a configuration name and choose Save draft. A duplicate name requires confirmation before replacement.",
+        "Select a saved configuration and choose Load draft. Review the Changes section, then choose Apply configuration to recreate the Player. Saving or loading alone does not call the SDK, reload the source or change playback.",
+        "Use Delete saved configuration to remove the selected item after confirmation. Saved items remain available after restarting this app."
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Saved subset",
+        "Behavior"
+      ],
+      "rows": [
+        [
+          "Basic settings",
+          "Source format, initial offset and reference, autoplay, mute, forward buffer and maximum bitrate."
+        ],
+        [
+          "Built-in sources",
+          "A preset ID is saved only when its public URL and format exactly match a built-in source. Custom URLs are not saved; without a preset, loading keeps the current URL."
+        ],
+        [
+          "Detailed settings",
+          "Explicitly supported numeric, toggle and enum values for playback, buffering, adaptation, live playback and selected UI or tweak settings. configurationProfiles.ts defines the full allowlist. The iOS and Android hosts use separate local collections."
+        ],
+        [
+          "Excluded fields",
+          "Player, Analytics and DRM keys; credentials and headers; custom URLs, titles and other free text; subtitles, lists, callbacks, scripts, metadata and runtime resources. Loading keeps their current draft values."
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.77
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Restoration replaces the saved subset as a set. If a supported detailed setting was unset when saved, loading removes a later override and returns that field to its SDK default. Excluded current fields remain unchanged. Names are normalized to NFC, the standard composed Unicode form, and limited to 1–48 Unicode code points; collections are limited to 20 items, 8 KiB per item and 128 KiB in total. Unsupported schema versions, platforms, fields, types or corrupt data produce an error. A different SDK version requires confirmation after validating the supported fields; it is not automatically applied."
+    },
+    {
+      "type": "code",
+      "title": "Restore editor data without applying Player configuration",
+      "text": "export function restoreProfile(profile: ConfigurationProfile, current: ConfigurationDraft, platform: ProfilePlatform, confirmSdk = false): ConfigurationDraft {\n  const validated = validateProfile(profile, platform);\n  if (validated.sdkVersion !== CURRENT_SDK_VERSION && !confirmSdk) throw new ConfigurationProfileError(\"sdk\");\n  const preset = validated.sourcePreset === null ? null : presetForId(validated.sourcePreset, platform);\n  return draftFromProfile(validated, current, preset);\n}",
+      "source": {
+        "path": "apps/react-native/src/configurationProfiles.ts",
+        "line": 187,
+        "label": "configurationProfiles.ts:187–192"
+      },
+      "endLine": 192
+    },
+    {
+      "type": "p",
+      "text": "The Expo host stores validated JSON in its private app documents through expo-file-system. Replacement retains a backup because the pinned iOS File.move implementation removes an existing destination before moving the new file. If an interrupted replacement leaves the primary file missing, Recover saved configurations offers the previous saved list after confirmation; it does not restore the draft or apply settings. A malformed primary file is reported rather than silently replaced. These values are not encrypted by this feature and may be included in operating-system backups. No account API or network request is needed to save or load them."
     },
     {
       "type": "h2",
@@ -699,6 +761,16 @@
       "path": "apps/react-native/src/liveRewindChannel.ts",
       "line": 1,
       "label": "Embedded UI preference channel"
+    },
+    {
+      "path": "apps/react-native/src/configurationProfiles.ts",
+      "line": 1,
+      "label": "Local profile allowlist, validation and draft replacement"
+    },
+    {
+      "path": "apps/react-native/src/profileStorage.ts",
+      "line": 1,
+      "label": "Private profile storage and failure handling"
     }
   ]
 }

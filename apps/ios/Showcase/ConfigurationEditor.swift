@@ -5,7 +5,7 @@ import UIKit
 
 enum NativeSettingsCategory: String, CaseIterable, Identifiable {
     case source = "Source", start = "Start position", playback = "Playback"
-    case tracks = "Tracks", quality = "Quality and buffer", ui = "Player UI", advanced = "Advanced SDK"
+    case tracks = "Tracks", quality = "Quality and buffer", ui = "Player UI", advanced = "Advanced SDK", profiles = "Profiles"
     var id: String { rawValue }
 }
 
@@ -119,7 +119,7 @@ struct ConfigurationEditor: View {
                 .accessibilityIdentifier("configuration.category")
                 .frame(minHeight: 44)
                 Spacer()
-                if category != .advanced {
+                if category != .advanced && category != .profiles {
                     WorkspaceChoice(title: "Setting", selection: $setting, options: NativeSetting.allCases.filter { $0.category == category }, label: { $0.rawValue })
                     .accessibilityIdentifier("configuration.setting")
                     .frame(minHeight: 44)
@@ -129,7 +129,10 @@ struct ConfigurationEditor: View {
             .fixedSize(horizontal: false, vertical: true)
             .frame(height: keyboardVisible && !choicePresented ? 0 : nil).clipped().accessibilityHidden(keyboardVisible && !choicePresented)
             }
-            if category == .advanced {
+            if category == .profiles {
+                NativeConfigurationProfilesPanel(session: session)
+                    .accessibilityIdentifier("configuration.profiles")
+            } else if category == .advanced {
                 AdvancedConfigurationFields(values: draft.advancedValues, reveal: $advancedReveal, appliedValues: session.applied.advancedValues)
                     .frame(maxHeight: .infinity, alignment: .top)
             } else if workspaceActive {

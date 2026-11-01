@@ -68,12 +68,12 @@ export function Text({ children, verbatim = false, ...props }: TextProps & { ver
   return <NativeText {...localizedProps(props, language)}>{verbatim ? children : textChildren(children, language)}</NativeText>;
 }
 
-export function Button(props: ButtonProps): React.JSX.Element {
+export function Button({ verbatim = false, ...props }: ButtonProps & { verbatim?: boolean }): React.JSX.Element {
   const { language } = useLocale();
   const [focused, setFocused] = useState(false);
-  const { title, color, onPress, touchSoundDisabled, ...rest } = localizedProps(props, language);
+  const { title, color, onPress, touchSoundDisabled, ...rest } = verbatim ? props : localizedProps(props, language);
   const disabled = props.disabled ?? props.accessibilityState?.disabled ?? false;
-  const label = translateCopy(title, language);
+  const label = verbatim ? title : translateCopy(title, language);
   return <NativePressable {...rest} accessibilityRole="button" accessibilityLabel={rest.accessibilityLabel ?? label}
     accessibilityState={{ ...rest.accessibilityState, disabled: Boolean(disabled) }} disabled={disabled}
     focusable={!disabled} android_disableSound={touchSoundDisabled} onPress={disabled ? undefined : onPress}

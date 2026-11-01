@@ -225,6 +225,27 @@
     },
     {
       "type": "h3",
+      "id": "configuration-profiles",
+      "text": "Save named configuration profiles"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Settings, choose the Profiles category, enter a profile name and choose Save. Saved profiles remain on this device after restarting the app. Choose a saved entry, then use Restore draft; selecting an entry alone does not restore it.",
+        "Review the restored draft and choose Apply when ready. Restoring changes only editable settings: it does not update the applied snapshot, create a Player or Source, load media, or invoke an SDK action. Delete removes only the selected saved profile. Replacing an existing name requires confirmation.",
+        "If the saved SDK version differs, inspect both versions and confirm Revalidate and restore. Unsupported schemas, platforms, fields or types are rejected. A read or write failure is shown without silently replacing saved data; Clear saved profiles explicitly starts a new empty store."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Profiles save a limited subset: playback flags, start position and reference, track language preferences, maximum bitrate, forward buffer, scaling, and the 19 primitive SDK overrides listed under Saved fields. A built-in public HLS preset is saved only if its URL and type exactly match. An arbitrary current source URL is omitted, and restoring such a profile retains the current source URL and type. Titles, posters, metadata, keys, headers, scripts and other excluded settings remain in the current draft. Missing saved overrides clear only the allowlisted override fields."
+    },
+    {
+      "type": "p",
+      "text": "Names are normalized to NFC and use 1–48 Unicode code points with letters, numbers, spaces or . - _ ( ). Do not use credentials as names. Limits are 20 profiles, 8 KiB per profile and 128 KiB per collection. The versioned local format records the SDK version; iOS/iPadOS and tvOS stores are separate, excluded from backup and not an interchange format."
+    },
+    {
+      "type": "h3",
       "id": "initial-track-selection",
       "text": "Select initial audio and subtitle tracks"
     },

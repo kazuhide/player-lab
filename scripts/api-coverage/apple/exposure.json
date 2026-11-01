@@ -131,12 +131,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -166,12 +166,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -201,12 +201,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -236,12 +236,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -391,12 +391,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -426,12 +426,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -461,12 +461,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -496,12 +496,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -549,12 +549,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 310,
+            "line": 313,
             "symbol": "text: draft.maximumBitrate"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -709,12 +709,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -739,12 +739,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -774,12 +774,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -814,12 +814,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -849,12 +849,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -884,12 +884,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -919,12 +919,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -954,12 +954,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -1124,12 +1124,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -1164,12 +1164,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -1949,12 +1949,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -1984,12 +1984,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2019,12 +2019,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2054,12 +2054,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2089,12 +2089,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2124,12 +2124,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2154,12 +2154,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2194,12 +2194,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2229,12 +2229,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2264,12 +2264,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2299,12 +2299,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2369,12 +2369,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2399,12 +2399,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 311,
+            "line": 314,
             "symbol": "text: draft.forwardBuffer"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2619,12 +2619,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2674,12 +2674,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2709,12 +2709,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3064,12 +3064,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3099,12 +3099,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3134,12 +3134,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3329,12 +3329,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3364,12 +3364,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3459,12 +3459,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3494,12 +3494,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3529,12 +3529,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3564,12 +3564,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3599,12 +3599,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3634,12 +3634,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3669,12 +3669,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3704,12 +3704,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3739,12 +3739,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3774,12 +3774,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3809,12 +3809,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3844,12 +3844,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4099,12 +4099,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4134,12 +4134,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4169,12 +4169,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4204,12 +4204,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4239,12 +4239,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4274,12 +4274,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4309,12 +4309,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4344,12 +4344,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4379,12 +4379,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4414,12 +4414,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4449,12 +4449,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4484,12 +4484,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4519,12 +4519,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4554,12 +4554,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4589,12 +4589,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4624,12 +4624,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4659,12 +4659,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4754,12 +4754,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4789,12 +4789,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4824,12 +4824,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4859,12 +4859,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4974,12 +4974,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5009,12 +5009,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5044,12 +5044,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5079,12 +5079,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5114,12 +5114,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5149,12 +5149,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5204,12 +5204,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5299,12 +5299,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5334,12 +5334,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5369,12 +5369,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5404,12 +5404,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5459,12 +5459,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6399,12 +6399,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6434,12 +6434,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6469,12 +6469,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6504,12 +6504,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6639,12 +6639,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6674,12 +6674,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6709,12 +6709,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6744,12 +6744,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6789,12 +6789,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 302,
+            "line": 305,
             "symbol": "draft.autoplay"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6829,12 +6829,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6864,12 +6864,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6889,12 +6889,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 303,
+            "line": 306,
             "symbol": "draft.startMuted"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6929,12 +6929,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6954,12 +6954,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 304,
+            "line": 307,
             "symbol": "draft.sdkTimeShiftEnabled"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8289,12 +8289,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8324,12 +8324,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8359,12 +8359,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8394,12 +8394,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8434,12 +8434,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8464,12 +8464,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8499,12 +8499,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8534,12 +8534,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8569,12 +8569,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8604,12 +8604,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8639,12 +8639,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8674,12 +8674,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8709,12 +8709,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9221,12 +9221,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9251,12 +9251,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9286,12 +9286,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9366,12 +9366,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9801,12 +9801,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9836,12 +9836,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9871,12 +9871,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9906,12 +9906,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9941,12 +9941,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9976,12 +9976,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10011,12 +10011,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10046,12 +10046,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10081,12 +10081,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10116,12 +10116,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10666,12 +10666,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10706,12 +10706,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10751,12 +10751,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10781,12 +10781,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10816,12 +10816,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10856,12 +10856,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10886,12 +10886,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10916,12 +10916,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 297,
+            "line": 300,
             "symbol": "text: draft.posterURL"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10956,12 +10956,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10991,12 +10991,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11016,12 +11016,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 296,
+            "line": 299,
             "symbol": "text: draft.title"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11056,12 +11056,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11081,12 +11081,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 294,
+            "line": 297,
             "symbol": "draft.sourceType"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11111,12 +11111,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 292,
+            "line": 295,
             "symbol": "text: draft.sourceURL"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11351,12 +11351,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11386,12 +11386,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11421,12 +11421,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11516,12 +11516,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11541,12 +11541,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 298,
+            "line": 301,
             "symbol": "text: draft.startOffset"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11571,12 +11571,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 300,
+            "line": 303,
             "symbol": "draft.timelineReference"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11731,12 +11731,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11766,12 +11766,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11801,12 +11801,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11826,12 +11826,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 313,
+            "line": 316,
             "symbol": "draft.videoScaling"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11866,12 +11866,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11896,12 +11896,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11936,12 +11936,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12031,12 +12031,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12066,12 +12066,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12121,12 +12121,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12156,12 +12156,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12191,12 +12191,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12266,12 +12266,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12301,12 +12301,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12336,12 +12336,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12371,12 +12371,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12626,12 +12626,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12661,12 +12661,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12696,12 +12696,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12751,12 +12751,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12786,12 +12786,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12821,12 +12821,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12856,12 +12856,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12891,12 +12891,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12926,12 +12926,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12961,12 +12961,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12996,12 +12996,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13031,12 +13031,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13066,12 +13066,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13101,12 +13101,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13136,12 +13136,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13171,12 +13171,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13206,12 +13206,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13241,12 +13241,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13576,12 +13576,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13611,12 +13611,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13646,12 +13646,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13881,12 +13881,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13916,12 +13916,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13951,12 +13951,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13986,12 +13986,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14159,12 +14159,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14194,12 +14194,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14229,12 +14229,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14264,12 +14264,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14419,12 +14419,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14454,12 +14454,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14489,12 +14489,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14524,12 +14524,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14577,12 +14577,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 310,
+            "line": 313,
             "symbol": "text: draft.maximumBitrate"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14737,12 +14737,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14767,12 +14767,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14811,12 +14811,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14846,12 +14846,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14881,12 +14881,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14916,12 +14916,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14951,12 +14951,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15101,12 +15101,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15141,12 +15141,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15219,12 +15219,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15249,12 +15249,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 311,
+            "line": 314,
             "symbol": "text: draft.forwardBuffer"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15449,12 +15449,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15504,12 +15504,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15539,12 +15539,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15714,12 +15714,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15749,12 +15749,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15784,12 +15784,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15859,12 +15859,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15894,12 +15894,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15989,12 +15989,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16024,12 +16024,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16059,12 +16059,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16094,12 +16094,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16129,12 +16129,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16164,12 +16164,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16199,12 +16199,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16234,12 +16234,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16269,12 +16269,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16304,12 +16304,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16559,12 +16559,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16594,12 +16594,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16629,12 +16629,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16664,12 +16664,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16699,12 +16699,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16734,12 +16734,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16769,12 +16769,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16804,12 +16804,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16839,12 +16839,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16874,12 +16874,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16909,12 +16909,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16944,12 +16944,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16979,12 +16979,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17074,12 +17074,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17109,12 +17109,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17144,12 +17144,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17179,12 +17179,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17294,12 +17294,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17329,12 +17329,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17364,12 +17364,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17399,12 +17399,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17434,12 +17434,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17469,12 +17469,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17524,12 +17524,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17619,12 +17619,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17654,12 +17654,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17689,12 +17689,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17724,12 +17724,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17779,12 +17779,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17914,12 +17914,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17949,12 +17949,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18084,12 +18084,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18119,12 +18119,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18154,12 +18154,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18189,12 +18189,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18234,12 +18234,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 302,
+            "line": 305,
             "symbol": "draft.autoplay"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18274,12 +18274,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18309,12 +18309,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18334,12 +18334,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 303,
+            "line": 306,
             "symbol": "draft.startMuted"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18374,12 +18374,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18399,12 +18399,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 304,
+            "line": 307,
             "symbol": "draft.sdkTimeShiftEnabled"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19734,12 +19734,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19769,12 +19769,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19804,12 +19804,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19839,12 +19839,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19879,12 +19879,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19909,12 +19909,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19944,12 +19944,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19979,12 +19979,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20014,12 +20014,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20049,12 +20049,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20084,12 +20084,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20119,12 +20119,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20611,12 +20611,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20641,12 +20641,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21111,12 +21111,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21146,12 +21146,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21181,12 +21181,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21216,12 +21216,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21251,12 +21251,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21286,12 +21286,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21321,12 +21321,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21356,12 +21356,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21391,12 +21391,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21426,12 +21426,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21996,12 +21996,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22036,12 +22036,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22081,12 +22081,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22111,12 +22111,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22146,12 +22146,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22186,12 +22186,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22221,12 +22221,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22251,12 +22251,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22281,12 +22281,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 297,
+            "line": 300,
             "symbol": "text: draft.posterURL"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22321,12 +22321,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22356,12 +22356,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22381,12 +22381,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 296,
+            "line": 299,
             "symbol": "text: draft.title"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22421,12 +22421,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22446,12 +22446,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 294,
+            "line": 297,
             "symbol": "draft.sourceType"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22476,12 +22476,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 292,
+            "line": 295,
             "symbol": "text: draft.sourceURL"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22716,12 +22716,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22751,12 +22751,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22786,12 +22786,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22881,12 +22881,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22906,12 +22906,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 298,
+            "line": 301,
             "symbol": "text: draft.startOffset"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22936,12 +22936,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 300,
+            "line": 303,
             "symbol": "draft.timelineReference"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23096,12 +23096,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23121,12 +23121,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 313,
+            "line": 316,
             "symbol": "draft.videoScaling"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23156,12 +23156,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23196,12 +23196,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23291,12 +23291,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23326,12 +23326,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23381,12 +23381,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23416,12 +23416,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23451,12 +23451,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23526,12 +23526,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23641,12 +23641,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23676,12 +23676,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23711,12 +23711,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23746,12 +23746,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23781,12 +23781,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23816,12 +23816,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23851,12 +23851,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23886,12 +23886,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23921,12 +23921,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24176,12 +24176,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24211,12 +24211,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24246,12 +24246,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24301,12 +24301,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24336,12 +24336,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24371,12 +24371,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24406,12 +24406,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24441,12 +24441,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24476,12 +24476,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24511,12 +24511,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24546,12 +24546,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24581,12 +24581,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24616,12 +24616,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24651,12 +24651,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24686,12 +24686,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24721,12 +24721,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25056,12 +25056,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25091,12 +25091,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25126,12 +25126,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25321,12 +25321,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25356,12 +25356,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25391,12 +25391,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25426,12 +25426,12 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 133,
+            "line": 136,
             "symbol": "AdvancedConfigurationFields(values: draft.advancedValues,"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 229,
+            "line": 232,
             "symbol": "try model.apply(session.value)"
           },
           {
