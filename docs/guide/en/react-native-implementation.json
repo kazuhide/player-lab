@@ -51,7 +51,7 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/d8de54d2dc9899c2acfd1749d65c65833637ac10/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/b02b242232c661360c5304ba3493b511e8e028bd/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README: generate and build the Expo host"
         }
       ]

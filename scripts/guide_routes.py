@@ -4,6 +4,7 @@ CHAPTERS = {
     'start': 'start', 'local-setup': 'start', 'native-overview': 'start',
     'web-screen-controls': 'web', 'web-implementation': 'web',
     'web-player-config': 'web', 'web-ui-customization': 'web',
+    'web-startup-comparison': 'web', 'web-startup-integration': 'web',
     'native-apple': 'apple', 'apple-implementation': 'apple',
     'native-android': 'android', 'android-implementation': 'android',
     'native-react-native': 'react-native', 'react-native-implementation': 'react-native',
@@ -37,10 +38,12 @@ IMPLEMENTATION_PAGES = {
 }
 OPERATION_GUIDES = ('web-screen-controls', 'native-apple', 'native-android',
                     'native-react-native', 'native-vega')
-CHILD_CHAPTERS = frozenset(('web-player-config', 'web-ui-customization'))
+CHILD_CHAPTERS = frozenset(('web-player-config', 'web-ui-customization',
+                            'web-startup-comparison', 'web-startup-integration'))
 CHAPTER_PARENTS = {
     **IMPLEMENTATION_PAGES,
     'web-player-config': 'web-implementation', 'web-ui-customization': 'web-implementation',
+    'web-startup-comparison': 'web-screen-controls', 'web-startup-integration': 'web-implementation',
     'web-screen-themes': 'web-screen-controls', 'web-sources-tracks': 'web-screen-controls',
     'web-ui-settings': 'web-screen-controls',
 }
@@ -138,9 +141,11 @@ LOCALIZED_FIGURES = {
     'sdk-callback': {'en': (1240, 1527), 'ja': (1240, 1529)},
     'ui-controls': {'en': (301, 546), 'ja': (301, 656)},
     'applied-settings': {'en': (1240, 511), 'ja': (1240, 512)},
+    'web-startup-controls': {'en': (1240, 418), 'ja': (1240, 423)},
+    'web-startup-results': {'en': (1240, 675), 'ja': (1240, 704)},
 }
 FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
-FIGURE_EXTENSIONS['web-sdk-differences'] = 'png'
+FIGURE_EXTENSIONS.update({name: 'png' for name in ('web-sdk-differences', 'web-startup-controls', 'web-startup-results')})
 
 
 def figure_capture_profile(name):
@@ -167,7 +172,7 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *IMPLEMENTATION_PAGES, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = 'd8de54d2dc9899c2acfd1749d65c65833637ac10'
+SOURCE_REVISION = 'b02b242232c661360c5304ba3493b511e8e028bd'
 CONTENT_REVIEW = '2026-10-26'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 

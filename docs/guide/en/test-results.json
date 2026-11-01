@@ -5,6 +5,212 @@
   "blocks": [
     {
       "type": "h2",
+      "id": "web-startup-2026-11-01",
+      "text": "Web startup comparison, 2026-11-01"
+    },
+    {
+      "type": "p",
+      "text": "Measured on Apple M5, 32 GiB, Headless Chromium 156.0.8078.4 at 1440×1000. Production files were served within the same Mac over HTTP/2 with Brotli/gzip. Each comparison used the same fixed-quality rendition and English audio from a 60-second Big Buck Bunny HLS asset, muted from the beginning at normal speed. SDKs: Player Web X 10.3.1, hls.js 1.7.4 and Shaka Player 5.3.3. The recorded measurements used localhost with an empty Player key; Analytics and advertising were disabled."
+    },
+    {
+      "type": "p",
+      "text": "SDK defaults retain library tuning under the common playback constraints; startup settings are frozen after candidate screening. The profiles used separate browser contexts, isolating storage such as cookies. Every trial created a fresh page and Player; players ran sequentially in balanced orders. Tables show default-profile trials and independent startup confirmation; candidate-screening trials are excluded. There were no failed or cancelled attempts in these groups."
+    },
+    {
+      "type": "p",
+      "text": "All values are milliseconds; n is the successful trial count per player. Default and Startup report median content selection to the video playing event. The p95 and Play→Playing columns also use the startup profile; the latter is the median from the play request to that event. The nearest-rank p95 rounds the 95% rank upward, so it is the maximum of these 12 trials."
+    },
+    {
+      "type": "note",
+      "text": "Browser-managed HTTP caching does not establish a warm cache. HTTP cache bypass used no-store and Chrome DevTools Protocol, with SDK/media request records confirming no cache hits. JavaScript internal caches were not controlled. The 8 Mbps / 80 ms conditions were simulated through the same protocol. CPU limit 4 specifies renderer slowdown; it does not represent the performance of an entire device, its workers or its decoder."
+    },
+    {
+      "type": "h3",
+      "id": "startup-360p-managed",
+      "text": "360p: browser-managed HTTP cache"
+    },
+    {
+      "type": "p",
+      "text": "SDK import began on content selection. No network or CPU throttling was specified. Startup confirmation fixed hls.js enableWorker=false, Shaka segmentPrefetchLimit=2 and Web X LoadControl=2 (Data)."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Player",
+        "Default (n=6)",
+        "Startup (n=12)",
+        "p95 (n=12)",
+        "Play→Playing (n=12)"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "43.5",
+          "38.1",
+          "45.1",
+          "23.0"
+        ],
+        [
+          "hls.js",
+          "106.6",
+          "8.8",
+          "11.0",
+          "6.9"
+        ],
+        [
+          "Shaka Player",
+          "14.2",
+          "13.7",
+          "22.1",
+          "11.3"
+        ]
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "startup-360p-http-bypass",
+      "text": "360p: HTTP cache bypass"
+    },
+    {
+      "type": "p",
+      "text": "SDK import began on content selection. HTTP cache was bypassed, with 8 Mbps throughput and 80 ms latency. No CPU throttling was specified. Startup confirmation fixed hls.js enableWorker=false, Shaka segmentPrefetchLimit=1 and Web X LoadControl=2 (Data)."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Player",
+        "Default (n=6)",
+        "Startup (n=12)",
+        "p95 (n=12)",
+        "Play→Playing (n=12)"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "599.8",
+          "594.3",
+          "607.2",
+          "353.9"
+        ],
+        [
+          "hls.js",
+          "770.0",
+          "664.3",
+          "673.5",
+          "395.0"
+        ],
+        [
+          "Shaka Player",
+          "1171.1",
+          "1165.6",
+          "1179.3",
+          "880.3"
+        ]
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "startup-360p-sdk-preimported",
+      "text": "360p: SDK imported before selection"
+    },
+    {
+      "type": "p",
+      "text": "Only the SDK was imported before content selection; Player creation remained after selection. HTTP cache was bypassed, with 8 Mbps throughput and 80 ms latency. No CPU throttling was specified. Startup confirmation fixed hls.js enableWorker=false, Shaka segmentPrefetchLimit=1 and Web X LoadControl=2 (Data)."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Player",
+        "Default (n=6)",
+        "Startup (n=12)",
+        "p95 (n=12)",
+        "Play→Playing (n=12)"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "363.2",
+          "344.5",
+          "348.2",
+          "339.8"
+        ],
+        [
+          "hls.js",
+          "496.7",
+          "389.3",
+          "395.3",
+          "387.8"
+        ],
+        [
+          "Shaka Player",
+          "888.6",
+          "856.1",
+          "860.1",
+          "854.1"
+        ]
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "startup-180p-renderer-slowdown",
+      "text": "180p: renderer CPU slowdown"
+    },
+    {
+      "type": "p",
+      "text": "SDK import began on content selection. HTTP cache was bypassed, with 8 Mbps throughput, 80 ms latency and renderer CPU slowdown set to 4. Startup confirmation fixed hls.js enableWorker=false, Shaka segmentPrefetchLimit=1 and Web X LoadControl=2 (Data)."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Player",
+        "Default (n=6)",
+        "Startup (n=12)",
+        "p95 (n=12)",
+        "Play→Playing (n=12)"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "619.7",
+          "614.1",
+          "626.4",
+          "330.0"
+        ],
+        [
+          "hls.js",
+          "775.9",
+          "586.4",
+          "590.4",
+          "307.8"
+        ],
+        [
+          "Shaka Player",
+          "954.1",
+          "954.6",
+          "961.4",
+          "659.6"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "In startup confirmation, Web X had the lowest median Selection→Playing under the simulated network conditions with 360p and HTTP cache bypass. hls.js had the lowest median in the other listed startup conditions. These results apply to the disclosed settings, media and device; they do not establish an exhaustive configuration optimum or the fastest player on other devices."
+    },
+    {
+      "type": "note",
+      "text": "Play→Playing is not Bitmovin Analytics VST. Frame times are callback-observation times, not physical display times. See the startup implementation guide for metric definitions and configuration candidates."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
+          "label": "Startup metrics and configuration"
+        }
+      ]
+    },
+    {
+      "type": "h2",
       "text": "Representative results recorded on 2026-10-21"
     },
     {
@@ -279,6 +485,10 @@
       "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerVrRendererInstrumentedTest.kt",
       "line": 1,
       "label": "Android decoded-frame renderer check"
+    },
+    {
+      "label": "Web startup observations and conditions",
+      "url": "https://github.com/kazuhide/player-lab/blob/b02b242232c661360c5304ba3493b511e8e028bd/docs/web-startup-results-2026-11-01.json"
     }
   ]
 }

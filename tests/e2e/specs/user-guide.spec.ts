@@ -50,7 +50,7 @@ const implementationSections = ["integration", "player-source-config", "ui-custo
 // Published fragments use authored IDs or their original English headings in both languages.
 const screenGuideSections: Record<string, string[]> = {
   "web-screen-controls": ["screen", "themes", "sources-tracks", "player-source-settings", "sdk-settings",
-    "applied-code", "ui-settings", "external-displays"],
+    "applied-code", "ui-settings", "external-displays", "startup-comparison"],
   "native-apple": ["preparation-and-build", "suggested-screen-workflow", "edit-source-and-playback-configuration",
     "additional-sdk-settings", "editable-callbacks", "initial-tracks-and-video-scaling", "when-something-does-not-work",
     "use-the-sdk-default-player-controls", "run-apis-and-read-their-results", "choose-the-video-presentation",
@@ -362,6 +362,22 @@ for (const language of languages) {
           await expect(heading).toHaveText(headings[1]!.text!);
           await expect(heading).toBeInViewport();
           await expectCurrentGuideLink(page, language, slug, sections[1]);
+          if (slug === "web-screen-controls") {
+            const startup = menu.locator(':scope > ul.guide-section-links > li > a[href$="#startup-comparison"]');
+            const startupHeading = page.locator('main h2[id="startup-comparison"]');
+            await startup.click();
+            await expect(page).toHaveURL(guidePath(language, slug) + "#startup-comparison");
+            await expect(startupHeading).toHaveText(headings.find((item) => item.id === "startup-comparison")!.text!);
+            await expect(startupHeading).toBeInViewport();
+            await expectCurrentGuideLink(page, language, slug, "startup-comparison");
+            await page.goBack();
+            await expect(page).toHaveURL(guidePath(language, slug) + `#${sections[1]}`);
+            await expectCurrentGuideLink(page, language, slug, sections[1]);
+            await page.goForward();
+            await expect(page).toHaveURL(guidePath(language, slug) + "#startup-comparison");
+            await expect(startupHeading).toBeInViewport();
+            await expectCurrentGuideLink(page, language, slug, "startup-comparison");
+          }
         });
       }
     });

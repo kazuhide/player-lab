@@ -14,6 +14,11 @@ from guide_routes import GUIDE_ASSETS, GUIDE_FILES
 
 
 SCRIPT = Path(__file__).with_name('package-pages.py')
+COMPARISON_PAGES = {'comparison.html', 'comparison-runner.html'}
+COMPARISON_NOTICES = {
+    'BITMOVIN-PLAYER-WEB-X-NOTICE.txt', 'HLS-JS-LICENSE.txt',
+    'SHAKA-PLAYER-LICENSE.txt', 'SHAKA-PLAYER-THIRD-PARTY-NOTICES.txt',
+}
 
 
 class PagesPackageTests(unittest.TestCase):
@@ -98,6 +103,64 @@ class PagesPackageTests(unittest.TestCase):
     def test_extra_landing_file_is_rejected(self):
         self.write(self.site, 'internal.html', b'not public')
         self.assert_rejected()
+
+    def add_comparison(self):
+        for name in COMPARISON_PAGES:
+            self.write(self.web, name, b'<html>Public comparison entry</html>')
+        for name in COMPARISON_NOTICES:
+            self.write(self.notices, name, b'public SDK distribution notice')
+        return self.make_media()
+
+    def test_exact_comparison_entry_pair_and_sdk_notices_are_packaged(self):
+        media = self.add_comparison()
+        self.make_package('--media-dir', media)
+        for name in COMPARISON_PAGES:
+            self.assertEqual((self.output / 'web' / name).read_bytes(), (self.web / name).read_bytes())
+        for name in COMPARISON_NOTICES:
+            self.assertEqual((self.output / 'web/notices' / name).read_bytes(), (self.notices / name).read_bytes())
+        self.assertEqual(self.run_verify().returncode, 0)
+
+    def test_comparison_entries_cannot_be_partial_or_use_similar_unlisted_names(self):
+        media = self.add_comparison()
+        for name in COMPARISON_PAGES:
+            path = self.web / name
+            data = path.read_bytes()
+            path.unlink()
+            self.assert_rejected('--media-dir', media)
+            path.write_bytes(data)
+        for name in ['comparison-old.html', 'comparison-runner-debug.html', 'comparison/index.html']:
+            path = self.write(self.web, name, b'unlisted entry')
+            self.assert_rejected('--media-dir', media)
+            path.unlink()
+            if path.parent != self.web:
+                path.parent.rmdir()
+
+    def test_each_comparison_sdk_notice_is_required(self):
+        media = self.add_comparison()
+        for name in COMPARISON_NOTICES:
+            path = self.notices / name
+            data = path.read_bytes()
+            path.unlink()
+            self.assert_rejected('--media-dir', media)
+            path.write_bytes(data)
+
+    def test_a_partial_comparison_notice_set_is_rejected_even_without_new_pages(self):
+        self.write(self.notices, 'HLS-JS-LICENSE.txt', b'one SDK license')
+        self.assert_rejected()
+
+    def test_comparison_pages_require_their_media_fixture(self):
+        self.add_comparison()
+        self.assert_rejected()
+
+    def test_verify_cannot_omit_a_required_comparison_notice_from_both_artifact_and_manifest(self):
+        media = self.add_comparison()
+        self.make_package('--media-dir', media)
+        name = 'web/notices/HLS-JS-LICENSE.txt'
+        (self.output / name).unlink()
+        manifest = json.loads(self.manifest.read_text())
+        manifest['files'] = [entry for entry in manifest['files'] if entry['path'] != name]
+        self.manifest.write_text(json.dumps(manifest))
+        self.assertNotEqual(self.run_verify().returncode, 0)
 
     def test_only_generated_guide_files_are_accepted(self):
         for name in ['.env', 'docs/guide/en/start.json', 'guide/notes.html', 'guide/start/source.json']:
@@ -240,8 +303,17 @@ class PagesPackageTests(unittest.TestCase):
         self.write(media, 'ATTRIBUTION.txt', b'Blender Foundation: https://creativecommons.org/licenses/by/3.0/')
         self.write(media, 'fixture-report.json', b'not part of the public package')
         self.write(media, 'assets/sintel_en.vtt', b'WEBVTT\n\n00:00.000 --> 00:01.000\nA subtitle\n')
-        master = '#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,URI="media_2.m3u8"\nmedia_0.m3u8\nmedia_1.m3u8\n'
+        prefix = ('#EXTM3U\n#EXT-X-VERSION:7\n'
+                  '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="English test track",'
+                  'LANGUAGE="en",DEFAULT=YES,URI="media_2.m3u8"\n')
+        variants = [f'#EXT-X-STREAM-INF:BANDWIDTH=66234,RESOLUTION={resolution},'
+                    f'CODECS="{codec},mp4a.40.2",AUDIO="audio"\nmedia_{number}.m3u8\n'
+                    for number, resolution, codec in [(0, '640x360', 'avc1.64001e'),
+                                                       (1, '320x180', 'avc1.64000c')]]
+        master = prefix + ''.join(variants)
         self.write(media, 'vod-baseline/master.m3u8', master.encode())
+        for label, variant in zip(['360p', '180p'], variants):
+            self.write(media, f'vod-baseline/comparison-{label}.m3u8', (prefix + variant).encode())
         for number in range(4):
             self.write(media, f'vod-baseline/media_{number}.m3u8', (
                 f'#EXTM3U\n#EXT-X-MAP:URI="init-stream{number}.m4s"\n'
@@ -279,6 +351,36 @@ class PagesPackageTests(unittest.TestCase):
                      'vod-multiaudio/master.m3u8', 'assets/sintel_en.vtt', 'ATTRIBUTION.txt']:
             self.assertEqual((self.output / 'web/media' / name).read_bytes(), (media / name).read_bytes())
         self.assertNotIn('fixture-report', self.manifest.read_text())
+
+    def test_comparison_media_reuses_exact_original_single_variants_and_audio(self):
+        media = self.make_media()
+        self.make_package('--media-dir', media)
+        for label in ['360p', '180p']:
+            name = f'vod-baseline/comparison-{label}.m3u8'
+            self.assertEqual((self.output / 'web/media' / name).read_bytes(), (media / name).read_bytes())
+            self.assertEqual((media / name).read_text().count('#EXT-X-STREAM-INF:'), 1)
+        self.assertEqual(self.run_verify().returncode, 0)
+
+    def test_comparison_media_rejects_partial_changed_or_ambiguous_masters(self):
+        media = self.make_media()
+        path = media / 'vod-baseline/comparison-360p.m3u8'
+        original = path.read_text()
+        path.unlink()
+        self.assert_rejected('--media-dir', media)
+        invalid = [
+            original + original.splitlines()[3] + '\nmedia_0.m3u8\n',
+            original.replace('CODECS="avc1.64001e,mp4a.40.2"', 'CODECS="avc1.changed,mp4a.40.2"'),
+            original.replace('RESOLUTION=640x360', 'RESOLUTION=320x180'),
+            original.replace('LANGUAGE="en"', 'LANGUAGE="de"'),
+            original.replace('BANDWIDTH=66234,', 'BANDWIDTH=66234,BANDWIDTH=66234,'),
+            original.replace('media_0.m3u8', '../vod-baseline/media_0.m3u8'),
+            original.replace('media_2.m3u8', 'media_3.m3u8'),
+        ]
+        for text in invalid:
+            with self.subTest(master=text):
+                path.write_text(text)
+                self.assert_rejected('--media-dir', media)
+        path.write_text(original)
 
     def test_native_hls_subtitles_are_packaged_only_with_local_referenced_segments(self):
         media = self.make_media()
@@ -502,6 +604,112 @@ class PagesPackageTests(unittest.TestCase):
             writer.seek(1024 * 1024)
             writer.write(b'y')
         self.assertNotEqual(self.run_verify().returncode, 0)
+
+
+class NoticeGenerationTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.repo = self.root / 'repo'
+        self.repo.mkdir()
+        self.write('LICENSE', b'project license fixture\n')
+        self.write('packages/ui-shared/node_modules/bitmovin-player-ui/LICENSE', b'UI license fixture\n')
+        self.sdk_roots = {name: self.repo / 'apps/web/node_modules' / name
+                          for name in ['bitmovin-player', '@bitmovin/player-web-x', 'hls.js', 'shaka-player']}
+        self.write_sdk('bitmovin-player', 'package.json', b'{"version":"8.281.0","main":"player.js"}')
+        self.write_sdk('bitmovin-player', 'player.js', b'/* Bitmovin Proprietary Software: test fixture */\n')
+        self.write_sdk('bitmovin-player', 'THIRD_PARTY_NOTICES', b'legacy SDK attribution fixture\n')
+        self.webx_banner = (b'/* This source code is the proprietary property of Bitmovin, Inc.\r\n'
+                            b' * Bitmovin Player X Version 10.3.1\r\n */')
+        self.write_sdk('@bitmovin/player-web-x', 'package.json', b'{"version":"10.3.1"}')
+        self.write_sdk('@bitmovin/player-web-x', 'bundles/playerx-hls.js', self.webx_banner + b'\n/* no SDK execution */')
+        self.write_sdk('hls.js', 'package.json', b'{"version":"1.7.4","license":"Apache-2.0"}')
+        self.write_sdk('shaka-player', 'package.json', b'{"version":"5.3.3","license":"Apache-2.0"}')
+        self.legal_files = {
+            ('hls.js', 'LICENSE'): b'Apache license fixture\r\nHLS attribution fixture\r\n',
+            ('shaka-player', 'LICENSE'): b'Apache license fixture\nShaka attribution fixture\n',
+            ('shaka-player', 'third_party/language-mapping-list/LICENSE'): b'language mapping license fixture\n',
+            ('shaka-player', 'third_party/cml-cmcd/LICENSE'): b'CMCD library license fixture\n',
+            ('shaka-player', 'third_party/cml-cmcd/NOTICE'): b'CMCD library attribution fixture\n',
+        }
+        for (sdk, name), data in self.legal_files.items():
+            self.write_sdk(sdk, name, data)
+        build = SCRIPT.with_name('build-pages.sh').read_text()
+        self.generator = build.split('python3 - "$notice_dir" <<\'PY\'\n', 1)[1].split('\nPY\n', 1)[0]
+
+    def write(self, name, data):
+        path = self.repo / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        return path
+
+    def write_sdk(self, sdk, name, data):
+        return self.write('apps/web/node_modules/' + sdk + '/' + name, data)
+
+    def generate(self):
+        output = Path(tempfile.mkdtemp(prefix='notices-', dir=self.root))
+        result = subprocess.run([sys.executable, '-', str(output)], input=self.generator,
+                                cwd=self.repo, text=True, capture_output=True, timeout=10)
+        return result, output / 'notices'
+
+    def test_actual_shipped_license_bytes_and_attributions_are_preserved(self):
+        result, notices = self.generate()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual({path.name for path in notices.iterdir()}, COMPARISON_NOTICES | {
+            'PROJECT-LICENSE.txt', 'BITMOVIN-PLAYER-UI-LICENSE.txt',
+            'BITMOVIN-PLAYER-THIRD-PARTY-NOTICES.txt', 'BITMOVIN-PLAYER-NOTICE.txt',
+        })
+        self.assertEqual((notices / 'HLS-JS-LICENSE.txt').read_bytes(), self.legal_files[('hls.js', 'LICENSE')])
+        self.assertEqual((notices / 'SHAKA-PLAYER-LICENSE.txt').read_bytes(), self.legal_files[('shaka-player', 'LICENSE')])
+        third_party = (notices / 'SHAKA-PLAYER-THIRD-PARTY-NOTICES.txt').read_bytes()
+        for (sdk, name), data in self.legal_files.items():
+            if sdk == 'shaka-player' and name.startswith('third_party/'):
+                self.assertIn(name.encode(), third_party)
+                self.assertIn(data, third_party)
+        webx = (notices / 'BITMOVIN-PLAYER-WEB-X-NOTICE.txt').read_bytes()
+        self.assertIn(self.webx_banner, webx)
+        self.assertIn(b'10.3.1', webx)
+        self.assertIn(b'https://legal.bitmovin.com/legal/terms', webx)
+        self.assertIn(b'no standalone license or third-party notice files', webx)
+        for path in notices.iterdir():
+            self.assertNotIn(str(self.root).encode(), path.read_bytes())
+
+    def test_missing_or_empty_distribution_material_fails_closed(self):
+        for (sdk, name), data in self.legal_files.items():
+            path = self.sdk_roots[sdk] / name
+            for replacement in [None, b'']:
+                with self.subTest(sdk=sdk, name=name, replacement=replacement):
+                    if replacement is None:
+                        path.unlink()
+                    else:
+                        path.write_bytes(replacement)
+                    result, _ = self.generate()
+                    self.assertNotEqual(result.returncode, 0)
+                    path.write_bytes(data)
+
+    def test_symlinked_sdk_material_cannot_copy_a_local_file_outside_the_package(self):
+        outside = self.root / 'unrelated.txt'
+        outside.write_bytes(b'fake-local-canary')
+        path = self.sdk_roots['hls.js'] / 'LICENSE'
+        path.unlink()
+        path.symlink_to(outside)
+        result, notices = self.generate()
+        self.assertNotEqual(result.returncode, 0)
+        for notice in notices.iterdir():
+            self.assertNotIn(b'fake-local-canary', notice.read_bytes())
+
+    def test_unrecognized_or_newly_added_legal_inventory_needs_review(self):
+        self.write_sdk('@bitmovin/player-web-x', 'LICENSE', b'new legal material fixture')
+        result, _ = self.generate()
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_oversized_or_binary_sdk_material_is_rejected(self):
+        for data in [b'x' * (1024 * 1024 + 1), b'license\0binary']:
+            with self.subTest(size=len(data)):
+                self.write_sdk('hls.js', 'LICENSE', data)
+                result, _ = self.generate()
+                self.assertNotEqual(result.returncode, 0)
 
 
 if __name__ == '__main__':

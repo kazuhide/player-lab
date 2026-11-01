@@ -3,6 +3,7 @@
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -24,6 +25,11 @@ NOTICE_FILES = {
     'BITMOVIN-PLAYER-THIRD-PARTY-NOTICES.txt',
 }
 OPTIONAL_NOTICE_FILES = {'BITMOVIN-PLAYER-NOTICE.txt'}
+COMPARISON_WEB_FILES = {'comparison.html', 'comparison-runner.html'}
+COMPARISON_NOTICE_FILES = {
+    'BITMOVIN-PLAYER-WEB-X-NOTICE.txt', 'HLS-JS-LICENSE.txt',
+    'SHAKA-PLAYER-LICENSE.txt', 'SHAKA-PLAYER-THIRD-PARTY-NOTICES.txt',
+}
 WEB_ASSET = re.compile(
     r'assets/[A-Za-z0-9_][A-Za-z0-9_.-]*-[A-Za-z0-9_-]{8,}'
     r'\.(?:js|css|woff2?|ttf|otf|eot|svg|png|jpe?g|gif|webp|avif|ico|wasm)'
@@ -35,6 +41,7 @@ MEDIA_FILES = {
     'vod-sprites/thumbnails/sprite-0.jpg',
     *(f'vod-baseline/media_{number}.m3u8' for number in range(4)),
     *(f'vod-baseline/init-stream{number}.m4s' for number in range(4)),
+    'vod-baseline/comparison-360p.m3u8', 'vod-baseline/comparison-180p.m3u8',
 }
 MEDIA_SEGMENT = re.compile(r'vod-baseline/chunk-stream[0-3]-[0-9]{5}\.m4s')
 MEDIA_SUBTITLE_SEGMENT = re.compile(r'vod-multiaudio/subtitle-(?:en|de)-[0-2][0-9]\.vtt')
@@ -159,6 +166,16 @@ def collect_media(root, allow_report=True):
     if any((MEDIA_SEGMENT.fullmatch(name) or MEDIA_SUBTITLE_SEGMENT.fullmatch(name)
             or name in OPTIONAL_MEDIA_FILES) and name not in references for name in files):
         raise ValueError('The media fixture contains an unreferenced segment.')
+    # Reuse the pure generator contract, without invoking its encoding entry point.
+    spec = importlib.util.spec_from_file_location(
+        'comparison_media', Path(__file__).resolve().parents[1] / 'encoding/test-streams/local.py')
+    helper = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(helper)
+    master = files['vod-baseline/master.m3u8'].read_text(encoding='utf-8')
+    for label, resolution in [('360p', '640x360'), ('180p', '320x180')]:
+        expected = helper.comparison_master(master, resolution)
+        if files[f'vod-baseline/comparison-{label}.m3u8'].read_text(encoding='utf-8') != expected:
+            raise ValueError('A comparison master does not preserve its original single rendition and English audio.')
     return files
 
 
@@ -196,7 +213,9 @@ def exact_tree(root, expected):
 def check_web_files(files):
     if not {'index.html', 'guide.html'} <= files.keys():
         raise ValueError('Both production Web entry pages are required.')
-    if any(name not in {'index.html', 'guide.html'} and not WEB_ASSET.fullmatch(name) for name in files):
+    if COMPARISON_WEB_FILES & files.keys() and not COMPARISON_WEB_FILES <= files.keys():
+        raise ValueError('The comparison page and runner must be supplied together.')
+    if any(name not in {'index.html', 'guide.html'} | COMPARISON_WEB_FILES and not WEB_ASSET.fullmatch(name) for name in files):
         raise ValueError('The Web build contains an unexpected file.')
     if not any(name.endswith('.js') for name in files) or not any(name.endswith('.css') for name in files):
         raise ValueError('The Web build must contain generated JavaScript and styles.')
@@ -207,8 +226,9 @@ def collect_web(root):
     return check_web_files(regular_tree(root, {'assets'}))
 
 
-def check_notice_files(files):
-    if not NOTICE_FILES <= files.keys() or not files.keys() <= NOTICE_FILES | OPTIONAL_NOTICE_FILES:
+def check_notice_files(files, comparison=False):
+    required = NOTICE_FILES | (COMPARISON_NOTICE_FILES if comparison or COMPARISON_NOTICE_FILES & files.keys() else set())
+    if not required <= files.keys() or not files.keys() <= NOTICE_FILES | OPTIONAL_NOTICE_FILES | COMPARISON_NOTICE_FILES:
         raise ValueError('The distribution notices contain missing or unexpected files.')
     if any(not path.read_text(encoding='utf-8').strip() for path in files.values()):
         raise ValueError('Every distribution notice must be nonempty.')
@@ -273,9 +293,12 @@ def verify(root, manifest):
         raise ValueError('The artifact contains missing or additional files.')
     if {name for name in files if not name.startswith('web/')} != SITE_FILES | GUIDE_FILES:
         raise ValueError('The overview or guide contains missing or unexpected files.')
-    check_web_files({name[4:]: path for name, path in files.items()
-                     if name.startswith('web/') and not name.startswith(('web/notices/', 'web/media/'))})
-    check_notice_files({name[12:]: path for name, path in files.items() if name.startswith('web/notices/')})
+    web_files = check_web_files({name[4:]: path for name, path in files.items()
+                                if name.startswith('web/') and not name.startswith(('web/notices/', 'web/media/'))})
+    comparison = bool(COMPARISON_WEB_FILES & web_files.keys())
+    check_notice_files({name[12:]: path for name, path in files.items() if name.startswith('web/notices/')}, comparison)
+    if comparison and not (root / 'web/media').exists():
+        raise ValueError('The comparison pages require the packaged media fixture.')
     if (root / 'web/media').exists():
         collect_media(root / 'web/media', allow_report=False)
     for name, path in files.items():
@@ -303,9 +326,13 @@ def package(site, web, notices, guide, output, manifest, media=None):
         raise ValueError('Output and report paths must be separate from all inputs.')
     selected = exact_tree(site, SITE_FILES)
     selected.update(exact_tree(guide, GUIDE_FILES))
-    selected.update({f'web/{name}': path for name, path in collect_web(web).items()})
-    notice_files = check_notice_files(regular_tree(notices, set()))
+    web_files = collect_web(web)
+    comparison = bool(COMPARISON_WEB_FILES & web_files.keys())
+    selected.update({f'web/{name}': path for name, path in web_files.items()})
+    notice_files = check_notice_files(regular_tree(notices, set()), comparison)
     selected.update({f'web/notices/{name}': path for name, path in notice_files.items()})
+    if comparison and not media:
+        raise ValueError('The comparison pages require their local media fixture.')
     if media:
         selected.update({f'web/media/{name}': path for name, path in collect_media(media).items()})
 

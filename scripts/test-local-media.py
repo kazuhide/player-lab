@@ -29,6 +29,15 @@ class ArchiveVerified(Exception):
 
 PUBLIC_BYTES = b'verified public fixture archive'
 PUBLIC_HASH = hashlib.sha256(PUBLIC_BYTES).hexdigest()
+COMPARISON_MASTER = (
+    '#EXTM3U\n#EXT-X-VERSION:7\n'
+    '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="English test track",'
+    'LANGUAGE="en",DEFAULT=YES,URI="media_2.m3u8"\n'
+    '#EXT-X-STREAM-INF:BANDWIDTH=66234,RESOLUTION=640x360,'
+    'CODECS="avc1.64001e,mp4a.40.2",AUDIO="audio"\nmedia_0.m3u8\n'
+    '#EXT-X-STREAM-INF:BANDWIDTH=66234,RESOLUTION=320x180,'
+    'CODECS="avc1.64000c,mp4a.40.2",AUDIO="audio"\nmedia_1.m3u8\n'
+)
 
 
 def write_download(command, options, contents):
@@ -55,6 +64,44 @@ def audio_fragment(sample_durations, default_duration=None):
 
 
 class LocalMediaTests(unittest.TestCase):
+    def test_comparison_master_preserves_one_original_variant_and_english_audio(self):
+        lines = COMPARISON_MASTER.splitlines()
+        for resolution, stream in [('640x360', 0), ('320x180', 1)]:
+            with self.subTest(resolution=resolution):
+                result = MEDIA.comparison_master(COMPARISON_MASTER, resolution)
+                variant = next(line for line in lines if f'RESOLUTION={resolution},' in line)
+                self.assertEqual(result, '\n'.join(lines[:3] + [variant, f'media_{stream}.m3u8']) + '\n')
+                self.assertEqual(result.count('#EXT-X-STREAM-INF:'), 1)
+                self.assertEqual(result.count('#EXT-X-MEDIA:'), 1)
+                self.assertIn('LANGUAGE="en",DEFAULT=YES,URI="media_2.m3u8"', result)
+                self.assertNotIn(f'\nmedia_{1 - stream}.m3u8\n', result)
+
+    def test_comparison_master_rejects_ambiguous_or_malformed_input(self):
+        invalid = [
+            COMPARISON_MASTER.replace('RESOLUTION=320x180', 'RESOLUTION=640x360'),
+            COMPARISON_MASTER.replace('BANDWIDTH=66234,', 'BANDWIDTH=66234,BANDWIDTH=66234,', 1),
+            COMPARISON_MASTER + COMPARISON_MASTER.splitlines()[2] + '\n',
+            COMPARISON_MASTER.replace('LANGUAGE="en"', 'LANGUAGE="de"'),
+            COMPARISON_MASTER.replace('AUDIO="audio"', 'AUDIO="missing"'),
+            COMPARISON_MASTER.replace('media_0.m3u8', 'media_2.m3u8'),
+            COMPARISON_MASTER.replace('URI="media_2.m3u8"', 'URI="media_3.m3u8"'),
+            COMPARISON_MASTER.replace('CODECS="avc1.64001e,mp4a.40.2"', 'CODECS="unterminated'),
+            COMPARISON_MASTER + '#EXT-X-SESSION-KEY:METHOD=AES-128,URI="key.bin"\n',
+        ]
+        for value in invalid:
+            with self.subTest(master=value):
+                with self.assertRaises(ValueError):
+                    MEDIA.comparison_master(value, '640x360')
+        for resolution in ['1920x1080', '', '640x360,RESOLUTION=320x180']:
+            with self.subTest(resolution=resolution), self.assertRaises(ValueError):
+                MEDIA.comparison_master(COMPARISON_MASTER, resolution)
+
+    def test_comparison_master_rejects_nonlocal_or_unexpected_playlist_references(self):
+        for value in ['../media_0.m3u8', '/media_0.m3u8', 'https://example.invalid/video.m3u8',
+                      'media_0.m3u8?token=fake', '%6dedia_0.m3u8', 'media_0.m3u8#fragment']:
+            with self.subTest(reference=value), self.assertRaises(ValueError):
+                MEDIA.comparison_master(COMPARISON_MASTER.replace('media_0.m3u8', value), '640x360')
+
     def test_native_hls_subtitles_have_two_second_segments_and_distinct_languages(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -9,8 +9,8 @@ import subprocess
 import tempfile
 
 PUBLIC_LICENSES = (
-    'PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY',
-    'PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY',
+    ('PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY', '(?:main|comparisonRunner)'),
+    ('PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY', 'main'),
 )
 
 
@@ -27,14 +27,14 @@ def scan(artifact, gitleaks):
     if not artifact.is_dir():
         raise ValueError('The artifact must be a directory.')
     config = Path(__file__).with_name('gitleaks-pages.toml').read_text(encoding='utf-8')
-    for name in PUBLIC_LICENSES:
+    for name, entry in PUBLIC_LICENSES:
         value = os.environ.get(name, '')
         if value:
             config += '\n[[allowlists]]\n' + '\n'.join([
                 'description = "Explicit public client license"',
                 'targetRules = ["generic-api-key"]',
                 'condition = "AND"',
-                "paths = ['''(?:^|/)web/assets/main-[A-Za-z0-9_-]{8,}\\.js$''']",
+                "paths = ['''(?:^|/)web/assets/" + entry + "-[A-Za-z0-9_-]{8,}\\.js$''']",
                 'regexTarget = "secret"',
                 'regexes = [' + json.dumps(literal_regex(value)) + ']',
             ]) + '\n'

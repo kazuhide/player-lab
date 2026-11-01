@@ -1053,6 +1053,24 @@
     {
       "type": "note",
       "text": "The Cast control is wired to remotecontrol using the default receiver. The existence of its settings is separate from verification on a physical receiver. TV remote navigation and VR playback controls are not provided as features of the current Web screen."
+    },
+    {
+      "type": "h2",
+      "id": "startup-comparison",
+      "text": "Startup comparison"
+    },
+    {
+      "type": "p",
+      "text": "Open the startup comparison to compare Player Web X, hls.js and Shaka with matched content and disclosed settings. Its guide explains how to select conditions and read individual outcomes and grouped timings."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-comparison/",
+          "label": "Startup comparison: screen and controls"
+        }
+      ]
     }
   ],
   "sources": [

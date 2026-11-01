@@ -5,6 +5,212 @@
   "blocks": [
     {
       "type": "h2",
+      "id": "web-startup-2026-11-01",
+      "text": "Web起動比較 2026-11-01"
+    },
+    {
+      "type": "p",
+      "text": "Apple M5、32 GiB、Headless Chromium 156.0.8078.4、1440×1000で測定しました。HTTP/2とBrotli/gzipを使い、本番用ファイルを同じMac内で配信しました。素材は60秒のBig Buck Bunny HLSで、同一条件では同じ画質と英語音声を使い、ミュート・先頭位置・通常速度で再生しました。SDKはPlayer Web X 10.3.1、hls.js 1.7.4、Shaka Player 5.3.3です。記録した測定はlocalhostでPlayerキーを空にして実施し、Analyticsと広告は無効にしました。"
+    },
+    {
+      "type": "p",
+      "text": "共通の再生条件をそろえたSDK標準値と、候補評価後に固定した起動設定を比較しました。両者は別のブラウザーコンテキスト（Cookieなどの保存領域を分離した環境）で実行し、各試行では新しいページとPlayerを作成しました。プレイヤーの順番を入れ替えながら一つずつ再生しました。表には標準設定の試行と起動設定の確認試行を載せ、候補評価の試行は含めていません。失敗と中止はありません。"
+    },
+    {
+      "type": "p",
+      "text": "単位はms、nはプレイヤーごとの成功試行数です。「標準値」と「起動設定」はコンテンツ選択からvideoのplayingイベントまでの中央値です。p95とPlay→Playingも起動設定の値で、後者は再生要求から同イベントまでの中央値です。p95は小さい順に並べた値の95%の順位を切り上げて求め、今回は12回の最大値になります。"
+    },
+    {
+      "type": "note",
+      "text": "「ブラウザー管理」はHTTPキャッシュが温まったことを示しません。「HTTPキャッシュ回避」はHTTPレスポンスの保存を禁じるno-storeとChrome DevTools Protocol（開発ツール用API）を使い、SDKと素材の通信記録でキャッシュヒットがないことを確認しました。JavaScript内部のキャッシュは制御していません。8 Mbps・遅延80 msは同じAPIで模擬した条件です。CPU制限4はブラウザーの描画プロセス（レンダラー）の処理速度を4分の1にする指定で、ワーカーやデコーダーを含む端末全体の性能を示すものではありません。"
+    },
+    {
+      "type": "h3",
+      "id": "startup-360p-managed",
+      "text": "360p・ブラウザー管理のHTTPキャッシュ"
+    },
+    {
+      "type": "p",
+      "text": "SDKはコンテンツの選択時に取得しました。通信とCPUの制限は指定していません。起動設定はhls.jsのenableWorker=false、ShakaのsegmentPrefetchLimit=2、Web XのLoadControl=2（Data）で固定しました。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "プレイヤー",
+        "標準値 (n=6)",
+        "起動設定 (n=12)",
+        "p95 (n=12)",
+        "Play→Playing (n=12)"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "43.5",
+          "38.1",
+          "45.1",
+          "23.0"
+        ],
+        [
+          "hls.js",
+          "106.6",
+          "8.8",
+          "11.0",
+          "6.9"
+        ],
+        [
+          "Shaka Player",
+          "14.2",
+          "13.7",
+          "22.1",
+          "11.3"
+        ]
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "startup-360p-http-bypass",
+      "text": "360p・HTTPキャッシュ回避"
+    },
+    {
+      "type": "p",
+      "text": "SDKはコンテンツの選択時に取得しました。HTTPキャッシュを回避し、通信は8 Mbps・遅延80 msとしました。CPU制限は指定していません。起動設定はhls.jsのenableWorker=false、ShakaのsegmentPrefetchLimit=1、Web XのLoadControl=2（Data）で固定しました。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "プレイヤー",
+        "標準値 (n=6)",
+        "起動設定 (n=12)",
+        "p95 (n=12)",
+        "Play→Playing (n=12)"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "599.8",
+          "594.3",
+          "607.2",
+          "353.9"
+        ],
+        [
+          "hls.js",
+          "770.0",
+          "664.3",
+          "673.5",
+          "395.0"
+        ],
+        [
+          "Shaka Player",
+          "1171.1",
+          "1165.6",
+          "1179.3",
+          "880.3"
+        ]
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "startup-360p-sdk-preimported",
+      "text": "360p・SDKを事前取得"
+    },
+    {
+      "type": "p",
+      "text": "SDKだけをコンテンツの選択前に取得し、Playerは選択後に作成しました。HTTPキャッシュを回避し、通信は8 Mbps・遅延80 msとしました。CPU制限は指定していません。起動設定はhls.jsのenableWorker=false、ShakaのsegmentPrefetchLimit=1、Web XのLoadControl=2（Data）で固定しました。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "プレイヤー",
+        "標準値 (n=6)",
+        "起動設定 (n=12)",
+        "p95 (n=12)",
+        "Play→Playing (n=12)"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "363.2",
+          "344.5",
+          "348.2",
+          "339.8"
+        ],
+        [
+          "hls.js",
+          "496.7",
+          "389.3",
+          "395.3",
+          "387.8"
+        ],
+        [
+          "Shaka Player",
+          "888.6",
+          "856.1",
+          "860.1",
+          "854.1"
+        ]
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "startup-180p-renderer-slowdown",
+      "text": "180p・レンダラーのCPU制限"
+    },
+    {
+      "type": "p",
+      "text": "SDKはコンテンツの選択時に取得しました。HTTPキャッシュを回避し、通信は8 Mbps・遅延80 ms、レンダラーのCPU制限は4としました。起動設定はhls.jsのenableWorker=false、ShakaのsegmentPrefetchLimit=1、Web XのLoadControl=2（Data）で固定しました。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "プレイヤー",
+        "標準値 (n=6)",
+        "起動設定 (n=12)",
+        "p95 (n=12)",
+        "Play→Playing (n=12)"
+      ],
+      "rows": [
+        [
+          "Player Web X",
+          "619.7",
+          "614.1",
+          "626.4",
+          "330.0"
+        ],
+        [
+          "hls.js",
+          "775.9",
+          "586.4",
+          "590.4",
+          "307.8"
+        ],
+        [
+          "Shaka Player",
+          "954.1",
+          "954.6",
+          "961.4",
+          "659.6"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "起動設定の確認では、360pでHTTPキャッシュを回避して通信条件を模擬した場合はWeb X、それ以外の掲載条件ではhls.jsのSelection→Playing中央値が最小でした。掲載した設定・素材・端末での結果であり、全ての設定値を探索した結果や他の端末での最速を示すものではありません。"
+    },
+    {
+      "type": "note",
+      "text": "Play→PlayingはBitmovin AnalyticsのVSTとは異なる指標です。フレーム時刻もコールバックを受けた時刻であり、物理画面への表示時刻ではありません。指標と設定候補の定義は起動比較の実装ガイドを参照してください。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-integration/",
+          "label": "起動比較の指標と設定"
+        }
+      ]
+    },
+    {
+      "type": "h2",
       "text": "2026-10-21に記録した代表的な結果"
     },
     {
@@ -279,6 +485,10 @@
       "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerVrRendererInstrumentedTest.kt",
       "line": 1,
       "label": "Androidのデコード済み映像の描画試験"
+    },
+    {
+      "label": "Web起動比較の観測値と条件",
+      "url": "https://github.com/kazuhide/player-lab/blob/b02b242232c661360c5304ba3493b511e8e028bd/docs/web-startup-results-2026-11-01.json"
     }
   ]
 }

@@ -35,8 +35,10 @@ def main():
         scan_tmp.mkdir()
         cases = 0
 
-        def scan(text, expected, values=None, outside=None):
-            nonlocal cases
+        def scan(text, expected, values=None, outside=None, *, entry='main-abcdefgh.js'):
+            nonlocal cases, asset
+            asset.unlink(missing_ok=True)
+            asset = root / 'web/assets' / entry
             asset.write_text(text, encoding='utf-8')
             extra = root / 'other.js'
             if outside is None:
@@ -79,6 +81,16 @@ def main():
         # A public-value exception for generic-api-key cannot silence another detector.
         pat = 'gh' + 'p_' + token()[:36]
         scan(f'const licenseKey="{pat}";', 1, {public_player: pat})
+        runner = 'comparisonRunner-abcdefgh.js'
+        scan(f'const licenseKey="{player}";', 1, entry=runner)
+        scan(f'const licenseKey="{player}";', 0, public, entry=runner)
+        scan(f'const licenseKey="{player}";const api_key="{unrelated}";', 1, public, entry=runner)
+        scan(f'const analyticsKey="{analytics}";', 1, public, entry=runner)
+        scan(f'const licenseKey="{changed}";', 1, public, entry=runner)
+        for entry in ['webx-abcdefgh.js', 'comparisonRunnerX-abcdefgh.js',
+                      'comparisonRunner-abcdefg.js', 'comparisonRunner-abcdefgh.js.map']:
+            scan(f'const licenseKey="{player}";', 1, public, entry=entry)
+        scan(f'const licenseKey="{pat}";', 1, {public_player: pat}, entry=runner)
     print(f'Pages secret-scanner checks passed ({cases} cases; no values shown).')
 
 

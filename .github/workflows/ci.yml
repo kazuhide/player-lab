@@ -217,7 +217,12 @@ jobs:
           PLAYWRIGHT_BROWSER_CHANNEL: chromium
           E2E_PAGES_DIR: ${{ runner.temp }}/pages-release/site
           E2E_PAGES_ANALYTICS_ENABLED: ${{ vars.PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY != '' && '1' || '0' }}
-        run: pnpm --filter @showcase/e2e e2e:pages
+        run: pnpm --filter @showcase/e2e e2e:pages pages.spec.ts user-guide.spec.ts api-explorer.spec.ts
+      - name: Check startup comparison with the production SDKs
+        env:
+          PLAYWRIGHT_BROWSER_CHANNEL: chromium
+          E2E_PAGES_DIR: ${{ runner.temp }}/pages-release/site
+        run: pnpm --filter @showcase/e2e e2e:pages startup-comparison.spec.ts
       - name: Check Firefox against the same production artifact
         env:
           E2E_PAGES_DIR: ${{ runner.temp }}/pages-release/site
