@@ -83,11 +83,12 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   </View>;
   return (
     <View style={{ flex: 1, minHeight: 0 }} testID="configuration-workspace">
-      {!keyboardVisible && <View style={{ padding: 10, gap: 8, flexDirection: "row" }}>
+      {!keyboardVisible && <View testID="configuration-selectors" style={{ padding: 10, gap: 8, flexDirection: "row" }}>
         <WorkspaceChoice label="Configuration" selected={group} options={groups} onSelect={value => {
           if (value === group) editor.current?.scrollTo({ y: 0, animated: false });
           setGroup(value);
-        }} testID="configuration-group-selector" />
+        }} testID="configuration-group-selector" singleLineValue={group === "profiles"} />
+        {!compactEditing && group === "profiles" && <Text testID="configuration-profile-state" style={[styles.badge, { maxWidth: "40%", flexShrink: 1 }]}>{changed ? "Unapplied changes" : "Up to date"}</Text>}
         {(group === "source" || group === "player") && <WorkspaceChoice label="Setting" selected={selected}
           options={group === "player" ? playerFields : sourceFields} onSelect={value => {
             if (value === selected) editor.current?.scrollTo({ y: 0, animated: false });
@@ -156,11 +157,11 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       {group !== "profiles" && changes}
       </ScrollView>
       </WorkspacePage>
-      <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
+      <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing || group === "profiles" ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
-        {!compactEditing && <View style={{ gap: 6 }}>
+        {!compactEditing && group !== "profiles" && <View style={{ gap: 6 }}>
           <Text style={styles.badge}>{changed ? "Unapplied changes" : "Up to date"}</Text>
-          {changed && group !== "profiles" && <Text style={styles.help}>Apply recreates the player and clears the current position.</Text>}
+          {changed && <Text style={styles.help}>Apply recreates the player and clears the current position.</Text>}
         </View>}
         <View style={{ flexDirection: "row", gap: 8 }}>
           {compactEditing && <WorkspaceAction title="Done" testID="configuration-done" onPress={() => Keyboard.dismiss()} />}

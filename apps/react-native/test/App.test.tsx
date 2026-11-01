@@ -1683,6 +1683,16 @@ describe("named configuration drafts in the mounted React Native App", () => {
         expect(control).toBeDefined();
         for (let parent = control.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
       }
+      expect(element("View", { testID: "configuration-actions" }).findAll(node => String(node.type) === "Text")).toHaveLength(2);
+      const selectors = element("View", { testID: "configuration-selectors" });
+      expect(selectors.findAll(node => String(node.type) === "Text" && node.props.testID === "configuration-profile-state")).toHaveLength(1);
+      const fields = element("View", { testID: "configuration-profile-fields" });
+      expect(fields.findAll(node => String(node.type) === "TextInput" && node.props.testID === "configuration-profile-name")).toHaveLength(1);
+      expect(fields.findAll(node => String(node.type) === "Pressable" && node.props.testID === "configuration-profile-picker")).toHaveLength(1);
+      const actions = element("View", { testID: "configuration-profile-actions" });
+      expect(actions.props.style).toEqual(expect.objectContaining({ flexDirection: "row", flexWrap: "nowrap" }));
+      expect(actions.findAll(node => String(node.type) === "Pressable").map(node => node.props.testID))
+        .toEqual(["configuration-profile-save", "configuration-profile-restore", "configuration-profile-delete"]);
       const picker = element("Pressable", { testID: "configuration-profile-picker" });
       expect(picker.props.accessibilityValue.text).toBe(name);
       const closedValue = picker.findAll(node => String(node.type) === "Text" && node.props.children === name);
