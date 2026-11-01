@@ -25,6 +25,8 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
   Preserve operation selections and argument drafts across source changes.
 - Use the supported numeric keyboard for React Native Android configuration
   fields, retaining signed/decimal entry, iOS behavior and input validation.
+- Keep React Native profile save, load and delete actions outside the scrolling
+  explanations and configuration differences.
 - Redact Analytics player keys from API results, configuration previews, copied
   code and credential-bearing URL parameters.
 - Introduce Player Web X in the English and Japanese Web guide and home pages,
