@@ -164,7 +164,19 @@
     },
     {
       "type": "p",
-      "text": "Select Save JSON before leaving the page to retain conditions (safe content identifiers and settings), sequence seeds, phases, outcomes and observations. Export schema 2 adds device-clock timestamps in UTC (Coordinated Universal Time): exportedAt is the save time; each trial's measuredAt is its start time. Each trial keeps its startup browser family and major version, OS family, reported logical processors, optional approximate memory in GiB, viewport size in CSS pixels and pixel ratio. Browser and OS families are coarse user-agent classifications, not verified platform or playback-engine observations. Processor counts may be reduced and memory is approximate; neither measures CPU utilization or player/process memory. Unknown values are null with a reason, and later resizing does not alter earlier records. The export excludes raw user-agent text, device models, hostnames, license and API keys, source URLs, headers, raw SDK errors and SDK metadata. Clear results removes the displayed records."
+      "text": "Select Save JSON before leaving the page to retain conditions (safe content identifiers and settings), sequence seeds, phases, outcomes and observations."
+    },
+    {
+      "type": "p",
+      "text": "Export schema 2 adds device-clock timestamps in UTC (Coordinated Universal Time): exportedAt is the save time; each trial's measuredAt is its start time. Each trial keeps its startup browser family and major version, OS family, reported logical processors, optional approximate memory in GiB, viewport size in CSS pixels and pixel ratio."
+    },
+    {
+      "type": "p",
+      "text": "Browser and OS families are coarse user-agent classifications, not verified platform or playback-engine observations. Processor counts may be reduced and memory is approximate; neither measures CPU utilization or player/process memory. Unknown values are null with a reason, and later resizing does not alter earlier records."
+    },
+    {
+      "type": "p",
+      "text": "The export excludes raw user-agent text, device models, hostnames, license and API keys, source URLs, headers, raw SDK errors and SDK metadata. Clear results removes the displayed records."
     },
     {
       "type": "h2",
