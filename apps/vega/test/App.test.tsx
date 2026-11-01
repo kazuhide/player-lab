@@ -432,19 +432,26 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledOnce();
   });
 
-  it("does not bypass unconfirmed native initialization cancellation through Recreate", async () => {
+  it("waits for pending initialization and recreates only the latest requested foreground owner", async () => {
     let initialized!: () => void;
     runtime.initialization = new Promise<void>((resolve) => { initialized = resolve; });
     await mount();
     await action("Show SDK API experiments"); await action("Recreate Vega player");
     await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("replacement-surface"));
     await action("Recreate Vega player");
-    await act(async () => initialized());
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("latest-surface"));
     expect(runtime.videos).toHaveLength(1);
     expect(runtime.players).toHaveLength(0);
+    expect(runtime.videos[0]!.deinitializeSync).not.toHaveBeenCalled();
+    await act(async () => initialized());
+    expect(runtime.videos).toHaveLength(2);
+    expect(runtime.players).toHaveLength(1);
     expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledOnce();
-    expect(warnings).toHaveBeenCalledExactlyOnceWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
-    warnings.mockClear();
+    expect(runtime.videos[0]!.deinitializeSync.mock.invocationCallOrder[0]).toBeLessThan(Reflect.get(runtime.videos[1]!, "initialize").mock.invocationCallOrder[0]);
+    expect(Reflect.get(runtime.videos[1]!, "setSurfaceHandle")).toHaveBeenCalledExactlyOnceWith("latest-surface");
+    expect(current().load).toHaveBeenCalledOnce();
+    expect(current().config).toMatchObject({ ui: false, playback: { autoplay: true, muted: true } });
+    expect(warnings).not.toHaveBeenCalled();
   });
 
   it("applies a typed advanced field from the normal GUI and exports only the applied value", async () => {
@@ -761,7 +768,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(current().load).toHaveBeenCalledWith({ progressive: "https://example.com/movie.mp4", options: { startOffset: 10.5, startOffsetTimelineReference: "start" } });
   });
 
-  it("keeps the latest configuration but blocks replacement after unconfirmed initialization cancellation", async () => {
+  it("applies the latest foreground configuration only after pending initialization settles", async () => {
     let initialized!: () => void;
     runtime.initialization = new Promise<void>((resolve) => { initialized = resolve; });
     await mount();
@@ -770,13 +777,21 @@ describe("Vega configuration in the mounted App and media session", () => {
     await text("Source URL", "https://example.com/latest.mpd");
     await press("Apply and recreate player");
     expect(runtime.players).toHaveLength(0);
-    await act(async () => initialized());
+    expect(runtime.videos).toHaveLength(1);
+    expect(runtime.videos[0]!.deinitializeSync).not.toHaveBeenCalled();
+    await text("Source URL", "https://example.com/newest.mpd");
+    await press("Apply and recreate player");
     expect(runtime.players).toHaveLength(0);
     expect(runtime.videos).toHaveLength(1);
-    expect(input("Source URL").props.value).toBe("https://example.com/latest.mpd");
-    expect(warnings).toHaveBeenCalledExactlyOnceWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
-    warnings.mockClear();
+    await act(async () => initialized());
+    expect(runtime.players).toHaveLength(1);
+    expect(runtime.videos).toHaveLength(2);
+    expect(input("Source URL").props.value).toBe("https://example.com/newest.mpd");
+    expect(current().load).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ dash: "https://example.com/newest.mpd" }));
+    expect(current().config).toMatchObject({ ui: false, playback: { autoplay: true, muted: true } });
+    expect(warnings).not.toHaveBeenCalled();
     expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync.mock.invocationCallOrder[0]).toBeLessThan(Reflect.get(runtime.videos[1]!, "initialize").mock.invocationCallOrder[0]);
   });
 
   it("retires background media and resumes only after cleanup with applied settings and drafts intact", async () => {
