@@ -57,6 +57,35 @@ class PagesServerTests(unittest.TestCase):
         finally:
             server.server_close()
 
+    def test_cold_asset_connections_wait_for_the_accept_loop_without_resets(self):
+        server = PagesServer(('127.0.0.1', 0), partial(PagesHandler, directory=str(self.public)))
+        connections = []
+        thread = Thread(target=server.serve_forever, daemon=True)
+        started = False
+        try:
+            # A cold document can open its module and stylesheet connections together.
+            # Hold the accept loop until the entire burst has reached the listening socket.
+            for _ in range(12):
+                connection = HTTPConnection(*server.server_address, timeout=5)
+                connections.append(connection)
+                connection.connect()
+            thread.start()
+            started = True
+            for connection in connections:
+                connection.request('GET', '/player-lab/')
+            for connection in connections:
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.read(), b'public-index')
+        finally:
+            for connection in connections:
+                connection.close()
+            if started:
+                server.shutdown()
+            server.server_close()
+            if started:
+                thread.join(timeout=5)
+
     def test_repeated_slash_never_serves_an_absolute_file_outside_public_root(self):
         path = '/player-lab/' + self.outside.as_posix()
         for method in ['GET', 'HEAD']:

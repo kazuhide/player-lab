@@ -10,6 +10,9 @@ PREFIX = '/player-lab/'
 
 
 class PagesServer(ThreadingHTTPServer):
+    # Queue a cold page's parallel script and stylesheet connections before acceptance.
+    request_queue_size = 128
+
     def server_bind(self):
         # HTTPServer resolves a hostname before listening; this can stall on macOS.
         # https://github.com/actions/runner-images/issues/14409
