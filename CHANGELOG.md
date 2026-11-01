@@ -23,6 +23,8 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 - Apply live-rewind preferences to supported embedded controls and disable API
   operations whose current source or playback state does not meet prerequisites.
   Preserve operation selections and argument drafts across source changes.
+- Redact Analytics player keys from API results, configuration previews, copied
+  code and credential-bearing URL parameters.
 - Introduce Player Web X in the English and Japanese Web guide and home pages,
   while keeping the Player v8 configuration and UI lab as the main Web app.
 

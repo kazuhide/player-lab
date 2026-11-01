@@ -2,7 +2,7 @@ schema-version = 1
 
 [package]
 title = "Player Lab Vega"
-version = "0.1.5"
+version = "0.2.0"
 id = "com.playerlab.vega"
 
 # RN 0.72 remains supported by Vega SDK 0.24 on OS 1.2.
