@@ -41,10 +41,12 @@ export interface AdapterMetadata {
   /** Explicit public settings only. Never include keys, URLs, headers or SDK objects. */
   readonly configuration: Readonly<Record<string, SafeValue>>;
   readonly unavailable: Readonly<Partial<Record<AdapterMark, string>>>;
+  /** Explain absent statistics and observations limited to a broader engine family. */
+  readonly sampleLimitations: Readonly<Partial<Record<keyof ProviderSample, string>>>;
 }
 
 export interface ProviderSample {
-  readonly mediaEngine: "media-source" | "managed-media-source" | "native" | "unknown";
+  readonly mediaEngine: "media-source" | "managed-media-source" | "media-source-family" | "native" | "unknown";
   readonly audioLanguage: string | null;
   readonly workerActive: boolean | null;
   /** Provider statistics retain their original units and definitions. */
