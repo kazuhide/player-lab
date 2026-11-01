@@ -31,6 +31,8 @@ ENCODE_POOLS = 4
 CPU_HEAVY_POOLS = 2
 AUDIO_ENCODERS = 2
 FRAME_QUEUE_BYTES = 640 * 360 * 3 // 2 * 48 * ENCODE_POOLS
+COMPARISON_MASTERS = {'comparison-360p.m3u8': '640x360', 'comparison-180p.m3u8': '320x180'}
+COMPARISON_VARIANTS = {'640x360': 'media_0.m3u8', '320x180': 'media_1.m3u8'}
 
 
 def available_cpus():
@@ -110,6 +112,66 @@ def audio_master(master, prefix="", alternate=True):
                 line = prefix + line
         lines.append(line)
     return '\n'.join(lines) + '\n'
+
+
+def hls_attributes(line):
+    """Read the generated attribute list, retaining commas inside quoted CODECS."""
+    body = line.split(':', 1)[1]
+    attributes, end = {}, 0
+    for match in re.finditer(r'([A-Z0-9-]+)=("[^"]*"|[^,"\s]+)(?:,|$)', body):
+        if match.start() != end or match[1] in attributes:
+            raise ValueError("An HLS attribute list is malformed or duplicated.")
+        attributes[match[1]] = match[2].strip('"')
+        end = match.end()
+    if not attributes or end != len(body) or body.endswith(','):
+        raise ValueError("An HLS attribute list is malformed.")
+    return attributes
+
+
+def comparison_master(master, resolution):
+    """Select one original video rendition and its existing English audio."""
+    if resolution not in COMPARISON_VARIANTS or not master.startswith('#EXTM3U\n'):
+        raise ValueError("The comparison requires a known resolution and an HLS master.")
+    lines = [line for line in master.splitlines() if line]
+    headers, audio, variants = [], [], {}
+    references = set()
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if line == '#EXTM3U' or re.fullmatch(r'#EXT-X-VERSION:[1-9][0-9]*', line) or line == '#EXT-X-INDEPENDENT-SEGMENTS':
+            if line in headers or (line.startswith('#EXT-X-VERSION:') and any(value.startswith('#EXT-X-VERSION:') for value in headers)):
+                raise ValueError("The HLS master has duplicate header tags.")
+            headers.append(line)
+        elif line.startswith('#EXT-X-MEDIA:'):
+            attributes = hls_attributes(line)
+            uri = attributes.get('URI')
+            if attributes.get('TYPE') != 'AUDIO' or uri not in {'media_2.m3u8', 'media_3.m3u8'} or uri in references:
+                raise ValueError("The comparison audio must use an unambiguous existing playlist.")
+            references.add(uri)
+            audio.append((line, attributes))
+        elif line.startswith('#EXT-X-STREAM-INF:'):
+            attributes = hls_attributes(line)
+            size = attributes.get('RESOLUTION')
+            index += 1
+            uri = lines[index] if index < len(lines) else None
+            if (size not in COMPARISON_VARIANTS or size in variants
+                    or uri != COMPARISON_VARIANTS[size] or uri in references
+                    or not attributes.get('CODECS') or not attributes.get('AUDIO')
+                    or not re.fullmatch(r'[1-9][0-9]*', attributes.get('BANDWIDTH', ''))
+                    or set(attributes) - {'BANDWIDTH', 'AVERAGE-BANDWIDTH', 'RESOLUTION', 'CODECS', 'AUDIO', 'FRAME-RATE'}):
+                raise ValueError("The comparison video must use a unique known rendition and its original attributes.")
+            references.add(uri)
+            variants[size] = (line, uri, attributes)
+        else:
+            raise ValueError("The generated comparison master contains an unexpected tag or reference.")
+        index += 1
+    english = [(line, attributes) for line, attributes in audio if attributes.get('LANGUAGE') == 'en']
+    if (resolution not in variants or len(english) != 1 or english[0][1].get('URI') != 'media_2.m3u8'
+            or english[0][1].get('GROUP-ID') != variants[resolution][2]['AUDIO']):
+        raise ValueError("The comparison rendition must reference exactly one existing English audio track.")
+    # BANDWIDTH can be identical across different resolutions in this tiny ladder.
+    # Preserve the selected STREAM-INF and URI bytes instead of relying on ABR selection.
+    return '\n'.join(headers + [english[0][0], *variants[resolution][:2]]) + '\n'
 
 
 def add_hls_subtitles(master, directory, program_dates):
@@ -350,7 +412,12 @@ def build(output, archive):
         ], check=True)
 
     master = (baseline / 'master.m3u8').read_text()
-    (baseline / 'master.m3u8').write_text(audio_master(master, alternate=False))
+    baseline_master = audio_master(master, alternate=False)
+    comparisons = {name: comparison_master(baseline_master, resolution)
+                   for name, resolution in COMPARISON_MASTERS.items()}
+    (baseline / 'master.m3u8').write_text(baseline_master)
+    for name, text in comparisons.items():
+        (baseline / name).write_text(text)
     multi = output / 'vod-multiaudio'
     multi.mkdir()
     program_dates = [line.split(':', 1)[1] for line in (baseline / 'media_0.m3u8').read_text().splitlines()

@@ -84,7 +84,9 @@ class Fixture:
         self.write(self.root / 'web', 'guide.html', label)
         self.write(self.root / 'web', 'assets/main-12345678.js', b'console.log("public");')
         self.write(self.root / 'web', 'assets/main-12345678.css', b'body { color: black; }')
-        for name in ('PROJECT-LICENSE.txt', 'BITMOVIN-PLAYER-UI-LICENSE.txt', 'BITMOVIN-PLAYER-THIRD-PARTY-NOTICES.txt'):
+        for name in ('PROJECT-LICENSE.txt', 'BITMOVIN-PLAYER-UI-LICENSE.txt', 'BITMOVIN-PLAYER-THIRD-PARTY-NOTICES.txt',
+                     'BITMOVIN-PLAYER-WEB-X-NOTICE.txt', 'HLS-JS-LICENSE.txt',
+                     'SHAKA-PLAYER-LICENSE.txt', 'SHAKA-PLAYER-THIRD-PARTY-NOTICES.txt'):
             self.write(self.root / 'notices', name, b'public license notice')
         extracted = self.root / 'ci-archive'
         extracted.mkdir()
