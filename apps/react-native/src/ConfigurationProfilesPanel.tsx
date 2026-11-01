@@ -66,7 +66,7 @@ export function ConfigurationProfiles({ draft, onChange, platform, keyboardVisib
   </View>;
 }
 const layout = StyleSheet.create({
-  root: { flex: 1, minHeight: 0, padding: 8, gap: 8 },
+  root: { flex: 1, minHeight: 0, padding: 8, paddingVertical: 4, gap: 8 },
   row: { flexDirection: "row", gap: 8, alignItems: "flex-end" },
   actions: { flexDirection: "row", flexWrap: "nowrap", gap: 8, alignItems: "flex-end" },
   name: { flex: 1, minWidth: 0 }, action: { flex: 1, minWidth: 0 },

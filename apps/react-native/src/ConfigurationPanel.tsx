@@ -83,7 +83,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   </View>;
   return (
     <View style={{ flex: 1, minHeight: 0 }} testID="configuration-workspace">
-      {!keyboardVisible && <View testID="configuration-selectors" style={{ padding: 10, gap: 8, flexDirection: "row" }}>
+      {!keyboardVisible && <View testID="configuration-selectors" style={{ padding: 10, paddingVertical: group === "profiles" ? 4 : 10, gap: 8, flexDirection: "row" }}>
         <WorkspaceChoice label="Configuration" selected={group} options={groups} onSelect={value => {
           if (value === group) editor.current?.scrollTo({ y: 0, animated: false });
           setGroup(value);
@@ -157,7 +157,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       {group !== "profiles" && changes}
       </ScrollView>
       </WorkspacePage>
-      <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing || group === "profiles" ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
+      <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing || group === "profiles" ? 8 : 12, paddingVertical: group === "profiles" ? 4 : compactEditing ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
         {!compactEditing && group !== "profiles" && <View style={{ gap: 6 }}>
           <Text style={styles.badge}>{changed ? "Unapplied changes" : "Up to date"}</Text>
