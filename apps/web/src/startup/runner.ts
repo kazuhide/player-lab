@@ -29,7 +29,7 @@ export function unavailableTrial(code: FailureCode): BrowserTrial {
     video: null, resources: null, longTasks: null, javascriptHeapDeltaBytes: null, cleanupMs: null };
 }
 
-const epochNow = () => performance.timeOrigin + performance.now();
+type MeasurementClock = Pick<Performance, "timeOrigin" | "now">;
 const engineImports: Record<EngineId, () => Promise<{ createAdapter: CreateAdapter }>> = {
   "web-x": () => import("./adapters/webx"),
   hls: () => import("./adapters/hls"),
@@ -37,10 +37,11 @@ const engineImports: Record<EngineId, () => Promise<{ createAdapter: CreateAdapt
 };
 
 /** Preload only the requested SDK in this fresh document, never a player or media. */
-export async function preloadEngine(engine: EngineId): Promise<{ start: number; end: number }> {
-  const start = epochNow();
+export async function preloadEngine(engine: EngineId, clock: MeasurementClock = performance): Promise<{ start: number; end: number }> {
+  const now = () => clock.timeOrigin + clock.now();
+  const start = now();
   await engineImports[engine]();
-  return { start, end: epochNow() };
+  return { start, end: now() };
 }
 
 function heapBytes(): number | null {
@@ -54,8 +55,13 @@ export async function runBrowserTrial(options: {
   engine: EngineId; video: HTMLVideoElement; container: HTMLElement; url: string;
   licenseKey: string; profile: StartupProfile; tuning?: StartupTuning;
   selectedAt: number; signal: AbortSignal; preloaded?: { start: number; end: number };
+  clock?: MeasurementClock;
 }): Promise<BrowserTrial> {
   const { video, signal, selectedAt } = options;
+  // Selection and every callback use the same Performance object. Separately
+  // coarsened document clocks can otherwise produce a small negative offset.
+  const clock = options.clock ?? performance;
+  const now = () => clock.timeOrigin + clock.now();
   const marks: BrowserMarks = {};
   const controller = new AbortController();
   const heapBefore = heapBytes();
@@ -63,6 +69,7 @@ export async function runBrowserTrial(options: {
   let finished = false;
   let session: AdapterSession | null = null;
   let startSettled = false;
+  let lateCleanupFailed = false;
   let sdkCode: number | null = null;
   let firstMediaTime: number | null = null;
   let frameHandle: number | null = null;
@@ -70,8 +77,8 @@ export async function runBrowserTrial(options: {
   const longTasks: { count: number; durationMs: number } = { count: 0, durationMs: 0 };
   let longTaskObserver: PerformanceObserver | null = null;
   const listeners: [string, EventListener][] = [];
-  const record = (name: BrowserMark, epoch = epochNow()) => {
-    if (active && marks[name] === undefined) marks[name] = epoch - selectedAt;
+  const record = (name: BrowserMark, epoch = now()) => {
+    if (active && !finished && marks[name] === undefined) marks[name] = epoch - selectedAt;
   };
   let complete!: (failure: FailureCode | null) => void;
   const terminal = new Promise<FailureCode | null>((resolve) => {
@@ -101,10 +108,11 @@ export async function runBrowserTrial(options: {
   };
   const frame = (_now: number, metadata: VideoFrameCallbackMetadata) => {
     if (!active || finished) return;
-    const epoch = performance.timeOrigin + metadata.presentationTime;
-    record("firstFrame", epoch);
+    // Observe rVFC at callback entry on the common clock. The compositor's
+    // presentationTime belongs to the child document and is not this clock.
+    record("firstFrame");
     if (firstMediaTime === null) firstMediaTime = metadata.mediaTime;
-    if (metadata.mediaTime > firstMediaTime + 0.01) record("firstMovingFrame", epoch);
+    if (metadata.mediaTime > firstMediaTime + 0.01) record("firstMovingFrame");
     checkAdvancement();
     if (!finished) frameHandle = video.requestVideoFrameCallback(frame);
   };
@@ -139,7 +147,10 @@ export async function runBrowserTrial(options: {
         complete(code);
       },
     });
-    if (finished) { await created.dispose(); return; }
+    if (finished) {
+      try { await created.dispose(); } catch { lateCleanupFailed = true; }
+      return;
+    }
     session = created;
     void created.start().then(() => {
       startSettled = true;
@@ -176,6 +187,7 @@ export async function runBrowserTrial(options: {
         cleanupDeadline = window.setTimeout(() => reject(new Error("cleanup")), 5_000);
       }),
     ]);
+    if (lateCleanupFailed) failure = "cleanup-failed";
   } catch { failure = "cleanup-failed"; }
   finally { window.clearTimeout(cleanupDeadline); }
   return {
