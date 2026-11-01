@@ -139,12 +139,21 @@ importers:
 
   apps/web:
     dependencies:
+      '@bitmovin/player-web-x':
+        specifier: 10.3.1
+        version: 10.3.1
       '@showcase/ui-shared':
         specifier: workspace:*
         version: link:../../packages/ui-shared
       bitmovin-player:
         specifier: 8.281.0
         version: 8.281.0
+      hls.js:
+        specifier: 1.7.4
+        version: 1.7.4
+      shaka-player:
+        specifier: 5.3.3
+        version: 5.3.3
     devDependencies:
       typescript:
         specifier: ^5.9.0
@@ -983,6 +992,9 @@ packages:
   '@babel/types@7.29.7':
     resolution: {integrity: sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA==}
     engines: {node: '>=6.9.0'}
+
+  '@bitmovin/player-web-x@10.3.1':
+    resolution: {integrity: sha512-ym7L7xl69gQDS814zLpz8aXqRki4OuItXSJQYDAHL/fV2gqSFo9iZ2OE+88i7XyUlMEY1CMIycS60CGD6V3DRA==}
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -3028,6 +3040,9 @@ packages:
     resolution: {integrity: sha512-cnN7bQUm65UWOy6cbGcCcZ3rpwW8Q/j4OP5aWRhEry4Z2t2aR1cjrbp0BS+KiBN0smvP1caBgAuxutvyvJILzQ==}
     engines: {node: '>=8'}
 
+  hls.js@1.7.4:
+    resolution: {integrity: sha512-3GlxGdPvT2YHvQYOt+yOzT/DEior/qJVNIylHA77kgeoBTdQQqi70GwefNEUmHQeNGyjC8U62+bruqW/Tpm+tg==}
+
   hosted-git-info@7.0.2:
     resolution: {integrity: sha512-puUZAUKT5m8Zzvs72XWy3HtvVbTWljRE66cP60bxJzAqf2DgICo7lYTY2IHUmLnNpjYvw5bvmoHvPc0QO2a62w==}
     engines: {node: ^16.14.0 || >=18.0.0}
@@ -4328,6 +4343,10 @@ packages:
 
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
+
+  shaka-player@5.3.3:
+    resolution: {integrity: sha512-Y0i1Vkdv2kdGVfjKWiKENw+/mgavB031tXi9toHunAwRqvs40nkelbkw/hOMnCaLH5rrs7+1w0vhkfqMaIfwZg==}
+    engines: {node: '>=18'}
 
   shallow-clone@3.0.1:
     resolution: {integrity: sha512-/6KqX+GVUdqPuPPd2LxDDxzX6CAbjJehAAOKlNpqqUpAqPM6HeL8f+o3a+JsyGjn2lv0WY8UsTgUJjU9Ok55NA==}
@@ -6021,6 +6040,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
+
+  '@bitmovin/player-web-x@10.3.1': {}
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -8370,6 +8391,8 @@ snapshots:
     dependencies:
       source-map: 0.7.6
 
+  hls.js@1.7.4: {}
+
   hosted-git-info@7.0.2:
     dependencies:
       lru-cache: 10.4.3
@@ -10271,6 +10294,8 @@ snapshots:
   set-blocking@2.0.0: {}
 
   setprototypeof@1.2.0: {}
+
+  shaka-player@5.3.3: {}
 
   shallow-clone@3.0.1:
     dependencies:
