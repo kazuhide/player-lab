@@ -102,12 +102,12 @@
     },
     {
       "path": "encoding/test-streams/local.py",
-      "line": 178,
+      "line": 246,
       "label": "保存された最終サンプル時間の読み取り"
     },
     {
       "path": "encoding/test-streams/local.py",
-      "line": 243,
+      "line": 311,
       "label": "パケット測定と提示終了の検査"
     },
     {
