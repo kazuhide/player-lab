@@ -1053,6 +1053,24 @@
     {
       "type": "note",
       "text": "Cast操作では標準レシーバーを使うremotecontrol設定を有効にします。このガイドの設定欄の説明は実機への送出を検証した結果ではありません。テレビのリモコンナビゲーションやVRの再生操作は、現在のWeb画面の機能としては提供されていません。"
+    },
+    {
+      "type": "h2",
+      "id": "startup-comparison",
+      "text": "起動比較"
+    },
+    {
+      "type": "p",
+      "text": "起動比較では素材と設定条件をそろえてPlayer Web X、hls.js、Shakaを比較します。条件の選び方、個別の成否、所要時間の集計は専用のガイドで説明します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-comparison/",
+          "label": "起動比較の画面と操作"
+        }
+      ]
     }
   ],
   "sources": [
