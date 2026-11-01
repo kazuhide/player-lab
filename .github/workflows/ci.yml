@@ -338,6 +338,19 @@ jobs:
           PY
           )"
           echo "IOS_CONFIGURATION_SIMULATOR=$simulator_id" >> "$GITHUB_ENV"
+          shutdown_selected_simulator() {
+            simulator_test_status=$?
+            trap - EXIT INT TERM
+            if ! xcrun simctl shutdown "$simulator_id"; then
+              echo "::error::Could not shut down the selected test simulator."
+              if [ "$simulator_test_status" -eq 0 ]; then simulator_test_status=1; fi
+            fi
+            exit "$simulator_test_status"
+          }
+          trap shutdown_selected_simulator EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+          xcrun simctl bootstatus "$simulator_id" -b
           cd apps/ios
           xcodebuild \
             -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \
@@ -350,7 +363,20 @@ jobs:
       - name: Test iOS Profiles controls in English and Japanese
         id: ios_profiles
         run: |
-          xcrun simctl bootstatus "$IOS_CONFIGURATION_SIMULATOR" -b
+          simulator_id="$IOS_CONFIGURATION_SIMULATOR"
+          shutdown_selected_simulator() {
+            simulator_test_status=$?
+            trap - EXIT INT TERM
+            if ! xcrun simctl shutdown "$simulator_id"; then
+              echo "::error::Could not shut down the selected test simulator."
+              if [ "$simulator_test_status" -eq 0 ]; then simulator_test_status=1; fi
+            fi
+            exit "$simulator_test_status"
+          }
+          trap shutdown_selected_simulator EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+          xcrun simctl bootstatus "$simulator_id" -b
           cd apps/ios
           xcodebuild \
             -project Showcase.xcodeproj -scheme Showcase-iOS-ProfilesUI \
@@ -387,6 +413,18 @@ jobs:
           raise SystemExit('No available Apple TV simulator was found for the Profiles UI tests.')
           PY
           )"
+          shutdown_selected_simulator() {
+            simulator_test_status=$?
+            trap - EXIT INT TERM
+            if ! xcrun simctl shutdown "$simulator_id"; then
+              echo "::error::Could not shut down the selected test simulator."
+              if [ "$simulator_test_status" -eq 0 ]; then simulator_test_status=1; fi
+            fi
+            exit "$simulator_test_status"
+          }
+          trap shutdown_selected_simulator EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
           xcrun simctl bootstatus "$simulator_id" -b
           cd apps/ios
           xcodebuild \
