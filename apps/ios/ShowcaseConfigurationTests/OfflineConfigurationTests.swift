@@ -11,9 +11,9 @@ final class OfflineConfigurationTests: XCTestCase {
         let applied = try workbench.makeMigrationConfiguration()
         XCTAssertEqual(applied.url.absoluteString, "https://example.com/master.m3u8")
         let callback = applied.callback(journal: workbench.migrationJournal)
-        XCTAssertEqual(callback("asset"), "asset:https://example.com/master.m3u8")
+        XCTAssertEqual(callback("asset"), "asset:https://example.com/master.m3u8", "Migration callback diagnostics: \(workbench.migrationJournal.snapshot)")
         workbench.migrationUrl = "https://example.com/different.m3u8"
-        XCTAssertEqual(callback("asset"), "asset:https://example.com/master.m3u8", "Later draft edits must not mutate the applied callback")
+        XCTAssertEqual(callback("asset"), "asset:https://example.com/master.m3u8", "Later draft edits must not mutate the applied callback. Migration callback diagnostics: \(workbench.migrationJournal.snapshot)")
         XCTAssertFalse(applied.code.contains("  https://")); XCTAssertFalse(applied.code.contains("different.m3u8"))
         let body = applied.code.components(separatedBy: "\n").filter { !$0.hasPrefix("import ") }.joined(separator: "\n")
         attach("import JavaScriptCore\nfunc migrate(offline: OfflineContentManager) {\n" + body + "\n}", name: "offline-canonical-migration.swift")

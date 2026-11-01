@@ -367,7 +367,16 @@ jobs:
           trap 'exit 143' TERM
           xcrun simctl bootstatus "$simulator_id" -b
           xcodebuild "${xcodebuild_args[@]}" \
-            -destination "platform=iOS Simulator,id=$simulator_id" test-without-building
+            -destination "platform=iOS Simulator,id=$simulator_id" \
+            -resultBundlePath "$RUNNER_TEMP/ios-configuration.xcresult" test-without-building
+      - name: Save iOS configuration test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: apple-ios-configuration-results
+          path: ${{ runner.temp }}/ios-configuration.xcresult
+          if-no-files-found: warn
+          retention-days: 7
       - name: Test iOS Profiles controls in English and Japanese
         id: ios_profiles
         run: |
