@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { configurationDifferences, configurationValueText, copiedConfigurationString, redactConfigurationText, sameConfigurationValue } from "../../../shared/configurationDifferences";
+import { configurationDifferences, configurationValueText, copiedConfigurationString, isSensitiveConfigurationPath, redactConfigurationText, sameConfigurationValue } from "../../../shared/configurationDifferences";
 
 it("distinguishes additions, removals, changes and exact reverts without depending on object key order", () => {
   expect(configurationDifferences({ title: "A", keep: true, remove: "x" }, { keep: true, title: "B", add: [1] }))
@@ -41,6 +41,22 @@ it("does not invoke getters or callbacks to compare and format a preview", () =>
   expect(sameConfigurationValue(source, { token: "x" })).toBe(false);
   const array = Object.defineProperty([], "0", { enumerable: true, get() { throw new Error("Do not run array getters"); } });
   expect(configurationValueText(array, "SourceConfig.items")).toContain("[unavailable]");
+});
+
+it("redacts Analytics playerKey values in previews, copied code and URL parameters without hiding ordinary names", () => {
+  for (const path of ["playerKey", "analytics.playerKey", "PlayerConfig.analytics.playerKey"]) {
+    expect(isSensitiveConfigurationPath(path)).toBe(true);
+    expect(configurationValueText("player-license-sentinel", path)).toBe("[redacted]");
+    expect(copiedConfigurationString("player-license-sentinel", path.split("."))).toBe("YOUR_VALUE");
+  }
+  expect(configurationValueText({ playerKey: "player-license-sentinel", playerKeyboard: "visible" }, "analytics"))
+    .toBe('{"playerKey":"[redacted]","playerKeyboard":"visible"}');
+  expect(redactConfigurationText("https://example.test/a?playerKey=player-license-sentinel&playerKeyboard=visible"))
+    .toBe("https://example.test/a?playerKey=[redacted]&playerKeyboard=visible");
+  expect(configurationDifferences({ analytics: { playerKey: "old-license-sentinel" } },
+    { analytics: { playerKey: "new-license-sentinel" } })).toEqual([
+    { path: "analytics.playerKey", kind: "changed", before: "[redacted]", after: "[redacted]" },
+  ]);
 });
 
 it("limits user-info redaction to URL authorities while retaining ordinary at signs in queries and fragments", () => {

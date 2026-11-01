@@ -94,6 +94,22 @@ beforeEach(async () => {
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
+it("redacts the Analytics playerKey in a getConfig result while preserving ordinary SDK configuration", async () => {
+  const fixture = playerFixture();
+  vi.spyOn(fixture.player, "getConfig").mockReturnValue({
+    key: "root-license-sentinel", analytics: { playerKey: "player-license-sentinel" }, style: { height: "240px" },
+  } as ReturnType<PlayerAPI["getConfig"]>);
+  const getConfig: ApiEntry = { id: "PlayerAPI.getConfig", root: "PlayerAPI", category: "observation", schema: "getConfig" };
+  const view = await mounted(() => fixture.player, undefined, { ...catalog, rows: [getConfig],
+    nodes: { ...catalog.nodes, getConfig: { kind: "function", label: "getConfig", signatures: [signature] } } });
+  await view.explorer.invoke(getConfig, signature, []);
+  const result = JSON.parse(find(view.container, element => element.className === "api-result").textContent);
+  expect(result.analytics.playerKey).toBe("[redacted]");
+  expect(result.key).toBe("[redacted]");
+  expect(result.style.height).toBe("240px");
+  expect(JSON.stringify(result)).not.toContain("player-license-sentinel");
+});
+
 it("disables ordinary-source skip in the picker and Run, then updates from SDK events without log catalog rows", async () => {
   const fixture = playerFixture(); const view = await mounted(() => fixture.player); view.select(skip.id);
   const run = find(view.container, element => element.textContent === "Run API");
