@@ -22,6 +22,13 @@ export type FailureCode =
 export type SafeValue = null | boolean | number | string
   | readonly SafeValue[] | { readonly [key: string]: SafeValue };
 
+/** Bounded candidates for a separate tuning pass, never inferred from measured rank. */
+export interface StartupTuning {
+  readonly hlsWorker?: boolean;
+  readonly shakaPrefetchLimit?: 0 | 1 | 2;
+  readonly webXLoadControl?: 0 | 1 | 2;
+}
+
 export interface AdapterMetadata {
   readonly engine: EngineId;
   readonly name: string;
@@ -52,6 +59,7 @@ export interface AdapterContext {
   readonly url: string;
   readonly licenseKey: string;
   readonly profile: StartupProfile;
+  readonly tuning?: StartupTuning;
   readonly signal: AbortSignal;
   /** Observe at the callback using the common performance clock, not SDK timestamps. */
   readonly mark: (name: AdapterMark) => void;
