@@ -131,6 +131,39 @@
       "text": "公開設定は、共通条件、起動時の候補、他の機能、非推奨・互換用の設定、対象外の拡張に分けて検討しています。用途の整理であり、全ての設定APIを実行したという意味ではありません。候補の評価には「選択からPlayingまで」を使い、選んだ設定で新たに確認試行を実行します。この短い素材で開始が速かった設定だけで、全ての端末や通信環境で滑らかに省メモリで再生できるとは判断しません。"
     },
     {
+      "type": "table",
+      "headers": [
+        "起動に関係するその他の設定",
+        "扱いと理由"
+      ],
+      "rows": [
+        [
+          "画質の自動選択と初期の帯域推定",
+          "選択したマニフェストには映像の画質が一つだけあります。hls.jsのabr・startLevel・testBandwidthとShakaのabr設定は既定値を保ちます。この比較では通信状態に応じた画質の選択を評価しません。"
+        ],
+        [
+          "マニフェストとコーデックの確認",
+          "Shakaのloadには既知のHLSのMIMEタイプを渡します。コーデックの推定やデコード対応の確認は既定値を保ち、時間を短くするために互換性の確認を省きません。"
+        ],
+        [
+          "先読み・取得処理・変換",
+          "hls.jsのstartFragPrefetch=falseと実験的なprogressive=falseは既定値を保ちます。それぞれ接続完了前の読み込みと取得途中のデータ処理を制御する設定で、今回の自動評価では変更しません。既存の取得処理を使い、Shakaでワーカーを使うためだけにfMP4を強制的に変換することもしません。"
+        ],
+        [
+          "再試行と復旧",
+          "各SDKの通常の通信再試行とMediaSource再生の復旧を保ちます。試行全体の期限は共通の30秒です。期限を過ぎた試行は失敗として残し、短時間で起動できた成功例には含めません。"
+        ],
+        [
+          "ログ",
+          "Web Xの標準設定ではSDKのログレベルを保ち、起動向け設定では明示的にOffを選びます。hls.jsはdebug=false、Shakaはreleaseビルドのログ設定を保ちます。どちらの設定でもSDKのエラーイベントは監視します。"
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "設定を検討したことと、全ての値を試したことは異なります。自動評価で変更するのはhls.jsのワーカーとShakaの先読み上限です。前方・後方のバッファ保持時間は固定した候補値であり、同じ時間を指定しても実装やメモリ使用量が同じになるわけではありません。標準設定と起動向け設定は別々の実験として読みます。"
+    },
+    {
       "type": "h2",
       "id": "diagnostics",
       "text": "診断値の意味と制限"
@@ -227,31 +260,31 @@
       "label": "Resource Timingの転送量を取得できる条件"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/adapters/webx.ts#L151",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/adapters/webx.ts#L151",
       "label": "Web Xのソース設定とSourceイベント"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/adapters/hls.ts#L31",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/adapters/hls.ts#L31",
       "label": "hls.jsの共通条件と起動向け設定"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/adapters/shaka.ts#L37",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/adapters/shaka.ts#L37",
       "label": "Shakaの共通条件と起動向け設定"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/runner.ts#L63",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/runner.ts#L63",
       "label": "共通の時計とブラウザーの通知"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/calibration.ts#L12",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/calibration.ts#L12",
       "label": "設定候補の評価と確認"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/model.ts#L281",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/model.ts#L281",
       "label": "中央値の順位を表示する条件"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/export.ts#L18",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/export.ts#L18",
       "label": "保存する比較結果の項目"
     }
   ]

@@ -17,6 +17,15 @@
       ]
     },
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/test-results/#web-startup-2026-11-01",
+          "label": "記録済みの起動比較（2026-11-01）"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "id": "conditions",
       "text": "比較条件を選ぶ"

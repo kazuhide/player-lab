@@ -131,6 +131,39 @@
       "text": "The configuration interfaces were reviewed by purpose: common conditions, startup candidates, other features, deprecated or compatibility settings, and custom hooks outside this experiment. This is a scope assessment, not full configuration API coverage. Screening uses a fixed Selection → Playing metric; new confirmation trials use the selected settings. A faster candidate for this short stream does not establish smooth or memory-efficient playback on every device and network."
     },
     {
+      "type": "table",
+      "headers": [
+        "Other startup-related settings",
+        "Policy and reason"
+      ],
+      "rows": [
+        [
+          "Adaptive quality and initial bandwidth",
+          "The selected master contains one video rendition. Keep hls.js abr/startLevel/testBandwidth and Shaka abr settings at their defaults; this experiment does not evaluate adaptive quality selection."
+        ],
+        [
+          "Manifest and codec checks",
+          "Pass the known HLS MIME type to Shaka load. Keep codec guessing and decoding-capability checks at their defaults; do not bypass compatibility checks to reduce a timing value."
+        ],
+        [
+          "Prefetch, transport and transmuxing",
+          "Keep hls.js startFragPrefetch=false and its experimental progressive=false at their defaults. They control loading before attachment completes and processing data during a download; automatic screening does not vary these paths. Use the existing loaders and avoid forcing Shaka to transmux the fMP4 input solely to use a worker."
+        ],
+        [
+          "Retries and recovery",
+          "Keep each SDK's normal request retries and MediaSource playback recovery. Every trial has the same outer 30-second deadline; expiry remains a failed attempt rather than a successful low startup time."
+        ],
+        [
+          "Logging",
+          "The Web X default profile retains its SDK log level; the startup profile explicitly selects Off. hls.js keeps debug=false and Shaka keeps its release logging configuration. SDK error events remain observed in both profiles."
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Reviewing a setting is different from testing every value. Automatic screening varies the hls.js worker and Shaka prefetch limit only. The forward/back buffer durations are fixed candidates, and equal duration targets do not establish equal buffer implementations or memory use. Read the default and startup profiles as separate experiments."
+    },
+    {
       "type": "h2",
       "id": "diagnostics",
       "text": "Read diagnostics within their limits"
@@ -227,31 +260,31 @@
       "label": "Resource Timing transfer-size visibility"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/adapters/webx.ts#L151",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/adapters/webx.ts#L151",
       "label": "Web X source setup and real Source events"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/adapters/hls.ts#L31",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/adapters/hls.ts#L31",
       "label": "hls.js common and startup configuration"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/adapters/shaka.ts#L37",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/adapters/shaka.ts#L37",
       "label": "Shaka common and startup configuration"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/runner.ts#L63",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/runner.ts#L63",
       "label": "Shared clock and browser observations"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/calibration.ts#L12",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/calibration.ts#L12",
       "label": "Candidate screening and independent confirmation"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/model.ts#L281",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/model.ts#L281",
       "label": "Conditions required before ranking medians"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/92feedae389f3ed59ef76587f2e143bbd55d04b0/apps/web/src/startup/export.ts#L18",
+      "url": "https://github.com/kazuhide/player-lab/blob/be93da9aab26dd3d39ed6c60867acd2d2c38e138/apps/web/src/startup/export.ts#L18",
       "label": "Allowlisted comparison export"
     }
   ]
