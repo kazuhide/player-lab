@@ -58,6 +58,14 @@ export const createAdapter: CreateAdapter = async (context) => {
       loadComplete: "The native Source API has no load-completion promise; Ready is a separate media-state event.",
       ...(loadControl === 0 ? { loadStart: "LoadControl.Nothing requests neither manifests nor segments." } : {}),
     },
+    sampleLimitations: {
+      mediaEngine: "The native bundle has no public getter for the active media backend.",
+      audioLanguage: "The native bundle has no public selected-audio-language getter.",
+      workerActive: "The native bundle has no public worker-activity getter.",
+      loadLatencySeconds: "The native Source API exposes no load-latency statistic.",
+      timeToFirstFrameSeconds: "The native Source API exposes no first-frame statistic; the runner observes video-frame callbacks separately.",
+      bandwidthEstimateBps: "The native Source API has no public bandwidth-estimate getter.",
+    },
   };
 
   let player: NativePlayer | undefined;
