@@ -84,10 +84,10 @@ export async function runBrowserTrial(options: {
   const terminal = new Promise<FailureCode | null>((resolve) => {
     complete = (failure) => { if (!finished) { finished = true; resolve(failure); } };
   });
-  const abort = () => { controller.abort(); complete("aborted"); };
+  const abort = () => { complete("aborted"); controller.abort(); };
   signal.addEventListener("abort", abort, { once: true });
   if (signal.aborted) abort();
-  const deadline = window.setTimeout(() => { controller.abort(); complete("deadline"); }, 30_000);
+  const deadline = window.setTimeout(() => { complete("deadline"); controller.abort(); }, 30_000);
   const listen = (event: string, callback: () => void) => {
     const listener: EventListener = callback;
     listeners.push([event, listener]);
