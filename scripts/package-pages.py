@@ -26,6 +26,7 @@ NOTICE_FILES = {
 }
 OPTIONAL_NOTICE_FILES = {'BITMOVIN-PLAYER-NOTICE.txt'}
 COMPARISON_WEB_FILES = {'comparison.html', 'comparison-runner.html'}
+OPTIONAL_COMPARISON_WEB_FILES = {'startup-benchmark.html', 'demo-runner.html', 'comparison-network-worker.js'}
 COMPARISON_NOTICE_FILES = {
     'BITMOVIN-PLAYER-WEB-X-NOTICE.txt', 'HLS-JS-LICENSE.txt',
     'SHAKA-PLAYER-LICENSE.txt', 'SHAKA-PLAYER-THIRD-PARTY-NOTICES.txt',
@@ -215,7 +216,9 @@ def check_web_files(files):
         raise ValueError('Both production Web entry pages are required.')
     if COMPARISON_WEB_FILES & files.keys() and not COMPARISON_WEB_FILES <= files.keys():
         raise ValueError('The comparison page and runner must be supplied together.')
-    if any(name not in {'index.html', 'guide.html'} | COMPARISON_WEB_FILES and not WEB_ASSET.fullmatch(name) for name in files):
+    if OPTIONAL_COMPARISON_WEB_FILES & files.keys() and not COMPARISON_WEB_FILES <= files.keys():
+        raise ValueError('Comparison tools require the comparison page and runner.')
+    if any(name not in {'index.html', 'guide.html'} | COMPARISON_WEB_FILES | OPTIONAL_COMPARISON_WEB_FILES and not WEB_ASSET.fullmatch(name) for name in files):
         raise ValueError('The Web build contains an unexpected file.')
     if not any(name.endswith('.js') for name in files) or not any(name.endswith('.css') for name in files):
         raise ValueError('The Web build must contain generated JavaScript and styles.')

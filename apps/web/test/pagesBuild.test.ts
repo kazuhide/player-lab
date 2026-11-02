@@ -127,6 +127,7 @@ describe("isolated Pages build", () => {
     });
     expect(config.plugins).toEqual([
       expect.objectContaining({ name: "player-lab-product-build", transformIndexHtml: expect.any(Function) }),
+      expect.objectContaining({ name: "player-lab-comparison-worker", apply: "build", generateBundle: expect.any(Function) }),
     ]);
   });
 
@@ -148,6 +149,7 @@ describe("isolated Pages build", () => {
     expect(config.define).toBeUndefined();
     expect(config.plugins).toEqual([
       expect.objectContaining({ name: "player-lab-product-build", transformIndexHtml: expect.any(Function) }),
+      expect.objectContaining({ name: "player-lab-comparison-worker", apply: "build", generateBundle: expect.any(Function) }),
       expect.objectContaining({ name: "bitmovin-analytics-proxy", apply: "serve" }),
     ]);
   });

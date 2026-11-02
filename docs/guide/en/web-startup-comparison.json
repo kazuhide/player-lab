@@ -1,20 +1,219 @@
 {
   "id": "web-startup-comparison",
-  "title": "Web startup comparison",
-  "lead": "Compare startup behavior under disclosed playback conditions and inspect individual outcomes before reading a summary.",
+  "title": "Player comparison",
+  "lead": "Compare startup, seeking and playback under changing delivery conditions using the same video.",
   "blocks": [
     {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/web/comparison.html",
-          "label": "Open startup comparison"
+          "label": "Open Player comparison"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
-          "label": "Implementation: adapters, timing and configuration"
+          "label": "How the observations are measured"
         }
       ]
+    },
+    {
+      "type": "h2",
+      "id": "conditions",
+      "text": "Choose the same video for each player"
+    },
+    {
+      "type": "p",
+      "text": "The default is one Big Buck Bunny HLS source shared by Player Web X, hls.js and Shaka Player. You can instead enter a custom HLS or DASH URL and select its format. Use the same source and conditions for each player."
+    },
+    {
+      "type": "p",
+      "text": "Player Web X and Shaka select a bundle for the chosen format. Player Web X 10.3.1 has partial DASH support, so some custom DASH manifests may be incompatible. hls.js supports HLS; a DASH run is shown as unsupported, not as a zero-duration result."
+    },
+    {
+      "type": "p",
+      "text": "Custom URLs are used for the current page session. The app does not save them in its browser storage or include them in result exports."
+    },
+    {
+      "type": "figure",
+      "file": "web-comparison-single",
+      "caption": "Single view. Startup and seek are different intervals; the values belong to the captured run."
+    },
+    {
+      "type": "h2",
+      "id": "run-and-stop",
+      "text": "Measure and re-measure"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose the source and format.",
+        "Choose Startup and seek, or Network change for the default Big Buck Bunny source. Network change is disabled for custom URLs.",
+        "Select Measure. The players run one at a time; another player is not loaded during the measured playback.",
+        "Keep the tab in the foreground and read the progress for the active player.",
+        "Select Measure again to start a new run. Read its results separately from the previous run."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Select Stop to cancel the current measurement. Read cancellation as an outcome, not as a completed measurement."
+    },
+    {
+      "type": "p",
+      "text": "Single view and Side by side change how the smaller video panels are displayed. Side-by-side playback is a visual preview: players share decoding and network resources. Preview values do not form a ranking or replace the separate, sequential measurements."
+    },
+    {
+      "type": "figure",
+      "file": "web-comparison-parallel",
+      "caption": "Side by side previews concurrent playback. The graphs retain the separate sequential measurements."
+    },
+    {
+      "type": "h2",
+      "id": "results",
+      "text": "Read the startup graph"
+    },
+    {
+      "type": "p",
+      "text": "Playback startup starts when that player’s Measure trial is accepted, before its fresh playback document is created, and ends when an advancing video frame is observed. It includes SDK import, initialization and loading. The playing event is a separate detail, not the end of this graph. Overlapping detail intervals must not be added together."
+    },
+    {
+      "type": "p",
+      "text": "This is each player’s measurement, not the total wait from the initial button click through the full run. In Network change, Service Worker preparation finishes before that measurement starts and is excluded from the startup interval."
+    },
+    {
+      "type": "p",
+      "text": "The values describe this run in this browser. Keep source, format, browser, cache and delivery conditions consistent when comparing. A single measurement does not establish which player is fastest in general."
+    },
+    {
+      "type": "h2",
+      "id": "seek",
+      "text": "Read seeking and buffer status"
+    },
+    {
+      "type": "p",
+      "text": "Seeking continues on the same loaded player. Read the displayed target and whether it was inside or outside the buffered ranges at the request. For live or limited-range media, use the valid seekable range rather than assuming a fixed position is available."
+    },
+    {
+      "type": "p",
+      "text": "Playback after seek starts at the seek request and ends only after a frame near the target is observed and playback advances from it. The seeked event alone is not completion. If the browser cannot supply frame callbacks, the moving-frame latency is unavailable; it is not replaced by zero or another event."
+    },
+    {
+      "type": "h2",
+      "id": "bandwidth",
+      "text": "Read delivery changes, quality and stalls"
+    },
+    {
+      "type": "p",
+      "text": "Network change continues playback to observe quality and stalls through the delivery-rate phases. It does not measure a seek, so the seek result stays unmeasured in this mode. Choose Startup and seek for the seek graph."
+    },
+    {
+      "type": "p",
+      "text": "Network change is limited to the default Big Buck Bunny test source. Custom URLs support startup and seeking, but not this delivery control. A Service Worker paces readable media response bodies under one shared budget. This does not change the physical connection, network latency or cache state, and does not shape SDK downloads or license requests."
+    },
+    {
+      "type": "p",
+      "text": "Check the control status, shaped response count, delivered bytes and skipped responses before interpreting the timeline. Some SDK requests may not pass through this control. An unsupported or skipped response does not establish that all media traffic was shaped."
+    },
+    {
+      "type": "p",
+      "text": "Each delivery-rate phase needs newly delivered bytes during that phase. A cumulative byte count from earlier phases does not prove that a later rate was applied."
+    },
+    {
+      "type": "p",
+      "text": "Quality changes and stalls appear only when observed. A source with one rendition cannot demonstrate adaptive quality switching, and an SDK may not expose every quality or bandwidth value. Missing observations stay missing. The configured delivery cap and a player’s estimated bandwidth are different values."
+    },
+    {
+      "type": "p",
+      "text": "The Startup and seek timeline also includes stalls during a seek. Distinguish those waits from stalls caused by a delivery-rate change."
+    },
+    {
+      "type": "h2",
+      "id": "missing-results",
+      "text": "When an observation is missing"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "Read the status and reason: unsupported format, unavailable browser API, cancellation and playback failure are different outcomes.",
+        "No result is prefilled before measurement. Missing or failed observations are not zero-millisecond successes.",
+        "Check playback and source access before repeating a failed run; the displayed values do not bypass source or license requirements."
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "save-results",
+      "text": "Save the observations"
+    },
+    {
+      "type": "p",
+      "text": "Save JSON keeps the measured results and safe comparison conditions. Custom source URLs are not included. Keep the outcomes and unavailable-value reasons when sharing a result; an export does not turn a failed or unsupported operation into a successful sample."
+    },
+    {
+      "type": "h2",
+      "id": "player-web-x",
+      "text": "Player Web X"
+    },
+    {
+      "type": "p",
+      "text": "Player Web X uses its native Player and Source APIs alongside hls.js and Shaka Player. The main Web lab uses Player v8 for configuration and API inspection; those settings and the v8 compatibility layer are separate from this comparison."
+    },
+    {
+      "type": "h2",
+      "id": "advanced-benchmark",
+      "text": "Advanced startup benchmark"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/web/startup-benchmark.html",
+          "label": "Open the retained startup benchmark"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The retained benchmark provides SDK import mode, configuration candidates, repeated trials, median/p95 summaries and JSON export. Its isolated startup trials are separate from the retained playback, seek and delivery timelines on Player comparison."
+    },
+    {
+      "type": "figure",
+      "file": "web-startup-controls",
+      "caption": "Retained startup benchmark: SDK import and configuration candidates."
+    },
+    {
+      "type": "h3",
+      "id": "evaluate-candidates",
+      "text": "Evaluate settings separately from confirmation"
+    },
+    {
+      "type": "p",
+      "text": "In the advanced benchmark, candidate evaluation requires All players, the startup-settings profile and at least six trials per player. Screening varies the hls.js worker and Shaka prefetch limit, then runs new confirmation trials with the selected settings. Read the screening and confirmation phases separately; a selected candidate is not a proven optimum."
+    },
+    {
+      "type": "figure",
+      "file": "web-startup-results",
+      "caption": "Retained startup benchmark: one trial per player does not qualify for a median ranking."
+    },
+    {
+      "type": "p",
+      "text": "In the advanced summary, n counts successful values for the selected metric. p95 uses sorted rank ceil(0.95 × n), so it can equal the maximum with few samples. A smallest-median label requires matching conditions and versions, equal successful counts of at least five per player, all players and no failures, cancellations or missing metric values. Ties remain ties; the label applies only to that cohort."
+    },
+    {
+      "type": "h3",
+      "id": "advanced-export",
+      "text": "Save advanced benchmark results"
+    },
+    {
+      "type": "p",
+      "text": "Save JSON exports schema 2 records from the advanced benchmark. Each trial retains its conditions, outcome, device-clock start time and coarse environment snapshot. Source URLs, keys, headers, raw SDK errors and raw user-agent text are excluded. Later resizing does not change an earlier trial’s viewport record."
+    },
+    {
+      "type": "h2",
+      "id": "historical-results",
+      "text": "Recorded results belong to their original conditions"
+    },
+    {
+      "type": "p",
+      "text": "The 2026-11-01 report and the checks published with version 0.2.0 describe the earlier implementation and their recorded conditions. They are historical evidence, not measurements of the redesigned comparison or a new performance claim."
     },
     {
       "type": "links",
@@ -30,194 +229,11 @@
       ]
     },
     {
-      "type": "h2",
-      "id": "player-web-x",
-      "text": "Player Web X"
-    },
-    {
-      "type": "p",
-      "text": "Player Web X is Bitmovin's Web playback SDK. It offers ready-made format bundles as well as individual packages, and supports plugins for additional functionality. This comparison uses its public @bitmovin/player-web-x npm package and native Player and Source APIs."
-    },
-    {
-      "type": "p",
-      "text": "The main Web lab uses Player v8 for configuration, UI themes and API inspection. This separate comparison focuses on startup timing and the settings needed for a matched playback test. Web X runs through its native APIs, alongside hls.js and Shaka Player, without the v8 compatibility layer."
-    },
-    {
-      "type": "h2",
-      "id": "conditions",
-      "text": "Choose comparison conditions"
-    },
-    {
-      "type": "figure",
-      "file": "web-startup-controls",
-      "caption": "Comparison conditions with Configuration candidates expanded."
-    },
-    {
-      "type": "p",
-      "text": "Choose a player or All players, then choose SDK import mode, settings and trials per player. Each trial records the SDK version. Both resolutions use a fixed-quality HLS rendition and the same en-labelled audio track."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Setting",
-        "Meaning"
-      ],
-      "rows": [
-        [
-          "SDK import: On selection",
-          "Import and evaluate the SDK after the accepted content selection; this time is included in selection-based timings."
-        ],
-        [
-          "SDK import: Before selection",
-          "Import only the SDK before selecting content. Player creation and media loading still belong to the trial."
-        ],
-        [
-          "Common conditions + SDK defaults",
-          "Keep the common playback conditions while retaining vendor defaults for other settings."
-        ],
-        [
-          "Common conditions + startup settings",
-          "Use the documented startup settings. Open Configuration candidates to change the hls.js worker or Shaka segment prefetch limit. The Web X playback policy remains Data (2)."
-        ]
-      ]
-    },
-    {
-      "type": "note",
-      "text": "SDK import mode does not establish a cold or warm HTTP cache. The public screen uses browser-managed caching. Keep browser, network, resolution and import mode consistent when comparing results."
-    },
-    {
-      "type": "h2",
-      "id": "run-and-stop",
-      "text": "Start and stop"
-    },
-    {
-      "type": "steps",
-      "items": [
-        "Choose the player, SDK import mode, settings and Trials per player. Wait until the content buttons become available.",
-        "Select Compare this video on the required resolution. Trials run one at a time, each with a fresh video document.",
-        "Keep the tab in the foreground. Stop or moving the page to the background cancels the run, including preparation between trials. Completed results remain available."
-      ]
-    },
-    {
-      "type": "p",
-      "text": "Playback starts muted, from the beginning, at normal speed. A successful trial requires the adapter’s start operation to complete, a native playing event and advancing media. Moving frames are also checked when video-frame callbacks are supported. SDK Ready alone is insufficient."
-    },
-    {
-      "type": "h3",
-      "id": "evaluate-candidates",
-      "text": "Evaluate candidates before confirmation"
-    },
-    {
-      "type": "p",
-      "text": "For automatic evaluation, choose All players, Common conditions + startup settings and at least six trials per player, then select Evaluate candidates and compare on a content card. The app evaluates the hls.js worker values true/false and Shaka prefetch limits 0/1/2; Web X keeps Data (2). It selects each player’s candidate using the median Selection → Playing time, then runs new confirmation trials with those settings fixed."
-    },
-    {
-      "type": "p",
-      "text": "Candidate evaluation and confirmation are separate phases. Both remain in the individual records and JSON, while the current summary uses confirmation only. Incomplete screening or no fully successful candidate keeps that player’s explicit fallback: hls.js worker enabled, Shaka prefetch 0 or Web X Data (2), with a reason. A selected candidate is not a proven optimum."
-    },
-    {
-      "type": "p",
-      "text": "When all players are selected, trials are interleaved in balanced blocks. The recorded seed determines the order; the order changes between runs. This avoids always giving the same player the first position without running players concurrently."
-    },
-    {
-      "type": "h2",
-      "id": "results",
-      "text": "Read individual and grouped results"
-    },
-    {
-      "type": "figure",
-      "file": "web-startup-results",
-      "caption": "Summary and individual outcomes after one playback per player. The screen does not display a ranking because this run has too few trials."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Observation",
-        "How to read it"
-      ],
-      "rows": [
-        [
-          "Playing from selection",
-          "Accepted content selection to the video element’s playing event. This includes SDK import after selection when that mode is used."
-        ],
-        [
-          "Playback startup (Play → Playing)",
-          "Video startup time (VST) is defined here as the app’s play request to native video playing. It differs from Bitmovin Analytics VIDEO_STARTUPTIME."
-        ],
-        [
-          "First frame callback",
-          "Selection to entry into the first video-frame callback. This is the callback-observation time, not compositor submission or physical-display time."
-        ],
-        [
-          "Play → moving frame",
-          "Play request to a later frame callback whose media time has advanced. Read it separately from the first paused frame."
-        ],
-        [
-          "SDK Ready / SDK Playing",
-          "Vendor events with their original names and meanings. They are not interchangeable across players."
-        ],
-        [
-          "Missing or failed observations",
-          "Read the status and reason. An unavailable observation remains missing; it is not a zero-millisecond success."
-        ]
-      ]
-    },
-    {
-      "type": "p",
-      "text": "Groups keep player version, content, SDK import mode, settings, cache condition and explicit tuning values separate. n counts successful trials with a valid value for the selected metric. Failure, cancellation and missing counts remain visible; a trial can be both failed and missing a metric."
-    },
-    {
-      "type": "p",
-      "text": "Median describes the middle of the successful values. p95 uses the nearest-rank method: sort the values and take rank ceil(0.95 × n). With few trials, p95 can equal the maximum. Read n and the outcome counts alongside both statistics."
-    },
-    {
-      "type": "note",
-      "text": "A smallest-median label requires matching conditions and versions, all players, equal successful sample counts of at least five per player, and no failures, cancellations or missing values for that metric. Exact ties stay ties. The label applies to that cohort, not every stream, device or network."
-    },
-    {
-      "type": "h2",
-      "id": "save-results",
-      "text": "Save and clear results"
-    },
-    {
-      "type": "p",
-      "text": "Select Save JSON before leaving the page to retain conditions (safe content identifiers and settings), sequence seeds, phases, outcomes and observations."
-    },
-    {
-      "type": "p",
-      "text": "Export schema 2 adds device-clock timestamps in UTC (Coordinated Universal Time): exportedAt is the save time; each trial's measuredAt is its start time. Each trial keeps its startup browser family and major version, OS family, reported logical processors, optional approximate memory in GiB, viewport size in CSS pixels and pixel ratio."
-    },
-    {
-      "type": "p",
-      "text": "Browser and OS families are coarse user-agent classifications, not verified platform or playback-engine observations. Processor counts may be reduced and memory is approximate; neither measures CPU utilization or player/process memory. Unknown values are null with a reason, and later resizing does not alter earlier records."
-    },
-    {
-      "type": "p",
-      "text": "The export excludes raw user-agent text, device models, hostnames, license and API keys, source URLs, headers, raw SDK errors and SDK metadata. Clear results removes the displayed records."
-    },
-    {
-      "type": "h2",
-      "id": "missing-results",
-      "text": "When a result is missing"
-    },
-    {
-      "type": "bullets",
-      "items": [
-        "If the browser rejects play or the Player license/domain is invalid, retain the failure and check the reason before repeating. Player Web X uses the existing Web license setup.",
-        "If first-frame timing is unavailable, check browser support. Playing or loadeddata is not used to fabricate a frame timestamp.",
-        "If no smallest-median label appears, check outcome counts and comparison conditions. A single trial is useful for inspecting behavior, but does not meet the comparison sample requirement."
-      ]
-    },
-    {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
           "label": "Local setup and Web license configuration"
-        },
-        {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
-          "label": "Timing definitions, settings and implementation FAQ"
         }
       ]
     }

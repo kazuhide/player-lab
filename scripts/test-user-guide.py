@@ -528,7 +528,7 @@ class GuideTests(unittest.TestCase):
                 parsed[name] = parser
         known = set(self.pages) | GUIDE_ASSETS | {
             'index.html', 'ja/index.html', 'styles.css', 'assets/favicon.svg',
-            'web/index.html', 'web/guide.html', 'web/comparison.html', 'web/media/ATTRIBUTION.txt',
+            'web/index.html', 'web/guide.html', 'web/comparison.html', 'web/startup-benchmark.html', 'web/media/ATTRIBUTION.txt',
             'web/notices/BITMOVIN-PLAYER-NOTICE.txt',
         }
         for name, parser in parsed.items():

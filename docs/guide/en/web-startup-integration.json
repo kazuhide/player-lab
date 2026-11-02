@@ -1,14 +1,14 @@
 {
   "id": "web-startup-integration",
-  "title": "Implement startup comparison",
-  "lead": "Use the native SDK APIs while keeping browser observations, provider milestones and tuning conditions distinct.",
+  "title": "Implement Player comparison",
+  "lead": "Keep playback alive for seeking and delivery observations, and use explicitly defined browser timings.",
   "blocks": [
     {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-startup-comparison/",
-          "label": "Screen and controls: run a comparison"
+          "label": "Player comparison: controls and graphs"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
@@ -19,162 +19,137 @@
     {
       "type": "h2",
       "id": "sdk-adapters",
-      "text": "Integrate the native SDK APIs"
+      "text": "Keep one playback session for each player"
     },
     {
       "type": "p",
-      "text": "Each trial uses a fresh document and video element. Observers are registered before loading or requesting play. The comparison does not add a full hls.js or Shaka configuration editor; the adapters expose the public settings needed for this startup experiment."
+      "text": "The interactive comparison keeps the loaded player and video element after startup. Seeking and delivery observations use that same session; they do not reload the source and count the new startup as seek latency. Measurement runs are sequential. Parallel visual previews remain separate from numerical comparison."
     },
     {
       "type": "table",
       "headers": [
-        "SDK integration",
-        "Load, play and cleanup"
+        "SDK",
+        "Format and session handling"
       ],
       "rows": [
         [
           "Player Web X",
-          "Use the playerx-hls bundle and Player(config), then sources.add and sources.attachVideo. Stage the source without data loading so its observers exist first. Start data loading with loadControl=2 and request source.play without waiting for Ready. Dispose the player when the trial ends."
+          "Select the HLS or DASH bundle and use the native Player and Source APIs. DASH support in 10.3.1 is partial; a custom manifest can be incompatible even when Shaka plays it. Register observations before loading and playing; dispose the player when its session ends."
         ],
         [
           "hls.js",
-          "Use the full ESM build so alternate audio is available. Construct Hls, attachMedia(video), loadSource(url), then request video.play immediately for the fresh clear MediaSource attachment. Destroy the instance on cleanup."
+          "Attach Hls to the video element and load the HLS source. DASH is explicitly unsupported. Destroy the instance when its session ends."
         ],
         [
           "Shaka Player",
-          "Use the official HLS-only ES2021 build, install polyfills and construct Player without a video argument. Require configure to return true, await attach(video), then start load(url, 0, \"application/x-mpegurl\") and video.play concurrently. Observe both promises and await destroy on cleanup."
+          "Use a build that supports the selected HLS or DASH format. Observe load and play separately and await destruction during cleanup."
         ]
       ]
     },
     {
       "type": "p",
-      "text": "A rejected or partly accepted configuration is not a default trial. Shaka can apply valid fields even when configure returns false, so the app rejects and destroys that candidate. Abort and cleanup also remove app-owned SDK listeners, video listeners and frame callbacks."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Provider milestone",
-        "Meaning in this comparison"
-      ],
-      "rows": [
-        [
-          "Player Web X ready / playing",
-          "Preserve the real Source events. The native API has no load-completion promise."
-        ],
-        [
-          "hls.js hlsManifestParsed",
-          "Manifest parsing is observed as SDK readiness. It is not native playing, and is not a load-completion promise."
-        ],
-        [
-          "Shaka loaded",
-          "Preserve the loaded event and the separate load promise. started is a progress event and can occur without actual playback; it is not used as SDK Playing."
-        ]
-      ]
+      "text": "Custom source URLs remain in the current playback session. Results use safe identifiers rather than storing or exporting the URL. Cancellation and session cleanup remove app-owned SDK/video listeners and frame callbacks."
     },
     {
       "type": "h2",
       "id": "clock-and-metrics",
-      "text": "Use one clock and explicit intervals"
+      "text": "Name each interval and observation"
     },
     {
       "type": "p",
-      "text": "Selection, SDK import, adapter milestones and native callbacks use the same parent performance clock. Times are relative to accepted content selection. Preloaded SDK import offsets may be negative; an on-demand import must not be corrected to zero to hide a clock error. Phases can overlap, so their durations are not added as an end-to-end total."
+      "text": "Use the same parent performance clock for each player’s accepted Measure trial, SDK import, initialization, loading, play requests and browser callbacks. The primary startup interval begins before creating the fresh playback document and ends at the first moving-frame observation. Initialization and load can overlap; adding their durations does not reconstruct startup time."
     },
     {
       "type": "p",
-      "text": "Playback startup (Play → Playing) is measured from the actual app play request to the native video playing callback. It is the explicitly defined VST-like interval in this app. Selection → Playing additionally includes work after content selection, such as SDK import and player construction. Play → moving frame separately records when a subsequent callback reports advancing media time."
+      "text": "The accepted measurement is per player, not the original physical button-click time. Network mode prepares its Service Worker before accepting that measurement, so worker preparation is excluded while SDK import, player creation and loading remain included."
     },
     {
       "type": "p",
-      "text": "First-frame time is recorded on entry to requestVideoFrameCallback using that same clock. The API reports frames submitted for composition, but this measurement is callback-observation time, not metadata.presentationTime or physical display time. A callback can arrive late under load. Browsers can also reduce clock precision; a real zero remains zero."
+      "text": "The main moving-frame observation uses requestVideoFrameCallback and checks that media time advances. It records when the callback is observed, not the physical display time. Native playing, SDK Ready, the load promise and loadeddata are separate observations; none is substituted for a missing frame callback."
     },
     {
-      "type": "note",
-      "text": "A paused frame can be observed before the play request. Its selection → frame value is still recorded; play → frame becomes missing with end-before-start rather than a fabricated zero. Successful playback additionally requires native playing, real media advancement and moving frames when the API is available. loadeddata is kept separate and never fills a missing frame observation."
+      "type": "p",
+      "text": "A successful startup needs the adapter’s play operation, native playing and actual playback progress, with moving frames checked when callbacks are supported. Browser API limitations can leave a frame latency unavailable even when playback works. Failure, cancellation and unsupported operations remain explicit outcomes."
+    },
+    {
+      "type": "h2",
+      "id": "seek-measurement",
+      "text": "Observe the target and its moving frame"
+    },
+    {
+      "type": "p",
+      "text": "Choose a target from the valid seekable range and record whether it is buffered at the request. Start the interval when requesting the seek. Completion requires the native seeking event, a frame within 0.25 seconds of the target and subsequent media-time advancement greater than 0.01 seconds. The observation has a 10-second budget. The seeked event or a frame from the old position cannot complete it."
+    },
+    {
+      "type": "p",
+      "text": "Without frame callbacks, retain an unsupported or unavailable reason instead of creating a zero-valued seek result. Read in-buffer and out-of-buffer seeks separately: fetching new media is a different condition from presenting data already buffered."
+    },
+    {
+      "type": "h2",
+      "id": "delivery-shaping",
+      "text": "Separate delivery control from observations"
+    },
+    {
+      "type": "p",
+      "text": "Network mode retains normal playback through the configured rate phases and observes quality and stalls. It does not perform the measured seek used in Startup and seek; that latency remains unmeasured rather than zero."
+    },
+    {
+      "type": "p",
+      "text": "Delivery control is limited to the bundled Big Buck Bunny fixture. Custom HLS/DASH URLs can be used for startup and seeking; their Network change control is disabled because full media coverage cannot be established."
+    },
+    {
+      "type": "p",
+      "text": "The fixture opts into a narrowly scoped Service Worker and paces decoded media response bodies under one shared byte-per-second budget. Original CORS and credential rules remain. Opaque, redirected or unclassified responses are skipped or unsupported; SDK downloads and license requests are excluded. This is response-body delivery control, not physical bandwidth, round-trip latency or cache emulation."
+    },
+    {
+      "type": "p",
+      "text": "Control status reports the requested rate, shaped responses, delivered bytes and skipped responses without URLs. Check these observations before claiming that an engine’s media was shaped: worker-originated SDK requests may not belong to the opted-in client. A configured cap alone is not measured throughput."
+    },
+    {
+      "type": "p",
+      "text": "Validate each rate phase with a positive delivered-byte delta during that phase. Earlier bytes in a cumulative counter cannot qualify a later phase. If no bytes are delivered while a phase is active, retain the missing or unsupported outcome rather than reporting successful control."
+    },
+    {
+      "type": "p",
+      "text": "Plot only observed quality changes, delivery samples and stalls. Keep an SDK’s quality or bandwidth estimate separate from the configured cap. Do not invent an adaptive-quality transition for a single-rendition source, or fill a missing provider value with a synthetic sample."
     },
     {
       "type": "h2",
       "id": "configuration-candidates",
-      "text": "Choose settings without claiming an optimum"
+      "text": "Keep the advanced benchmark separate"
     },
     {
-      "type": "p",
-      "text": "Use the same fixed-rendition HLS source, en-labelled audio, start position zero, normal rate and muted playback. Optional Analytics collection, advertising and SDK UI are not added to the cohort. HTTP caching remains browser-managed in the public UI; preloaded describes SDK residency, not a warm network cache."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Setting group",
-        "Treatment and reason"
-      ],
-      "rows": [
-        [
-          "Startup loading and retention",
-          "hls.js coordinates maxBufferLength, maxMaxBufferLength, backBufferLength and frontBufferFlushThreshold. Shaka uses streaming.bufferingGoal and bufferBehind. The startup retention candidate is 12 seconds forward and 6 seconds behind. These are duration goals, not total-memory limits."
-        ],
-        [
-          "Bounded tuning",
-          "hls.js enableWorker is evaluated as true/false; Shaka streaming.segmentPrefetchLimit as 0/1/2. A matching-version worker asset is bundled for hls.js. Shaka keeps its default rebufferingGoal of 0."
-        ],
-        [
-          "Player Web X data loading",
-          "Use loadControl=2 (Data) for this fresh-source playback comparison. Nothing (0) and Metadata (1) are valid APIs requesting no data or manifests only, but are excluded from this playback cohort. The standard HLS bundle does not expose the same buffer knobs as the other SDKs."
-        ],
-        [
-          "Other features and compatibility",
-          "DASH, DRM, offline playback, casting, advertising and live-only controls do not belong to this clear HLS startup case. Deprecated settings and v8 compatibility types are not treated as supported native Web X tuning APIs."
-        ]
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/web/startup-benchmark.html",
+          "label": "Retained startup benchmark"
+        }
       ]
     },
     {
       "type": "p",
-      "text": "The configuration interfaces were reviewed by purpose: common conditions, startup candidates, other features, deprecated or compatibility settings, and custom hooks outside this experiment. This is a scope assessment, not full configuration API coverage. Screening uses a fixed Selection → Playing metric; new confirmation trials use the selected settings. A faster candidate for this short stream does not establish smooth or memory-efficient playback on every device and network."
+      "text": "The retained benchmark still creates a fresh document and video element for each isolated startup trial. Its fixed-rendition HLS, import-mode controls, default/startup profiles, candidate screening and independent confirmation belong to that experiment. They do not turn a parallel preview or retained seek session into an isolated startup trial."
     },
     {
-      "type": "table",
-      "headers": [
-        "Other startup-related settings",
-        "Policy and reason"
-      ],
-      "rows": [
-        [
-          "Adaptive quality and initial bandwidth",
-          "The selected master contains one video rendition. Keep hls.js abr/startLevel/testBandwidth and Shaka abr settings at their defaults; this experiment does not evaluate adaptive quality selection."
-        ],
-        [
-          "Manifest and codec checks",
-          "Pass the known HLS MIME type to Shaka load. Keep codec guessing and decoding-capability checks at their defaults; do not bypass compatibility checks to reduce a timing value."
-        ],
-        [
-          "Prefetch, transport and transmuxing",
-          "Keep hls.js startFragPrefetch=false and its experimental progressive=false at their defaults. They control loading before attachment completes and processing data during a download; automatic screening does not vary these paths. Use the existing loaders and avoid forcing Shaka to transmux the fMP4 input solely to use a worker."
-        ],
-        [
-          "Retries and recovery",
-          "Keep each SDK's normal request retries and MediaSource playback recovery. Every trial has the same outer 30-second deadline; expiry remains a failed attempt rather than a successful low startup time."
-        ],
-        [
-          "Logging",
-          "The Web X default profile retains its SDK log level; the startup profile explicitly selects Off. hls.js keeps debug=false and Shaka keeps its release logging configuration. SDK error events remain observed in both profiles."
-        ]
-      ]
+      "type": "p",
+      "text": "That benchmark keeps en-labelled audio, muted playback, normal rate and start position zero. Its startup retention candidate is 12 seconds forward and 6 seconds behind, not a total-memory limit. Screening varies hls.js enableWorker true/false and Shaka segmentPrefetchLimit 0/1/2; Web X keeps loadControl=2 (Data). Each isolated trial has the existing 30-second deadline. SDK preloading describes import timing, not a warm HTTP cache."
     },
     {
       "type": "note",
-      "text": "Reviewing a setting is different from testing every value. Automatic screening varies the hls.js worker and Shaka prefetch limit only. The forward/back buffer durations are fixed candidates, and equal duration targets do not establish equal buffer implementations or memory use. Read the default and startup profiles as separate experiments."
+      "text": "Repository source links below are the retained benchmark snapshot. They explain that implementation and its export/ranking rules; they are not source evidence for the new retained-playback and delivery-control paths. The 2026-11-01 report remains historical."
     },
     {
       "type": "h2",
       "id": "diagnostics",
-      "text": "Read diagnostics within their limits"
+      "text": "Read unavailable values without guessing"
     },
     {
       "type": "bullets",
       "items": [
-        "Shaka getStats().loadLatency and timeToFirstFrame stay in seconds with the SDK’s own definitions. loadLatency ends at loadedmetadata; timeToFirstFrame uses its frame callback or loadeddata fallback. They have a different origin and observation method from the common metrics.",
-        "The native Web X bundle has no public getters for the active media backend, selected audio language, worker activity or the provider latency/bandwidth samples used here. Those fields remain null or unknown with a reason. Missing values do not establish poor performance.",
-        "hls.js observes the attached MediaSource instance. Shaka checks the actual MediaSource load mode, but may expose only the MediaSource family rather than its managed/regular subtype. A requested enableWorker value does not prove that a worker ran.",
-        "JavaScript heap delta covers only the exposed JavaScript heap, not decoder, GPU, worker or total process memory. Main-thread long tasks are not total CPU utilization. Resource Timing bytes cover observed entries; zero transfer size can have more than one cause and is not proof that no data was fetched."
+        "Provider events keep their own meanings. Web X Source ready, hls.js manifest parsing and Shaka loaded are not interchangeable moving-frame timestamps.",
+        "A quality getter or bandwidth estimate may be unavailable for a player. Unknown does not mean zero bandwidth or poor playback.",
+        "Browser caching, request concurrency, decoding and tab activity affect the observations. Sequential runs reduce contention between players; they do not establish identical device or network conditions."
       ]
     },
     {
@@ -184,21 +159,30 @@
     },
     {
       "type": "h3",
-      "id": "startup-validity",
-      "text": "What does a successful startup prove?"
+      "id": "webx-dash-compatibility",
+      "text": "Why can a custom DASH manifest fail in Web X?"
     },
     {
       "type": "p",
-      "text": "The trial must satisfy the adapter’s start contract and native playback checks, then finish cleanup. It is a short startup check, not an uninterrupted viewing or rebuffering test. Repeat longer playback checks separately before adopting a setting for production."
+      "text": "Player Web X 10.3.1 cannot handle some MPDs using $RepresentationID$ or $Number%05d$ templates. Use a compatible MPD. The app passes the custom URL unchanged: it does not rewrite the manifest, patch the SDK or convert a failure into a zero-millisecond success. Selecting DASH does not promise compatibility with every MPD."
+    },
+    {
+      "type": "h3",
+      "id": "startup-validity",
+      "text": "Does one successful run establish smooth playback?"
+    },
+    {
+      "type": "p",
+      "text": "No. Read the startup, seek and delivery observations as different checks. A successful short run does not establish long-session stability or a generally fastest SDK. No prerecorded result is displayed as a measurement of the current run."
     },
     {
       "type": "h3",
       "id": "analytics-vst",
-      "text": "Is this the Analytics VST?"
+      "text": "Is the moving-frame graph Analytics VST?"
     },
     {
       "type": "p",
-      "text": "No. This app defines Playback startup as Play request → native playing, while Bitmovin Analytics defines VIDEO_STARTUPTIME using Play → TimeChanged; STARTUPTIME also includes PLAYER_STARTUPTIME. Collectors can have SDK-specific behavior. This cohort does not enable a collector or synthesize Dashboard values from browser events. Use the Analytics implementation guide for collection and Dashboard queries."
+      "text": "No. This comparison uses browser observations with explicit origins. Bitmovin Analytics VIDEO_STARTUPTIME uses Play → TimeChanged; STARTUPTIME also includes PLAYER_STARTUPTIME. Playing and moving-frame observations are not a replacement for those collector-defined values. This comparison does not enable a collector or synthesize Dashboard values."
     },
     {
       "type": "links",
@@ -286,6 +270,10 @@
     {
       "url": "https://github.com/kazuhide/player-lab/blob/8c57c70b5c3f6f0cc0068962bc336e7327a37bfe/apps/web/src/startup/export.ts#L20",
       "label": "Allowlisted comparison export"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web_x/10.3.1/bundles/playerx-dash.js",
+      "label": "Player Web X 10.3.1 DASH bundle and manifest handling"
     }
   ]
 }

@@ -143,9 +143,12 @@ LOCALIZED_FIGURES = {
     'applied-settings': {'en': (1240, 511), 'ja': (1240, 512)},
     'web-startup-controls': {'en': (1240, 418), 'ja': (1240, 423)},
     'web-startup-results': {'en': (1240, 675), 'ja': (1240, 704)},
+    'web-comparison-single': {'en': (1272, 1216), 'ja': (1272, 1233)},
+    'web-comparison-parallel': {'en': (1272, 1312), 'ja': (1272, 1347)},
 }
 FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
 FIGURE_EXTENSIONS.update({name: 'png' for name in ('web-sdk-differences', 'web-startup-controls', 'web-startup-results')})
+FIGURE_EXTENSIONS.update({name: 'png' for name in ('web-comparison-single', 'web-comparison-parallel')})
 
 
 def figure_capture_profile(name):

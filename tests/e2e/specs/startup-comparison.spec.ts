@@ -28,7 +28,7 @@ const intervals = ["sdkImportMs", "constructorMs", "attachMs", "loadMs", "playPr
   "playRequestToFirstFrameMs", "playRequestToFirstMovingFrameMs", "playRequestToAdvancedMs"];
 
 async function openComparison(page: Page, language: Language = "en"): Promise<void> {
-  const response = await page.goto("comparison.html");
+  const response = await page.goto("startup-benchmark.html");
   expect(response?.status()).toBe(200);
   expect(await response!.text()).not.toContain("@vite/client");
   await page.getByRole("button", { name: language === "en" ? "English" : "日本語", exact: true }).click();

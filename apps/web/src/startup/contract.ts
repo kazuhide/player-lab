@@ -73,6 +73,12 @@ export interface AdapterSession {
   /** Request load and play at the earliest supported point; observe each separately. */
   start(): Promise<void>;
   sample(): ProviderSample;
+  /** Retained demos use the source's public controls when it owns playback state. */
+  readonly playback?: {
+    play(): Promise<void>;
+    pause(): void;
+    seek(seconds: number): void;
+  };
   /** Release partial initialization too, and stop reporting callbacks after disposal. */
   dispose(): Promise<void>;
 }

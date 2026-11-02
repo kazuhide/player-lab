@@ -1,10 +1,23 @@
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import { resolveClientLicenseKey } from "./src/env/clientLicense";
 import { createPagesBuildConfig } from "./src/env/pagesBuild";
 import type { AnalyticsProxyConfig } from "./src/server/analyticsProxy";
 import { createAnalyticsMiddleware } from "./src/server/analyticsMiddleware";
+
+/** Publish only the reviewed comparison worker, preserving the Pages public-file allowlist. */
+function comparisonWorkerPlugin(): Plugin {
+  return {
+    name: "player-lab-comparison-worker",
+    apply: "build",
+    generateBundle() {
+      this.emitFile({ type: "asset", fileName: "comparison-network-worker.js",
+        source: readFileSync(new URL("./public/comparison-network-worker.js", import.meta.url), "utf8") });
+    },
+  };
+}
 
 function productBuildPlugin(): Plugin {
   const script = fileURLToPath(new URL("../../scripts/product_version.py", import.meta.url));
@@ -43,7 +56,7 @@ export default defineConfig(({ mode }) => {
     const pages = createPagesBuildConfig(process.env);
     return {
       ...pages,
-      plugins: [productBuildPlugin()],
+      plugins: [productBuildPlugin(), comparisonWorkerPlugin()],
       build: {
         ...pages.build,
         target: "es2021",
@@ -54,6 +67,8 @@ export default defineConfig(({ mode }) => {
             guide: fileURLToPath(new URL("./guide.html", import.meta.url)),
             comparison: fileURLToPath(new URL("./comparison.html", import.meta.url)),
             comparisonRunner: fileURLToPath(new URL("./comparison-runner.html", import.meta.url)),
+            demoRunner: fileURLToPath(new URL("./demo-runner.html", import.meta.url)),
+            startupBenchmark: fileURLToPath(new URL("./startup-benchmark.html", import.meta.url)),
           },
         },
       },
@@ -90,7 +105,7 @@ export default defineConfig(({ mode }) => {
     orgId: env.BITMOVIN_TENANT_ORG_ID || env.BITMOVIN_ANALYTICS_ORG_ID || "",
   };
   return {
-    plugins: [productBuildPlugin(), analyticsProxyPlugin(analyticsCfg)],
+    plugins: [productBuildPlugin(), comparisonWorkerPlugin(), analyticsProxyPlugin(analyticsCfg)],
     // The Bitmovin player is a large single dependency; raise the warning limit
     // rather than code-split a demo.
     build: {
@@ -103,6 +118,8 @@ export default defineConfig(({ mode }) => {
           guide: fileURLToPath(new URL("./guide.html", import.meta.url)),
           comparison: fileURLToPath(new URL("./comparison.html", import.meta.url)),
           comparisonRunner: fileURLToPath(new URL("./comparison-runner.html", import.meta.url)),
+          demoRunner: fileURLToPath(new URL("./demo-runner.html", import.meta.url)),
+          startupBenchmark: fileURLToPath(new URL("./startup-benchmark.html", import.meta.url)),
         },
       },
     },
