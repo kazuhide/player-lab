@@ -23,7 +23,7 @@
     },
     {
       "type": "p",
-      "text": "The interactive comparison keeps the loaded player and video element after startup. Seeking and delivery observations use that same session; they do not reload the source and count the new startup as seek latency. Measurement runs are sequential. Parallel visual previews remain separate from numerical comparison."
+      "text": "Within each measured session, the loaded player and video element stay available for its seek and delivery observations; a source reload is not counted as seek latency. After measurements finish, the UI keeps or recreates a successfully measured player for preview without changing the measurement records. If no player succeeds, playback controls stay disabled. Measurement runs are sequential. Parallel visual previews remain separate from numerical comparison."
     },
     {
       "type": "table",

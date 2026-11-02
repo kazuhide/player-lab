@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DemoOptions, DemoSample, DemoSeek, DemoSource, DemoStartOptions, DemoStartup } from "../src/startup/demo-contract";
 const state = vi.hoisted(() => ({ instances: [] as any[], active: new Set<any>(), maxActive: 0,
-  events: [] as string[], holdStarts: false, startThrows: false, rejectDisposalFor: null as any, deferDisposalFor: null as any }));
+  events: [] as string[], holdStarts: false, startThrows: false, failStartNumber: 0, failAll: false,
+  rejectDisposalFor: null as any, deferDisposalFor: null as any }));
 vi.mock("../src/i18n", () => ({ pick: (value: { en: string }) => value.en }));
 vi.mock("../src/startup/demo-session", () => ({ DemoSession: class {
   options: DemoOptions; startOptions: DemoStartOptions | null = null;
@@ -11,6 +12,9 @@ vi.mock("../src/startup/demo-session", () => ({ DemoSession: class {
   start = vi.fn(async (options: DemoStartOptions): Promise<DemoStartup> => {
     this.startOptions = options; state.events.push(`start:${this.options.engine}`);
     if (state.startThrows) throw new Error("fixture-start-failed");
+    if (state.failAll || state.events.filter((event) => event.startsWith("start:")).length === state.failStartNumber) {
+      return { status: "failure", failureCode: "sdk-error", sdkCode: null, marks: {}, metadata: null, frameCallbackAvailable: true };
+    }
     if (state.holdStarts) return new Promise((resolve) => {
       const finish = () => resolve({ status: "cancelled", failureCode: "aborted", sdkCode: null,
         marks: {}, metadata: null, frameCallbackAvailable: true });
@@ -54,6 +58,7 @@ async function measured(app: DemoComparison, selected = source, network = false)
 }
 beforeEach(() => {
   vi.useFakeTimers(); state.instances.length = 0; state.active.clear(); state.events.length = 0; state.maxActive = 0; state.holdStarts = false; state.startThrows = false; state.rejectDisposalFor = null; state.deferDisposalFor = null;
+  state.failStartNumber = 0; state.failAll = false;
   vi.stubGlobal("window", { setTimeout, clearTimeout });
 });
 afterEach(async () => {
@@ -61,6 +66,17 @@ afterEach(async () => {
 });
 
 describe("demo orchestration (mock sessions; no SDK/browser/network qualification)", () => {
+  it("leaves a successful player visible when the last measured engine fails", async () => {
+    const { app } = fixture(); state.failStartNumber = 3; await measured(app);
+    expect(app.records).toHaveLength(3); expect(app.records[2]!.startup!.status).toBe("failure");
+    expect(app.records.find((record) => record.engine === app.selected)!.startup!.status).toBe("success");
+    expect(app.hasPlayback).toBe(true); expect(state.active.size).toBe(1);
+  });
+  it("keeps playback actions unavailable and reports failure when no engine can play", async () => {
+    const { app, ui } = fixture(); state.failAll = true; await measured(app);
+    expect(app.hasPlayback).toBe(false);
+    expect(ui.status.mock.calls[ui.status.mock.calls.length - 1]![0]).toContain("No player could play");
+  });
   it("measures each engine sequentially and disposes the prior instance before creating the next", async () => {
     const { app } = fixture(); await measured(app);
     expect(new Set(app.records.map((record) => record.engine))).toEqual(new Set(["web-x", "hls", "shaka"]));

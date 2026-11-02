@@ -15,6 +15,7 @@ export class DemoComparison {
   private generation = 0;
   private controller: AbortController | null = null;
   private sessions = new Map<EngineId, DemoSession>();
+  private available = new Set<EngineId>();
   private latest = new Map<EngineId, DemoSample>();
   private releasing: Promise<boolean> | null = null;
 
@@ -25,9 +26,12 @@ export class DemoComparison {
     network: (message: string) => void;
   }) {}
 
+  get hasPlayback(): boolean { return this.parallel ? this.available.size > 0 : this.available.has(this.selected); }
+
   private release(): Promise<boolean> {
     if (this.releasing) return this.releasing;
     const sessions = [...this.sessions.values()]; this.sessions.clear();
+    this.available.clear();
     this.releasing = Promise.allSettled(sessions.map((session) => session.dispose())).then((outcomes) => {
       this.latest.clear();
       return outcomes.every((outcome) => outcome.status === "fulfilled");
@@ -73,6 +77,7 @@ export class DemoComparison {
           selectedAt = performance.timeOrigin + performance.now();
         }
         record.startup = await session.start({ source, signal: controller.signal, selectedAt, profile: "startup" });
+        if (record.startup.status === "success") this.available.add(engine);
         this.ui.update();
         if (record.startup.status !== "success") continue;
         this.ui.status(`${ENGINE_NAMES[engine]} · ${pick({ ja: "再生中", en: "Playing" })}`);
@@ -118,11 +123,13 @@ export class DemoComparison {
       if (generation === this.generation) {
         this.running = false;
         if (controller.signal.aborted || failed) await this.release();
+        const successful = this.records.filter((record) => record.startup?.status === "success").pop();
         this.ui.status(controller.signal.aborted ? pick({ ja: "計測を中止しました。", en: "Measurement cancelled." })
           : failed ? pick({ ja: "計測を継続できませんでした。再計測してください。", en: "Measurement stopped. Select Measure again to retry." })
+          : !successful ? pick({ ja: "再生できませんでした。URLと対応形式を確認してください。", en: "No player could play this source. Check the URL and supported formats." })
           : pick({ ja: "計測終了。映像はそのまま操作できます。", en: "Measurement complete. Playback controls remain available." }));
         this.ui.update();
-        if (this.parallel && !controller.signal.aborted && !failed) await this.preview();
+        if (successful && !controller.signal.aborted && !failed && (this.parallel || !this.hasPlayback)) await this.preview(successful.engine);
       }
     }
   }
@@ -133,6 +140,7 @@ export class DemoComparison {
     if (this.running || !this.source) return;
     const generation = ++this.generation;
     this.controller?.abort(); this.controller = new AbortController();
+    this.ui.status(pick({ ja: "プレビューを準備中", en: "Preparing preview" }));
     if (!await this.release()) {
       this.ui.status(pick({ ja: "前のプレイヤーを終了できませんでした。ページを再読み込みしてください。", en: "The previous player could not be released. Reload this page." }));
       return;
@@ -144,9 +152,17 @@ export class DemoComparison {
     await Promise.all(engines.map(async (current) => {
       if (signal.aborted || generation !== this.generation) return;
       const session = this.create(current);
-      try { await session.start({ source: this.source!, signal, profile: "startup" }); }
+      try {
+        const result = await session.start({ source: this.source!, signal, profile: "startup" });
+        if (result.status === "success" && generation === this.generation && !signal.aborted) this.available.add(current);
+      }
       catch { /* Each preview is independent; measurement results remain unchanged. */ }
     }));
+    if (generation === this.generation && !signal.aborted) {
+      this.ui.status(this.hasPlayback ? pick({ ja: "プレビューを再生中", en: "Preview playing" })
+        : pick({ ja: "再生できませんでした。", en: "Playback failed." }));
+      this.ui.update();
+    }
   }
 
   async play(): Promise<void> {

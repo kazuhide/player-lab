@@ -165,7 +165,7 @@ function render(): void {
     grid.classList.toggle("is-parallel", comparison.parallel);
     single.setAttribute("aria-pressed", String(!comparison.parallel)); parallel.setAttribute("aria-pressed", String(comparison.parallel));
     startupMode.setAttribute("aria-pressed", String(!network)); networkMode.setAttribute("aria-pressed", String(network));
-    for (const control of [play, pause, seek]) control.disabled = active || !comparison.source;
+    for (const control of [play, pause, seek]) control.disabled = active || !comparison.hasPlayback;
     exportButton.disabled = active || !any;
     playbackNote.textContent = comparison.parallel ? pick({ ja: "同時再生は見比べるための表示です。グラフには単独計測の値を残します。", en: "Side-by-side playback is a visual preview. Graphs retain isolated measurements." })
       : pick({ ja: "計測後も再生・シークを試せます。", en: "Playback and seeking remain available after measurement." });

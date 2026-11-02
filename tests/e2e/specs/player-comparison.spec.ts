@@ -74,6 +74,9 @@ test("custom DASH uses DASH-capable engines and reports hls.js as unsupported", 
     await expect(page.locator(`.demo-bar-row[data-engine="${engine}"][data-metric="startup"]`)).not.toHaveAttribute("data-value-ms", "");
   }
   await expect(page.locator('.demo-bar-row[data-engine="hls"][data-metric="startup"]')).toContainText("Unsupported");
+  const visibleVideo = page.frameLocator(".demo-video-cell:not([hidden]) iframe").locator("video");
+  await expect.poll(() => visibleVideo.evaluate((element) => (element as HTMLVideoElement).videoWidth)).toBeGreaterThan(0);
+  await expect(visibleVideo).toHaveJSProperty("paused", false);
   await page.locator(".demo-details summary").click();
   const pending = page.waitForEvent("download");
   await page.getByRole("button", { name: "Save JSON", exact: true }).click();
