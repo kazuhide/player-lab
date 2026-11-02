@@ -94,6 +94,47 @@ class AppleCIWorkflowTests(unittest.TestCase):
             with self.subTest(mutation=replacement), self.assertRaises(AssertionError):
                 assert_retention(step.replace(original, replacement, 1))
 
+    def test_only_profiles_concrete_tests_start_the_bounded_observer(self):
+        self.assertNotIn("apple-startup-diagnostics.py", self.shell(self.stages[0][0]))
+        for name, *_ in self.stages[1:]:
+            with self.subTest(stage=name):
+                shell = self.shell(name)
+                start = shell.index('apple-startup-diagnostics.py observe')
+                self.assertLess(shell.index('simctl bootstatus'), start)
+                self.assertLess(start, shell.rindex('xcodebuild "${xcodebuild_args[@]}"'))
+                self.assertIn('--udid "$simulator_id"', shell)
+                self.assertIn('--parent-pid "$$"', shell)
+                self.assertNotIn('simctl launch', shell)
+
+    def test_diagnostics_have_a_separate_always_artifact(self):
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+        step = workflow.split("      - name: Save Apple Profiles startup diagnostics\n", 1)[1].split("\n      - ", 1)[0]
+        for line in ("        if: always()",
+                     "        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4",
+                     "          name: apple-profiles-startup-diagnostics",
+                     "          path: ${{ runner.temp }}/apple-profiles-startup-diagnostics",
+                     "          retention-days: 7"):
+            self.assertIn(line, step.splitlines())
+        self.assertNotIn('unvalidated', step)
+
+    def test_diagnostic_stop_errors_do_not_mask_native_exit_or_skip_shutdown(self):
+        for name, *_ in self.stages[1:]:
+            shell = self.shell(name)
+            cleanup = re.search(r"shutdown_selected_simulator\(\) \{\n.*?^\}", shell, re.MULTILINE | re.DOTALL).group()
+            self.assertIn('stop_startup_diagnostics', cleanup)
+            self.assertLess(cleanup.index('simulator_test_status=$?'), cleanup.index('stop_startup_diagnostics'))
+            self.assertLess(cleanup.index('stop_startup_diagnostics'), cleanup.index('simctl shutdown'))
+            for status in (0, 65, 130, 143):
+                with self.subTest(stage=name, status=status):
+                    program = ('simulator_id=fixture-selected\n'
+                               'stop_startup_diagnostics() { echo diagnostic-stop; return 7; }\n'
+                               'xcrun() { echo "native-$*"; return 0; }\n'
+                               + cleanup + '\ntrap shutdown_selected_simulator EXIT\nexit ' + str(status))
+                    result = subprocess.run(['bash', '-e', '-u', '-o', 'pipefail', '-c', program],
+                                            capture_output=True, text=True)
+                    self.assertEqual(result.returncode, status, result.stderr)
+                    self.assertIn('native-simctl shutdown fixture-selected', result.stdout)
+
     def test_selected_device_cleanup_preserves_the_original_failure(self):
         for name, *_ in self.stages[1:]:
             shell = self.shell(name)
@@ -102,6 +143,7 @@ class AppleCIWorkflowTests(unittest.TestCase):
                 with self.subTest(stage=name, status=status, shutdown=shutdown_status):
                     program = ("simulator_id=fixture-selected\n"
                                "xcrun() { printf '%s\\n' \"$*\"; return " + str(shutdown_status) + "; }\n"
+                               "stop_startup_diagnostics() { return 0; }\n"
                                + cleanup + "\ntrap shutdown_selected_simulator EXIT\nexit " + str(status))
                     result = subprocess.run(["bash", "-e", "-u", "-o", "pipefail", "-c", program],
                                             capture_output=True, text=True)
@@ -110,7 +152,8 @@ class AppleCIWorkflowTests(unittest.TestCase):
                                      ["simctl shutdown fixture-selected"])
 
     def run_stage(self, directory, stage, *, initial_state=None, build_status=0,
-                  test_status=0, shutdown_status=0, signal_name="", selected=True):
+                  test_status=0, shutdown_status=0, signal_name="", selected=True,
+                  diagnostic_stop_status=0, diagnostic_observer_status=0):
         directory = Path(directory)
         (directory / "apps/ios").mkdir(parents=True, exist_ok=True)
         binary = directory / "bin"
@@ -161,12 +204,43 @@ sys.exit(int(os.environ['FAKE_BUILD_STATUS' if phase == 'build-for-testing' else
             path = binary / name
             path.write_text("#!" + sys.executable + "\n" + program)
             path.chmod(0o700)
+        scripts = directory / 'scripts'
+        scripts.mkdir(exist_ok=True)
+        observer = scripts / 'apple-startup-diagnostics.py'
+        observer.write_text(common.split("with Path(os.environ['FAKE_EVENTS'])", 1)[0] + '''\
+def record_mode():
+    with Path(os.environ['FAKE_EVENTS']).open('a') as stream:
+        stream.write(json.dumps({'tool': 'apple-startup-diagnostics.py', 'args': args,
+                                 'selectedStateBefore': state['fixture-selected']}) + '\\n')
+control = Path(args[args.index('--control-dir') + 1])
+control.mkdir(parents=True, exist_ok=True)
+if args[0] == 'observe':
+    record_mode()
+    (control / 'ready').touch()
+    deadline = time.monotonic() + 5
+    while not (control / 'stop.request').exists() and time.monotonic() < deadline:
+        time.sleep(0.01)
+    sys.exit(int(os.environ['FAKE_DIAGNOSTIC_OBSERVER_STATUS']))
+if args[0] == 'ready':
+    deadline = time.monotonic() + 2
+    while not (control / 'ready').exists() and time.monotonic() < deadline:
+        time.sleep(0.01)
+    record_mode()
+    sys.exit(0 if (control / 'ready').exists() else 1)
+if args[0] == 'stop':
+    record_mode()
+    (control / 'stop.request').touch()
+    sys.exit(int(os.environ['FAKE_DIAGNOSTIC_STOP_STATUS']))
+raise AssertionError('Unexpected diagnostic mode')
+''')
         environment = os.environ.copy()
         environment.update(PATH=str(binary) + os.pathsep + environment["PATH"],
                            RUNNER_TEMP=str(directory), GITHUB_ENV=str(directory / "github-env"),
                            FAKE_STATE=str(state), FAKE_EVENTS=str(directory / "events.jsonl"),
                            FAKE_BUILD_STATUS=str(build_status), FAKE_TEST_STATUS=str(test_status),
-                           FAKE_SHUTDOWN_STATUS=str(shutdown_status), FAKE_SIGNAL=signal_name)
+                           FAKE_SHUTDOWN_STATUS=str(shutdown_status), FAKE_SIGNAL=signal_name,
+                           FAKE_DIAGNOSTIC_STOP_STATUS=str(diagnostic_stop_status),
+                           FAKE_DIAGNOSTIC_OBSERVER_STATUS=str(diagnostic_observer_status))
         if selected:
             environment["IOS_CONFIGURATION_SIMULATOR"] = "fixture-selected"
         else:
@@ -230,6 +304,20 @@ sys.exit(int(os.environ['FAKE_BUILD_STATUS' if phase == 'build-for-testing' else
                 self.assertEqual(state["fixture-selected"], "Shutdown" if stopped else initial)
                 calls = [event["args"] for event in events if event["args"][:2] == ["simctl", "shutdown"]]
                 self.assertEqual(calls, [["simctl", "shutdown", "fixture-selected"]] if selected and initial == "Booted" else [])
+
+    def test_observer_stop_precedes_shutdown_and_never_rewrites_test_failure(self):
+        for stop_status, observer_status, test_status in ((0, 0, 0), (7, 0, 65), (0, 9, 130), (7, 9, 143)):
+            with self.subTest(stop=stop_status, observer=observer_status, native=test_status), TemporaryDirectory() as directory:
+                result, state, events = self.run_stage(
+                    directory, self.stages[1][0], initial_state='Booted', test_status=test_status,
+                    diagnostic_stop_status=stop_status, diagnostic_observer_status=observer_status)
+                self.assertEqual(result.returncode, test_status, result.stderr)
+                diagnostic_events = [event for event in events if event['tool'] == 'apple-startup-diagnostics.py']
+                self.assertEqual([event['args'][0] for event in diagnostic_events], ['observe', 'ready', 'stop'])
+                self.assertTrue(all(event['selectedStateBefore'] == 'Booted' for event in diagnostic_events))
+                self.assertLess(events.index(diagnostic_events[-1]), next(
+                    index for index, event in enumerate(events) if event['args'][:2] == ['simctl', 'shutdown']))
+                self.assertEqual(state, {'fixture-selected': 'Shutdown', 'unrelated-device': 'Booted'})
 
     def test_profile_input_keeps_one_native_literal_and_exact_lifecycle_oracles(self):
         source = (ROOT / "apps/ios/ShowcaseProfilesUITests/NativeProfilesUITests.swift").read_text()

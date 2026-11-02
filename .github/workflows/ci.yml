@@ -88,6 +88,7 @@ jobs:
       - name: Test native runtime runners
         run: |
           python3 -B scripts/test-guide-native-examples.py
+          python3 -B scripts/test-apple-startup-diagnostics.py
           python3 -m unittest discover -s apps/react-native/runtime -p 'test_*.py'
           python3 -m unittest discover -s apps/vega/runtime -p 'test_*.py'
           python3 apps/ios/test_track_qualification.py
@@ -408,9 +409,25 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
           )
           simulator_id="$IOS_CONFIGURATION_SIMULATOR"
+          startup_diagnostics_pid=""
+          startup_diagnostics_control="$RUNNER_TEMP/apple-profiles-startup-control/ios"
+          stop_startup_diagnostics() {
+            if [ -z "$startup_diagnostics_pid" ]; then return 0; fi
+            if python3 ../../scripts/apple-startup-diagnostics.py stop \
+              --control-dir "$startup_diagnostics_control" --observer-pid "$startup_diagnostics_pid"; then
+              if ! wait "$startup_diagnostics_pid"; then
+                echo "::warning::The Profiles diagnostic observer reported an error. See its separate artifact."
+              fi
+            else
+              echo "::warning::Profiles diagnostic cleanup was not confirmed. See its separate artifact."
+            fi
+          }
           shutdown_selected_simulator() {
             simulator_test_status=$?
             trap - EXIT INT TERM
+            if ! stop_startup_diagnostics; then
+              echo "::warning::Profiles diagnostic cleanup failed. The native test status is preserved."
+            fi
             if ! xcrun simctl shutdown "$simulator_id"; then
               echo "::error::Could not shut down the selected test simulator."
               if [ "$simulator_test_status" -eq 0 ]; then simulator_test_status=1; fi
@@ -423,6 +440,15 @@ jobs:
           xcodebuild "${xcodebuild_args[@]}" \
             -destination 'generic/platform=iOS Simulator' build-for-testing
           xcrun simctl bootstatus "$simulator_id" -b
+          python3 ../../scripts/apple-startup-diagnostics.py observe \
+            --platform ios --udid "$simulator_id" --parent-pid "$$" \
+            --control-dir "$startup_diagnostics_control" \
+            --output-dir "$RUNNER_TEMP/apple-profiles-startup-diagnostics/ios" &
+          startup_diagnostics_pid=$!
+          if ! python3 ../../scripts/apple-startup-diagnostics.py ready \
+            --control-dir "$startup_diagnostics_control" --observer-pid "$startup_diagnostics_pid"; then
+            echo "::warning::The Profiles diagnostic observer did not become ready. Native tests still run unchanged."
+          fi
           xcodebuild "${xcodebuild_args[@]}" \
             -destination "platform=iOS Simulator,id=$simulator_id" \
             -resultBundlePath "$RUNNER_TEMP/apple-profiles-ios.xcresult" test-without-building
@@ -487,9 +513,25 @@ jobs:
           raise SystemExit('No available Apple TV simulator was found for the Profiles UI tests.')
           PY
           )"
+          startup_diagnostics_pid=""
+          startup_diagnostics_control="$RUNNER_TEMP/apple-profiles-startup-control/tvos"
+          stop_startup_diagnostics() {
+            if [ -z "$startup_diagnostics_pid" ]; then return 0; fi
+            if python3 ../../scripts/apple-startup-diagnostics.py stop \
+              --control-dir "$startup_diagnostics_control" --observer-pid "$startup_diagnostics_pid"; then
+              if ! wait "$startup_diagnostics_pid"; then
+                echo "::warning::The Profiles diagnostic observer reported an error. See its separate artifact."
+              fi
+            else
+              echo "::warning::Profiles diagnostic cleanup was not confirmed. See its separate artifact."
+            fi
+          }
           shutdown_selected_simulator() {
             simulator_test_status=$?
             trap - EXIT INT TERM
+            if ! stop_startup_diagnostics; then
+              echo "::warning::Profiles diagnostic cleanup failed. The native test status is preserved."
+            fi
             if ! xcrun simctl shutdown "$simulator_id"; then
               echo "::error::Could not shut down the selected test simulator."
               if [ "$simulator_test_status" -eq 0 ]; then simulator_test_status=1; fi
@@ -500,6 +542,15 @@ jobs:
           trap 'exit 130' INT
           trap 'exit 143' TERM
           xcrun simctl bootstatus "$simulator_id" -b
+          python3 ../../scripts/apple-startup-diagnostics.py observe \
+            --platform tvos --udid "$simulator_id" --parent-pid "$$" \
+            --control-dir "$startup_diagnostics_control" \
+            --output-dir "$RUNNER_TEMP/apple-profiles-startup-diagnostics/tvos" &
+          startup_diagnostics_pid=$!
+          if ! python3 ../../scripts/apple-startup-diagnostics.py ready \
+            --control-dir "$startup_diagnostics_control" --observer-pid "$startup_diagnostics_pid"; then
+            echo "::warning::The Profiles diagnostic observer did not become ready. Native tests still run unchanged."
+          fi
           xcodebuild "${xcodebuild_args[@]}" \
             -destination "platform=tvOS Simulator,id=$simulator_id" \
             -resultBundlePath "$RUNNER_TEMP/apple-profiles-tvos.xcresult" test-without-building
@@ -511,6 +562,17 @@ jobs:
           path: ${{ runner.temp }}/apple-profiles-tvos.xcresult
           if-no-files-found: warn
           retention-days: 7
+      - name: Save Apple Profiles startup diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: apple-profiles-startup-diagnostics
+          path: ${{ runner.temp }}/apple-profiles-startup-diagnostics
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Check Apple Profiles diagnostic completion
+        if: ${{ !cancelled() && (success() || steps.ios_profiles.outcome == 'failure') }}
+        run: python3 scripts/apple-startup-diagnostics.py validate --output-dir "$RUNNER_TEMP/apple-profiles-startup-diagnostics"
       - name: Build iOS app (simulator)
         run: |
           cd apps/ios && xcodebuild \
