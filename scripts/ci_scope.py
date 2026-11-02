@@ -17,6 +17,7 @@ WEB_FILES = frozenset(path.encode() for path in (
     "apps/web/public/comparison-network-worker.js", "tests/e2e/playwright.pages.config.ts",
     "scripts/package-pages.py", "scripts/test-pages-package.py",
     "scripts/scan-pages-secrets.py", "scripts/test-pages-secrets.py",
+    "apps/ios/test_track_qualification.py",
 ))
 WEB_PATH = re.compile(rb"(?:docs/guide/(?:en|ja)/[a-z0-9-]+\.json|"
                       rb"apps/web/src/startup/(?:adapters/)?[a-z0-9-]+\.(?:ts|css)|"

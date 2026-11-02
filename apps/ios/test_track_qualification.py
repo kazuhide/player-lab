@@ -77,7 +77,7 @@ class AppleCIWorkflowTests(unittest.TestCase):
 
         def assert_retention(candidate):
             for line in (
-                "        if: always()",
+                "        if: always() && needs.publication.outputs.native_required != 'false'",
                 "        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4",
                 "          name: apple-ios-configuration-results",
                 "          path: ${{ runner.temp }}/ios-configuration.xcresult",
@@ -89,6 +89,7 @@ class AppleCIWorkflowTests(unittest.TestCase):
         assert_retention(step)
         for original, replacement in (
             ("if: always()", "if: success()"),
+            ("if: always() && needs.publication.outputs.native_required != 'false'", "if: always()"),
             ("path: ${{ runner.temp }}/ios-configuration.xcresult", "path: ${{ runner.temp }}/different.xcresult"),
         ):
             with self.subTest(mutation=replacement), self.assertRaises(AssertionError):
@@ -216,7 +217,11 @@ sys.exit(int(os.environ['FAKE_BUILD_STATUS' if phase == 'build-for-testing' else
         name = "Stop the selected iPhone before tvOS"
         workflow = (ROOT / ".github/workflows/ci.yml").read_text()
         step = workflow.split("      - name: " + name + "\n", 1)[1].split("\n      - ", 1)[0]
-        self.assertIn("        if: always()", step.splitlines())
+        condition = "        if: always() && needs.publication.outputs.native_required != 'false'"
+        self.assertIn(condition, step.splitlines())
+        for invalid in ("        if: always()", condition.replace("always()", "success()")):
+            with self.subTest(condition=invalid), self.assertRaises(AssertionError):
+                self.assertIn(condition, step.replace(condition, invalid).splitlines())
         self.assertLess(workflow.index("      - name: Save iOS Profiles UI results and captures\n"), workflow.index("      - name: " + name + "\n"))
         self.assertLess(workflow.index("      - name: " + name + "\n"), workflow.index("      - name: " + self.stages[2][0] + "\n"))
         for initial, shutdown, selected, expected in (("Booted", 0, True, 0), ("Shutdown", 0, True, 0),

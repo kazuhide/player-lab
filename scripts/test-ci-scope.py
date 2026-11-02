@@ -157,7 +157,8 @@ jobs:
                  "tests/e2e/playwright.pages.config.ts", "tests/e2e/specs/player-comparison.spec.ts",
                  "tests/e2e/src/compatible-dash.ts", "site/assets/guide/web-comparison-single-en.png",
                  "site/assets/guide/web-comparison-parallel-ja.png", "scripts/package-pages.py",
-                 "scripts/scan-pages-secrets.py", "scripts/test-pages-package.py", "scripts/test-pages-secrets.py")
+                 "scripts/scan-pages-secrets.py", "scripts/test-pages-package.py", "scripts/test-pages-secrets.py",
+                 "apps/ios/test_track_qualification.py")
         for name in paths:
             self.write(name)
         self.commit()
@@ -171,7 +172,8 @@ jobs:
                      "scripts/release_other.py", "README.md", "references/elearning/README.md", "docs/guide/en/line\nnative_required=false.json",
                      "apps/web/src/startup/package.json", "apps/web/pnpm-lock.yaml", "apps/web/tsconfig.json",
                      "tests/e2e/package.json", "tests/e2e/pnpm-lock.yaml", "apps/web/public/unknown.js",
-                     "apps/web/src/startup/private/code.py", "site/assets/guide/native-new.png"):
+                     "apps/web/src/startup/private/code.py", "site/assets/guide/native-new.png",
+                     "apps/ios/test_other.py"):
             with self.subTest(name=name):
                 self.git("reset", "--hard", self.base)
                 self.write("site/guide.js"); self.write(name, "Changed\n"); self.commit()
