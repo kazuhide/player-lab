@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "../src/browser-test";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { createHash } from "node:crypto";
 import { expectMovingVideo } from "../src/playback-observation";
 
 type Language = "en" | "ja";
@@ -655,7 +656,7 @@ for (const language of languages) {
       let releaseScript!: () => void;
       const scriptGate = new Promise<void>((resolveGate) => { releaseScript = resolveGate; });
       let scriptHeld = false;
-      await page.route("**/guide.js", async (route) => {
+      await page.route(/\/guide(?:-[a-f0-9]{64})?\.js(?:\?.*)?$/, async (route) => {
         scriptHeld = true;
         await scriptGate;
         await route.continue();
@@ -684,6 +685,35 @@ for (const language of languages) {
         releaseScript();
         await page.unrouteAll({ behavior: "wait" });
       }
+    });
+
+    test("language navigation uses its current script even when a prior stable script is available", async ({ page }) => {
+      let priorScriptRequests = 0;
+      // Routing models an available pre-readiness response, not the browser's HTTP cache.
+      // Prior scripts do not reveal a language link that a newer document initially hides.
+      await page.route(/\/guide\.js(?:\?.*)?$/, async (route) => {
+        priorScriptRequests += 1;
+        await route.fulfill({ status: 200, contentType: "text/javascript",
+          body: "/* Cached prior guide code has no language-link unhide step. */" });
+      });
+      const guide = "web-implementation/integration";
+      const fragment = "minimal-integration-example";
+      const other = language === "en" ? "ja" : "en";
+      await page.goto(guidePath(language, guide) + "#" + fragment);
+      const link = page.locator("a[data-guide-language]");
+      await expect(link).toBeVisible();
+      const source = await page.locator("script[src][defer]").getAttribute("src");
+      expect(source).toMatch(/(?:^|\/)guide-[a-f0-9]{64}\.js$/);
+      const response = await page.request.get(new URL(source!, page.url()).href);
+      expect(response.ok()).toBe(true);
+      const payload = await response.body();
+      expect(source!.split("/").pop()).toBe(`guide-${createHash("sha256").update(payload).digest("hex")}.js`);
+      expect(priorScriptRequests).toBe(0);
+      await link.focus();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(guidePath(other, guide) + "#" + fragment);
+      await expect(page.locator("html")).toHaveAttribute("lang", other);
+      await expect(page.locator(`h2#${fragment}`)).toBeInViewport();
     });
 
     test("API gap reasons open with the keyboard and remain readable on narrow screens", async ({ page }) => {

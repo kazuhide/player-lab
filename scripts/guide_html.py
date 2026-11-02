@@ -299,8 +299,8 @@ def page_html(content, language, slug, title, lead, body, pagination='', *, head
     alternative = PUBLIC_BASE + route_file(other, slug).removesuffix('index.html')
     stylesheet = esc(relative(page, 'styles.css'))
     guide_css = esc(relative(page, 'guide.css'))
-    script = esc(relative(page, 'guide.js'))
-    from guide_routes import CHAPTER_PARENTS
+    from guide_routes import CHAPTER_PARENTS, GUIDE_SCRIPT_FILE
+    script = esc(relative(page, GUIDE_SCRIPT_FILE))
     parent = CHAPTER_PARENTS.get(slug)
     breadcrumb = (f'<a href="{esc(relative(page, route_file(language, parent)))}">{esc(content[parent]["title"])}</a>'
                   if parent else '')
