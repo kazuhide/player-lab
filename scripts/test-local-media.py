@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 from threading import Barrier
@@ -29,6 +30,10 @@ class ArchiveVerified(Exception):
 
 PUBLIC_BYTES = b'verified public fixture archive'
 PUBLIC_HASH = hashlib.sha256(PUBLIC_BYTES).hexdigest()
+SOURCE_MIRROR_URL = (
+    'https://github.com/kazuhide/player-lab/releases/download/test-source-bbb-v1/'
+    'BigBuckBunny_640x360.m4v.zip'
+)
 COMPARISON_MASTER = (
     '#EXTM3U\n#EXT-X-VERSION:7\n'
     '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="English test track",'
@@ -64,6 +69,163 @@ def audio_fragment(sample_durations, default_duration=None):
 
 
 class LocalMediaTests(unittest.TestCase):
+    def acquire_archive(self, root, download):
+        with patch.object(MEDIA.shutil, 'which', return_value='/available-tool'), \
+             patch.object(MEDIA, 'SOURCE_SHA256', PUBLIC_HASH), \
+             patch.object(MEDIA.subprocess, 'run', side_effect=download), \
+             patch.object(MEDIA, 'prepare_output', side_effect=ArchiveVerified):
+            MEDIA.build(root / 'output', root / 'source.zip')
+
+    def test_verified_cached_archive_never_uses_the_network(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive = root / 'source.zip'
+            archive.write_bytes(PUBLIC_BYTES)
+            inode = archive.stat().st_ino
+            with self.assertRaises(ArchiveVerified):
+                self.acquire_archive(root, lambda *_args, **_options: self.fail('A cache hit must not download'))
+            self.assertEqual(archive.read_bytes(), PUBLIC_BYTES)
+            self.assertEqual(archive.stat().st_ino, inode)
+            self.assertEqual(set(root.iterdir()), {archive})
+
+    def test_corrupt_cached_archive_fails_without_downloading_or_replacing_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive = root / 'source.zip'
+            archive.write_bytes(b'corrupt cached source')
+            inode = archive.stat().st_ino
+            with self.assertRaisesRegex(ValueError, 'pinned checksum'):
+                self.acquire_archive(root, lambda *_args, **_options: self.fail('A corrupt cache must fail closed'))
+            self.assertEqual(archive.read_bytes(), b'corrupt cached source')
+            self.assertEqual(archive.stat().st_ino, inode)
+            self.assertEqual(set(root.iterdir()), {archive})
+
+    def test_http_failure_uses_the_same_pinned_mirror_without_partial_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            commands = []
+
+            def download(command, **options):
+                commands.append(command)
+                self.assertEqual(command[command.index('--output') + 1], '-')
+                if len(commands) == 1:
+                    write_download(command, options, b'partial primary response')
+                    raise subprocess.CalledProcessError(22, command)
+                write_download(command, options, PUBLIC_BYTES)
+
+            with self.assertRaises(ArchiveVerified):
+                self.acquire_archive(root, download)
+            self.assertEqual([command[-1] for command in commands], [MEDIA.SOURCE_URL, SOURCE_MIRROR_URL])
+            self.assertEqual((root / 'source.zip').read_bytes(), PUBLIC_BYTES)
+            self.assertEqual(set(root.iterdir()), {root / 'source.zip'})
+
+    def test_successful_download_with_wrong_checksum_never_tries_the_mirror(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            commands = []
+
+            def download(command, **options):
+                commands.append(command)
+                write_download(command, options, b'wrong successful response')
+
+            with self.assertRaisesRegex(ValueError, 'pinned checksum'):
+                self.acquire_archive(root, download)
+            self.assertEqual([command[-1] for command in commands], [MEDIA.SOURCE_URL])
+            self.assertEqual(list(root.iterdir()), [])
+
+    def test_nontransport_curl_failure_never_tries_the_mirror(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            commands = []
+
+            def download(command, **options):
+                commands.append(command)
+                raise subprocess.CalledProcessError(23, command)
+
+            with self.assertRaises(subprocess.CalledProcessError) as raised:
+                self.acquire_archive(root, download)
+            self.assertEqual(raised.exception.returncode, 23)
+            self.assertEqual([command[-1] for command in commands], [MEDIA.SOURCE_URL])
+            self.assertEqual(list(root.iterdir()), [])
+
+    def test_both_transport_failures_stop_after_one_request_per_origin(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sibling = root / 'source.download'
+            sibling.write_bytes(b'keep this unrelated sibling')
+            commands = []
+
+            def download(command, **options):
+                commands.append(command)
+                write_download(command, options, b'partial response')
+                raise subprocess.CalledProcessError(22 if len(commands) == 1 else 28, command)
+
+            with self.assertRaises(subprocess.CalledProcessError) as raised:
+                self.acquire_archive(root, download)
+            self.assertEqual(raised.exception.returncode, 28)
+            self.assertEqual([command[-1] for command in commands], [MEDIA.SOURCE_URL, SOURCE_MIRROR_URL])
+            self.assertEqual(sibling.read_bytes(), b'keep this unrelated sibling')
+            self.assertEqual(set(root.iterdir()), {sibling})
+
+    def test_transport_fallback_shares_the_original_download_time_budget(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            commands = []
+
+            def download(command, **options):
+                commands.append((command, options['timeout']))
+                if len(commands) == 1:
+                    raise subprocess.CalledProcessError(22, command)
+                write_download(command, options, PUBLIC_BYTES)
+
+            with patch('time.monotonic', side_effect=[100, 100, 140]), self.assertRaises(ArchiveVerified):
+                self.acquire_archive(root, download)
+            self.assertEqual(len(commands), 2)
+            self.assertEqual([float(command[command.index('--max-time') + 1]) for command, _ in commands], [300, 260])
+            self.assertEqual([timeout for _, timeout in commands], [300, 260])
+            self.assertTrue(all(command[command.index('--connect-timeout') + 1] == '20' for command, _ in commands))
+
+    def test_expired_acquisition_budget_cannot_dispatch_another_request(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            commands = []
+
+            def download(command, **_options):
+                commands.append(command)
+                raise subprocess.CalledProcessError(22, command)
+
+            with patch('time.monotonic', side_effect=[100, 100, 401]), \
+                 self.assertRaisesRegex(RuntimeError, '300-second'):
+                self.acquire_archive(root, download)
+            self.assertEqual([command[-1] for command in commands], [MEDIA.SOURCE_URL])
+            self.assertEqual(list(root.iterdir()), [])
+
+    def test_ci_cache_is_only_the_exact_pinned_raw_archive(self):
+        workflow = (ROOT / '.github/workflows/ci.yml').read_text()
+        steps = re.split(r'(?m)^      - ', workflow)
+        restore = [step for step in steps if 'uses: actions/cache/restore@' in step]
+        save = [step for step in steps if 'uses: actions/cache/save@' in step]
+        self.assertEqual(len(restore), 1)
+        self.assertEqual(len(save), 1)
+        expected_path = '${{ runner.temp }}/source-cache/BigBuckBunny_640x360.m4v.zip'
+        expected_key = f'player-lab-bbb-source-v1-{MEDIA.SOURCE_SHA256}'
+        pins = []
+        for step in [restore[0], save[0]]:
+            self.assertEqual(re.findall(r'(?m)^          path: (.+)$', step), [expected_path])
+            self.assertEqual(re.findall(r'(?m)^          key: (.+)$', step), [expected_key])
+            self.assertNotIn('restore-keys:', step)
+            pin = re.search(r'uses: actions/cache/(?:restore|save)@([0-9a-f]{40})(?:\s|$)', step)
+            self.assertIsNotNone(pin)
+            pins.append(pin[1])
+        self.assertEqual(pins[0], pins[1])
+        self.assertIn('id: bbb-source-cache', restore[0])
+        self.assertIn("if: steps.bbb-source-cache.outputs.cache-hit != 'true'", save[0])
+        generation = next(step for step in steps if step.startswith('name: Generate the verified public test fixture\n'))
+        self.assertNotIn('if:', generation)
+        self.assertIn('--source-archive "$RUNNER_TEMP/source-cache/BigBuckBunny_640x360.m4v.zip"', generation)
+        self.assertLess(steps.index(restore[0]), steps.index(generation))
+        self.assertLess(steps.index(generation), steps.index(save[0]))
+
     def test_comparison_master_preserves_one_original_variant_and_english_audio(self):
         lines = COMPARISON_MASTER.splitlines()
         for resolution, stream in [('640x360', 0), ('320x180', 1)]:

@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -20,7 +21,12 @@ SOURCE_URL = (
     "https://download.blender.org/peach/bigbuckbunny_movies/"
     "BigBuckBunny_640x360.m4v.zip"
 )
+SOURCE_MIRROR_URL = (
+    "https://github.com/kazuhide/player-lab/releases/download/test-source-bbb-v1/"
+    "BigBuckBunny_640x360.m4v.zip"
+)
 SOURCE_SHA256 = "7118242b6728d40c871479c5b3c0f0fb27d748089df15d7f1b469f297c74a2d6"
+SOURCE_TRANSPORT_ERRORS = frozenset({6, 7, 18, 22, 28, 35, 52, 55, 56})
 SOURCE_MEMBER = "BigBuckBunny_640x360.m4v"
 ATTRIBUTION = "(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org"
 LICENSE_URL = "https://creativecommons.org/licenses/by/3.0/"
@@ -349,29 +355,43 @@ def build(output, archive):
             raise RuntimeError(f"Install {tool} before generating local test media.")
     if not archive.exists():
         archive.parent.mkdir(parents=True, exist_ok=True)
-        descriptor, name = tempfile.mkstemp(
-            prefix=f'.{archive.name}.', suffix='.download', dir=archive.parent
-        )
-        temporary = Path(name)
-        try:
-            # Write through the exclusively created descriptor, so curl never
-            # reopens a predictable filename or follows a sibling symlink.
-            with os.fdopen(descriptor, 'wb') as writer:
-                subprocess.run([
-                    'curl', '--fail', '--location', '--silent', '--show-error',
-                    '--connect-timeout', '20', '--max-time', '300',
-                    '--output', '-', SOURCE_URL,
-                ], stdout=writer, check=True)
-            if digest(temporary) != SOURCE_SHA256:
-                raise ValueError("The downloaded public source does not match its pinned checksum.")
+        deadline = time.monotonic() + 300
+        for index, url in enumerate((SOURCE_URL, SOURCE_MIRROR_URL)):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise RuntimeError("The public source download exceeded its 300-second budget.")
+            descriptor, name = tempfile.mkstemp(
+                prefix=f'.{archive.name}.', suffix='.download', dir=archive.parent
+            )
+            temporary = Path(name)
             try:
-                # A hard link publishes the verified file atomically and fails
-                # if another generator already populated this cache path.
-                os.link(temporary, archive)
-            except FileExistsError:
-                pass  # The common checksum check below also verifies the winner.
-        finally:
-            temporary.unlink(missing_ok=True)
+                try:
+                    # Write through the exclusively created descriptor, so curl never
+                    # reopens a predictable filename or follows a sibling symlink.
+                    with os.fdopen(descriptor, 'wb') as writer:
+                        subprocess.run([
+                            'curl', '--fail', '--location', '--silent', '--show-error',
+                            '--connect-timeout', '20', '--max-time', str(remaining),
+                            '--output', '-', url,
+                        ], stdout=writer, check=True, timeout=remaining)
+                except subprocess.CalledProcessError as error:
+                    # Only HTTP/transport failures may try the same-byte mirror once.
+                    if index != 0 or error.returncode not in SOURCE_TRANSPORT_ERRORS:
+                        raise
+                    continue
+                except subprocess.TimeoutExpired as error:
+                    raise RuntimeError("The public source download exceeded its 300-second budget.") from error
+                if digest(temporary) != SOURCE_SHA256:
+                    raise ValueError("The downloaded public source does not match its pinned checksum.")
+                try:
+                    # A hard link publishes the verified file atomically and fails
+                    # if another generator already populated this cache path.
+                    os.link(temporary, archive)
+                except FileExistsError:
+                    pass  # The common checksum check below also verifies the winner.
+                break
+            finally:
+                temporary.unlink(missing_ok=True)
     if digest(archive) != SOURCE_SHA256:
         raise ValueError("The source archive does not match its pinned checksum.")
 
