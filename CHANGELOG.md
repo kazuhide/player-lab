@@ -5,6 +5,16 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 
 ## Unreleased
 
+- Turn Web player comparison into a playback demo with startup and seek graphs,
+  single and side-by-side views, and a visible Measure again action. Keep the
+  detailed startup benchmark available separately.
+- Use a common Big Buck Bunny HLS source by default and accept custom HLS or
+  DASH URLs. DASH uses the corresponding Player Web X and Shaka bundles;
+  hls.js reports unsupported format without inventing measurements.
+- Add an opt-in media delivery scenario with observed quality and stall
+  timelines. Keep simultaneous playback separate from isolated measurements,
+  and exclude custom media URLs from exported results.
+
 ## 0.2.0
 
 - Add a separate Web startup comparison for Player Web X, hls.js and Shaka

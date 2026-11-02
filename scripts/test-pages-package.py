@@ -120,6 +120,19 @@ class PagesPackageTests(unittest.TestCase):
             self.assertEqual((self.output / 'web/notices' / name).read_bytes(), (self.notices / name).read_bytes())
         self.assertEqual(self.run_verify().returncode, 0)
 
+    def test_demo_worker_and_benchmark_are_allowed_only_with_comparison_entries(self):
+        media = self.add_comparison()
+        for name in ['startup-benchmark.html', 'demo-runner.html', 'comparison-network-worker.js']:
+            self.write(self.web, name, b'public comparison tool')
+        self.make_package('--media-dir', media)
+        for name in ['startup-benchmark.html', 'demo-runner.html', 'comparison-network-worker.js']:
+            self.assertTrue((self.output / 'web' / name).is_file())
+        self.assertEqual(self.run_verify().returncode, 0)
+
+    def test_standalone_demo_worker_is_rejected(self):
+        self.write(self.web, 'comparison-network-worker.js', b'public comparison tool')
+        self.assert_rejected()
+
     def test_comparison_entries_cannot_be_partial_or_use_similar_unlisted_names(self):
         media = self.add_comparison()
         for name in COMPARISON_PAGES:

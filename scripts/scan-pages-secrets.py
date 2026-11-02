@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 
 PUBLIC_LICENSES = (
-    ('PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY', '(?:main|comparisonRunner)'),
+    ('PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY', '(?:main|comparisonRunner|demo-session)'),
     ('PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY', 'main'),
 )
 
