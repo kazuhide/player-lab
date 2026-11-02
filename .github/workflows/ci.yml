@@ -92,6 +92,7 @@ jobs:
           python3 -m unittest discover -s apps/react-native/runtime -p 'test_*.py'
           python3 -m unittest discover -s apps/vega/runtime -p 'test_*.py'
           python3 apps/ios/test_track_qualification.py
+          python3 scripts/test-apple-result-evidence.py
           python3 apps/android/test-runtime-tests.py
           node --test apps/android/configuration-fixture.test.mjs
           node --test apps/ios/scripts/test-native-script-engine.cjs
@@ -312,33 +313,45 @@ jobs:
   ios:
     needs: build
     runs-on: macos-26-intel
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        id: checkout
         with:
           persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        id: shared_ui
         with:
           name: shared-web-ui
           path: packages/ui-shared/dist
       - name: Sync existing shared UI resources
+        id: sync_shared_ui
         run: bash scripts/sync-webui-bundle.sh
       - name: Test PlaybackCore
+        id: playback_core
         run: swift test --package-path apps/ios/PlaybackCore
       - name: Install XcodeGen 2.46.0
+        id: xcodegen
         run: |
           curl -fsSL https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip -o "$RUNNER_TEMP/xcodegen.zip"
           printf '%s  %s\n' 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806 "$RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c -
           unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP/xcodegen-tool"
           echo "$RUNNER_TEMP/xcodegen-tool/xcodegen/bin" >> "$GITHUB_PATH"
       - name: Prepare an empty local configuration for compilation
+        id: prepare_configuration
         run: touch apps/ios/Local.xcconfig
       - name: Generate Xcode project
+        id: generate_project
         run: cd apps/ios && xcodegen generate
       - name: Restore resolved SDK versions
+        id: restore_sdks
         run: |
           mkdir -p apps/ios/Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
           cp apps/ios/Package.resolved apps/ios/Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
       - name: Test iOS configuration without an app license
+        id: ios_configuration
         run: |
           cd apps/ios
           xcodebuild_args=(
@@ -389,6 +402,7 @@ jobs:
             -resultBundlePath "$RUNNER_TEMP/ios-configuration.xcresult" test-without-building
           retain_selected_simulator=1
       - name: Save iOS configuration test results
+        id: configuration_results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -398,6 +412,7 @@ jobs:
           retention-days: 7
       - name: Test iOS Profiles controls in English and Japanese
         id: ios_profiles
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.shared_ui.outcome == 'success' && steps.sync_shared_ui.outcome == 'success' && steps.playback_core.outcome == 'success' && steps.xcodegen.outcome == 'success' && steps.prepare_configuration.outcome == 'success' && steps.generate_project.outcome == 'success' && steps.restore_sdks.outcome == 'success' && steps.ios_configuration.outcome == 'success' }}
         run: |
           cd apps/ios
           xcodebuild_args=(
@@ -453,14 +468,14 @@ jobs:
             -destination "platform=iOS Simulator,id=$simulator_id" \
             -resultBundlePath "$RUNNER_TEMP/apple-profiles-ios.xcresult" test-without-building
       - name: Save iOS Profiles UI results and captures
+        id: ios_results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        timeout-minutes: 15
+        uses: ./.github/actions/upload-apple-results
         with:
-          name: apple-profiles-ios-ui-results
-          path: ${{ runner.temp }}/apple-profiles-ios.xcresult
-          if-no-files-found: warn
-          retention-days: 7
+          platform: ios
       - name: Stop the selected iPhone before tvOS
+        id: stop_ios
         if: always()
         run: |
           if [ -z "${IOS_CONFIGURATION_SIMULATOR:-}" ]; then
@@ -485,7 +500,8 @@ jobs:
             xcrun simctl shutdown "$simulator_id"
           fi
       - name: Test tvOS Profiles controls in English and Japanese
-        if: ${{ !cancelled() && (success() || steps.ios_profiles.outcome == 'failure') }}
+        id: tvos_profiles
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.shared_ui.outcome == 'success' && steps.sync_shared_ui.outcome == 'success' && steps.playback_core.outcome == 'success' && steps.xcodegen.outcome == 'success' && steps.prepare_configuration.outcome == 'success' && steps.generate_project.outcome == 'success' && steps.restore_sdks.outcome == 'success' && steps.ios_configuration.outcome == 'success' && (steps.ios_profiles.outcome == 'success' || steps.ios_profiles.outcome == 'failure') && steps.stop_ios.outcome == 'success' }}
         run: |
           cd apps/ios
           xcodebuild_args=(
@@ -555,14 +571,18 @@ jobs:
             -destination "platform=tvOS Simulator,id=$simulator_id" \
             -resultBundlePath "$RUNNER_TEMP/apple-profiles-tvos.xcresult" test-without-building
       - name: Save tvOS Profiles UI results and captures
+        id: tvos_results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        timeout-minutes: 15
+        uses: ./.github/actions/upload-apple-results
         with:
-          name: apple-profiles-tvos-ui-results
-          path: ${{ runner.temp }}/apple-profiles-tvos.xcresult
-          if-no-files-found: warn
-          retention-days: 7
+          platform: tvos
+      - name: Check Apple Profiles diagnostic completion
+        id: diagnostic_validation
+        if: ${{ !cancelled() && (steps.ios_profiles.outcome == 'success' || steps.ios_profiles.outcome == 'failure') && (steps.tvos_profiles.outcome == 'success' || steps.tvos_profiles.outcome == 'failure') }}
+        run: python3 scripts/apple-startup-diagnostics.py validate --output-dir "$RUNNER_TEMP/apple-profiles-startup-diagnostics"
       - name: Save Apple Profiles startup diagnostics
+        id: diagnostic_results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -570,9 +590,20 @@ jobs:
           path: ${{ runner.temp }}/apple-profiles-startup-diagnostics
           if-no-files-found: warn
           retention-days: 7
-      - name: Check Apple Profiles diagnostic completion
-        if: ${{ !cancelled() && (success() || steps.ios_profiles.outcome == 'failure') }}
-        run: python3 scripts/apple-startup-diagnostics.py validate --output-dir "$RUNNER_TEMP/apple-profiles-startup-diagnostics"
+      - name: Require every Apple test and evidence stage
+        if: always()
+        env:
+          CANCELLED: ${{ job.status == 'cancelled' }}
+          EVIDENCE_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          IOS_ARTIFACT_ID: ${{ steps.ios_results.outputs.artifact-id }}
+          IOS_ARTIFACT_DIGEST: ${{ steps.ios_results.outputs.artifact-digest }}
+          IOS_CONTENT_DIGEST: ${{ steps.ios_results.outputs.content-digest }}
+          TVOS_ARTIFACT_ID: ${{ steps.tvos_results.outputs.artifact-id }}
+          TVOS_ARTIFACT_DIGEST: ${{ steps.tvos_results.outputs.artifact-digest }}
+          TVOS_CONTENT_DIGEST: ${{ steps.tvos_results.outputs.content-digest }}
+          REQUIRED_OUTCOMES: >-
+            {"checkout": "${{ steps.checkout.outcome }}", "shared_ui": "${{ steps.shared_ui.outcome }}", "sync_shared_ui": "${{ steps.sync_shared_ui.outcome }}", "playback_core": "${{ steps.playback_core.outcome }}", "xcodegen": "${{ steps.xcodegen.outcome }}", "prepare_configuration": "${{ steps.prepare_configuration.outcome }}", "generate_project": "${{ steps.generate_project.outcome }}", "restore_sdks": "${{ steps.restore_sdks.outcome }}", "ios_configuration": "${{ steps.ios_configuration.outcome }}", "configuration_results": "${{ steps.configuration_results.outcome }}", "ios_profiles": "${{ steps.ios_profiles.outcome }}", "ios_results": "${{ steps.ios_results.outcome }}", "stop_ios": "${{ steps.stop_ios.outcome }}", "tvos_profiles": "${{ steps.tvos_profiles.outcome }}", "tvos_results": "${{ steps.tvos_results.outcome }}", "diagnostic_validation": "${{ steps.diagnostic_validation.outcome }}", "diagnostic_results": "${{ steps.diagnostic_results.outcome }}"}
+        run: python3 scripts/apple-result-evidence.py gate
       - name: Build iOS app (simulator)
         run: |
           cd apps/ios && xcodebuild \

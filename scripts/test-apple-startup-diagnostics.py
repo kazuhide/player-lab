@@ -255,11 +255,134 @@ class NativeOwnershipTests(unittest.TestCase):
             root = Path(directory) / UDID
             with patch.object(runner, "installed_hosts", return_value={target()["executable"]: target()["appContainer"]}), \
                     patch.object(runner, "libproc", return_value=library), \
-                    patch.object(runner, "executable_path", side_effect=lambda _lib, pid: target()["executable"] if pid != 789 else "/secret/unrelated"), \
+                    patch.object(runner, "raw_executable_path", side_effect=lambda _lib, pid: target()["executable"] if pid != 789 else "/secret/unrelated"), \
                     patch.object(runner, "process_identity", side_effect=lambda pid, _lib: target(pid=pid, uid=os.getuid() if pid == 123 else os.getuid() + 1)):
                 result = runner.inspect_owned(root, "ios", UDID)
         self.assertEqual([value["pid"] for value in result["targets"]], [123])
         self.assertNotIn("secret", json.dumps(result))
+
+
+class ProcessInspectionCostTests(unittest.TestCase):
+    def library(self, paths, identities=None):
+        """Synthetic libproc calls only; no native library or process census."""
+        library = Mock()
+        paths = {pid: list(value) if isinstance(value, list) else [value]
+                 for pid, value in paths.items()}
+        identities = identities or {}
+
+        def list_pids(_kind, _info, values, _size):
+            for index, pid in enumerate(paths):
+                values[index] = pid
+            return len(paths) * ctypes.sizeof(ctypes.c_int)
+
+        def pidpath(pid, buffer, _size):
+            choices = paths[pid]
+            value = choices.pop(0) if len(choices) > 1 else choices[0]
+            if value is None:
+                return 0
+            buffer.value = os.fsencode(value)
+            return len(buffer.value)
+
+        def pidinfo(pid, flavor, argument, pointer, size):
+            self.assertEqual((flavor, argument, size), (3, 0, ctypes.sizeof(runner.BsdInfo)))
+            info = pointer._obj
+            values = {"pid": pid, "uid": os.getuid(), "status": 2,
+                      "startSeconds": 100, "startMicroseconds": pid,
+                      **identities.get(pid, {})}
+            for name, value in values.items():
+                setattr(info, name, value)
+            return ctypes.sizeof(info)
+
+        library.proc_listpids.side_effect = list_pids
+        library.proc_pidpath.side_effect = pidpath
+        library.proc_pidinfo.side_effect = pidinfo
+        return library
+
+    def inspect(self, root, library, hosts):
+        with patch.object(runner, "installed_hosts", return_value=hosts), \
+                patch.object(runner, "libproc", return_value=library):
+            return runner.inspect_owned(root, "ios", UDID)
+
+    def test_inventory_requests_only_the_requested_uid_and_keeps_birth_identity(self):
+        executable = "/owned/Showcase-iOSProfilesHost.app/Showcase-iOSProfilesHost"
+        library = self.library({123: executable}, {123: {"startMicroseconds": 987654}})
+        with TemporaryDirectory() as directory:
+            result = self.inspect(Path(directory) / UDID, library,
+                                  {executable: str(Path(executable).parent)})
+        self.assertEqual(library.proc_listpids.call_args.args[:2], (4, os.getuid()))
+        self.assertEqual([value["pid"] for value in result["targets"]], [123])
+        self.assertEqual(result["targets"][0]["startMicroseconds"], 987654)
+        self.assertEqual(result["targets"][0]["ownedUDID"], UDID)
+
+    def test_large_unrelated_inventory_never_canonicalizes_or_reads_bsd_identity(self):
+        executable = "/owned/Showcase-iOSProfilesHost.app/Showcase-iOSProfilesHost"
+        library = self.library({pid: f"/unrelated/worker-{pid}" for pid in range(1, 8193)})
+        original = Path.resolve
+
+        def resolve(path, *args, **kwargs):
+            if str(path).startswith("/unrelated/"):
+                self.fail("An unrelated process path must not reach filesystem canonicalization.")
+            return original(path, *args, **kwargs)
+
+        with TemporaryDirectory() as directory, patch.object(runner.Path, "resolve", new=resolve):
+            result = self.inspect(Path(directory) / UDID, library,
+                                  {executable: str(Path(executable).parent)})
+        self.assertEqual(result, {"state": "no_live_owned_host", "targets": []})
+        library.proc_pidinfo.assert_not_called()
+        self.assertEqual(library.proc_pidpath.call_count, 8192)
+
+    def test_same_basename_alias_still_requires_the_exact_canonical_owned_host(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory) / UDID
+            app = root / "data/Containers/Bundle/Application/owned/Showcase-iOSProfilesHost.app"
+            app.mkdir(parents=True)
+            binary = app / "Showcase-iOSProfilesHost"
+            binary.write_bytes(b"not executed")
+            alias = Path(directory) / "namespace-alias"
+            alias.symlink_to(app.parent, target_is_directory=True)
+            raw = str(alias / app.name / binary.name)
+            library = self.library({123: raw})
+            result = self.inspect(root, library, {str(binary.resolve()): str(app.resolve())})
+            self.assertEqual(result["targets"][0]["executable"], str(binary.resolve()))
+            self.assertEqual(result["targets"][0]["appContainer"], str(app.resolve()))
+
+    def test_foreign_same_basename_is_only_a_candidate_and_is_rejected(self):
+        executable = "/owned/Showcase-iOSProfilesHost.app/Showcase-iOSProfilesHost"
+        foreign = "/foreign/Showcase-iOSProfilesHost.app/Showcase-iOSProfilesHost"
+        library = self.library({123: foreign})
+        with TemporaryDirectory() as directory:
+            result = self.inspect(Path(directory) / UDID, library,
+                                  {executable: str(Path(executable).parent)})
+        self.assertEqual(result["targets"], [])
+        library.proc_pidinfo.assert_not_called()
+        self.assertNotIn("foreign", json.dumps(result))
+
+    def test_uid_path_disappearance_pid_mismatch_and_zombie_races_fail_closed(self):
+        executable = "/owned/Showcase-iOSProfilesHost.app/Showcase-iOSProfilesHost"
+        foreign = "/foreign/Showcase-iOSProfilesHost.app/Showcase-iOSProfilesHost"
+        scenarios = [([executable, foreign], {}), ([executable, None], {}),
+                     (executable, {"uid": os.getuid() + 1}),
+                     (executable, {"pid": 124}), (executable, {"status": 5})]
+        for paths, identity in scenarios:
+            with self.subTest(paths=paths, identity=identity), TemporaryDirectory() as directory:
+                library = self.library({123: paths}, {123: identity})
+                result = self.inspect(Path(directory) / UDID, library,
+                                      {executable: str(Path(executable).parent)})
+                self.assertEqual(result["targets"], [])
+
+    def test_multiple_owned_lifetimes_are_not_reduced_to_an_arbitrary_sample_target(self):
+        executable = "/owned/Showcase-iOSProfilesHost.app/Showcase-iOSProfilesHost"
+        library = self.library({123: executable, 124: executable})
+        with TemporaryDirectory() as directory:
+            result = self.inspect(Path(directory) / UDID, library,
+                                  {executable: str(Path(executable).parent)})
+        self.assertEqual(len(result["targets"]), 2)
+        backend = Mock()
+        backend.query.return_value = result
+        observer = runner.Observer(backend, Events())
+        observer.tick(0)
+        observer.tick(100)
+        backend.capture.assert_not_called()
 
 
 class StopTests(unittest.TestCase):

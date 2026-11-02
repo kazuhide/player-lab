@@ -36,6 +36,7 @@ MAX_STAGE_BYTES = 8 * 1024 * 1024
 MAX_METADATA_BYTES = 256 * 1024
 MAX_OBSERVER_SECONDS = 1800
 IDENTITY_KEYS = ("pid", "uid", "startSeconds", "startMicroseconds", "executable")
+PROC_UID_ONLY = 4
 UUID_PATTERN = r"[0-9A-Fa-f]{8}-(?:[0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}"
 
 
@@ -145,11 +146,16 @@ def libproc():
     return library
 
 
-def executable_path(library, pid):
+def raw_executable_path(library, pid):
     buffer = ctypes.create_string_buffer(4096)
     if library.proc_pidpath(pid, buffer, len(buffer)) <= 0:
         return None
-    return str(Path(os.fsdecode(buffer.value)).resolve())
+    return os.fsdecode(buffer.value)
+
+
+def executable_path(library, pid):
+    path = raw_executable_path(library, pid)
+    return str(Path(path).resolve()) if path is not None else None
 
 
 def process_identity(pid, library=None):
@@ -210,16 +216,23 @@ def inspect_owned(device_root, platform, udid):
     if not hosts:
         return {"state": "host_not_installed", "targets": []}
     library = libproc()
+    uid = os.getuid()
     pids = (ctypes.c_int * 16384)()
-    size = library.proc_listpids(1, 0, pids, ctypes.sizeof(pids))
+    size = library.proc_listpids(PROC_UID_ONLY, uid, pids, ctypes.sizeof(pids))
     if size <= 0 or size >= ctypes.sizeof(pids) or size % ctypes.sizeof(ctypes.c_int):
         raise ValueError("The numeric process inventory is unavailable or capped.")
     targets = []
     for pid in pids[:size // ctypes.sizeof(ctypes.c_int)]:
-        if pid <= 0 or executable_path(library, pid) not in hosts:
+        if pid <= 0:
+            continue
+        raw = raw_executable_path(library, pid)
+        if raw is None or (raw not in hosts and Path(raw).name != HOSTS[platform][1]):
+            continue
+        # The basename limits work only; canonical path and identity establish ownership.
+        if str(Path(raw).resolve()) not in hosts:
             continue
         identity = process_identity(pid, library)
-        if identity and identity["uid"] == os.getuid() and identity["executable"] in hosts:
+        if identity and identity["uid"] == uid and identity["executable"] in hosts:
             identity.update(appContainer=hosts[identity["executable"]], ownedUDID=udid)
             targets.append(identity)
     return {"state": "observed" if targets else "no_live_owned_host", "targets": targets}

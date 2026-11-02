@@ -348,6 +348,28 @@ raise AssertionError('Unexpected diagnostic mode')
                 result = subprocess.run(["bash", "-n"], input=self.shell(name), capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_tvos_eligibility_uses_prerequisites_not_artifact_transport(self):
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+        step = workflow.split("      - name: Test tvOS Profiles controls in English and Japanese\n", 1)[1].split("\n      - ", 1)[0]
+        condition = re.search(r"if: \$\{\{ (.*?) \}\}", step).group(1)
+
+        def eligible(overrides=None, *, cancelled=False, previous_success=False):
+            outcomes = {name: "success" for name in re.findall(r"steps\.(\w+)\.outcome", condition)}
+            outcomes.update(overrides or {})
+            expression = re.sub(r"steps\.(\w+)\.outcome", lambda match: repr(outcomes[match[1]]), condition)
+            expression = expression.replace("!cancelled()", repr(not cancelled))
+            expression = expression.replace("success()", repr(previous_success)).replace("&&", " and ").replace("||", " or ")
+            return eval(expression, {"__builtins__": {}}, {})
+
+        self.assertTrue(eligible({"ios_profiles": "success", "ios_results": "failure"}))
+        self.assertTrue(eligible({"ios_profiles": "failure", "ios_results": "success"}))
+        for name in ("checkout", "shared_ui", "sync_shared_ui", "playback_core", "xcodegen", "prepare_configuration",
+                     "generate_project", "restore_sdks", "ios_configuration", "stop_ios"):
+            with self.subTest(prerequisite=name):
+                self.assertFalse(eligible({name: "failure", "ios_profiles": "failure"}))
+        self.assertFalse(eligible({"ios_profiles": "skipped"}))
+        self.assertFalse(eligible(cancelled=True, previous_success=True))
+
 
 class SelectedPlanOwnershipTests(unittest.TestCase):
     def test_successful_invocation_removes_only_its_own_plan(self):
