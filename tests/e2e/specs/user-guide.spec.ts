@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "../src/browser-test";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { createHash } from "node:crypto";
 import { expectMovingVideo } from "../src/playback-observation";
 
 type Language = "en" | "ja";
@@ -651,6 +652,70 @@ for (const language of languages) {
       }
     });
 
+    test("the language switch is unavailable until fragment preservation is ready", async ({ page }) => {
+      let releaseScript!: () => void;
+      const scriptGate = new Promise<void>((resolveGate) => { releaseScript = resolveGate; });
+      let scriptHeld = false;
+      await page.route(/\/guide(?:-[a-f0-9]{64})?\.js(?:\?.*)?$/, async (route) => {
+        scriptHeld = true;
+        await scriptGate;
+        await route.continue();
+      });
+      const guide = "web-implementation/integration";
+      const fragment = "minimal-integration-example";
+      const other = language === "en" ? "ja" : "en";
+      try {
+        await page.goto(guidePath(language, guide) + "#" + fragment, { waitUntil: "commit" });
+        await expect.poll(() => scriptHeld).toBe(true);
+        await expect(page.locator(`h2#${fragment}`)).toBeInViewport();
+        await expect(page.locator("main")).toBeVisible();
+        const link = page.locator("a[data-guide-language]");
+        await expect(link).toBeHidden();
+        await expect(page.locator("a[data-guide-language-fallback]")).toHaveCount(0);
+
+        releaseScript();
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute("href", new URL(guidePath(other, guide) + "#" + fragment, page.url()).href);
+        await link.focus();
+        await page.keyboard.press("Enter");
+        await expect(page).toHaveURL(guidePath(other, guide) + "#" + fragment);
+        await expect(page.locator("html")).toHaveAttribute("lang", other);
+        await expect(page.locator(`h2#${fragment}`)).toBeInViewport();
+      } finally {
+        releaseScript();
+        await page.unrouteAll({ behavior: "wait" });
+      }
+    });
+
+    test("language navigation uses its current script even when a prior stable script is available", async ({ page }) => {
+      let priorScriptRequests = 0;
+      // Routing models an available pre-readiness response, not the browser's HTTP cache.
+      // Prior scripts do not reveal a language link that a newer document initially hides.
+      await page.route(/\/guide\.js(?:\?.*)?$/, async (route) => {
+        priorScriptRequests += 1;
+        await route.fulfill({ status: 200, contentType: "text/javascript",
+          body: "/* Cached prior guide code has no language-link unhide step. */" });
+      });
+      const guide = "web-implementation/integration";
+      const fragment = "minimal-integration-example";
+      const other = language === "en" ? "ja" : "en";
+      await page.goto(guidePath(language, guide) + "#" + fragment);
+      const link = page.locator("a[data-guide-language]");
+      await expect(link).toBeVisible();
+      const source = await page.locator("script[src][defer]").getAttribute("src");
+      expect(source).toMatch(/(?:^|\/)guide-[a-f0-9]{64}\.js$/);
+      const response = await page.request.get(new URL(source!, page.url()).href);
+      expect(response.ok()).toBe(true);
+      const payload = await response.body();
+      expect(source!.split("/").pop()).toBe(`guide-${createHash("sha256").update(payload).digest("hex")}.js`);
+      expect(priorScriptRequests).toBe(0);
+      await link.focus();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(guidePath(other, guide) + "#" + fragment);
+      await expect(page.locator("html")).toHaveAttribute("lang", other);
+      await expect(page.locator(`h2#${fragment}`)).toBeInViewport();
+    });
+
     test("API gap reasons open with the keyboard and remain readable on narrow screens", async ({ page }) => {
       await page.goto(guidePath(language, "api-coverage/web-ui"));
       const [api, assessment] = Object.entries(gapAssessments["web-ui"]!)
@@ -1192,6 +1257,25 @@ test("localized guide figures and representative theme images decode", async ({ 
 test.describe("guide without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
   for (const language of languages) {
+    test(`${language} language fallback opens the same chapter without JavaScript`, async ({ page }) => {
+      const guide = "web-implementation/integration";
+      const other: Language = language === "en" ? "ja" : "en";
+      await page.goto(guidePath(language, guide) + "#minimal-integration-example");
+      await expect(page.locator("a[data-guide-language]")).toBeHidden();
+      const fallback = page.locator("a[data-guide-language-fallback]");
+      await expect(fallback).toHaveCount(1);
+      await expect(fallback).toBeVisible();
+      await expectProjectLink(page, fallback, guidePath(other, guide));
+      await fallback.focus();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(guidePath(other, guide));
+      await expect(page.locator("html")).toHaveAttribute("lang", other);
+      const heading = page.locator("main > h1");
+      await expect(heading).toHaveText(content[other]["web-implementation"]!.blocks!
+        .find((block) => block.type === "h2" && block.id === "integration")!.text!);
+      await expect(heading).toBeInViewport();
+    });
+
     for (const width of [375, 1440]) {
       test(`${language} native chapter disclosures navigate without JavaScript at ${width}px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });

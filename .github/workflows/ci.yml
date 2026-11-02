@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       references_only: ${{ steps.scope.outputs.references_only }}
+      native_required: ${{ steps.scope.outputs.native_required }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -309,7 +310,8 @@ jobs:
           retention-days: 3
 
   ios:
-    needs: build
+    needs: [publication, build]
+    if: needs.publication.outputs.native_required != 'false'
     runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -533,7 +535,8 @@ jobs:
         run: python3 -B scripts/check-guide-native-examples.py apple --work-dir "$RUNNER_TEMP/guide-examples"
 
   android:
-    needs: build
+    needs: [publication, build]
+    if: needs.publication.outputs.native_required != 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

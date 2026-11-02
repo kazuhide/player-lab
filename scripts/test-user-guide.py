@@ -11,6 +11,7 @@ import re
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 from urllib.parse import unquote, urlsplit
 from xml.etree import ElementTree
 
@@ -147,6 +148,25 @@ class GuideTests(unittest.TestCase):
     def test_published_content_builds_with_the_actual_api_report(self):
         pages = build(load_content(ROOT / 'docs/guide'))
         self.assertEqual(set(pages), GUIDE_FILES)
+
+    def test_guide_script_has_a_content_addressed_name_and_exact_payload(self):
+        payload = (ROOT / 'site/guide.js').read_bytes()
+        script = f'guide-{hashlib.sha256(payload).hexdigest()}.js'
+        self.assertIn(script, GUIDE_FILES)
+        self.assertEqual(self.pages[script], payload)
+        self.assertIn('guide.js', GUIDE_ASSETS)
+        for page, data in self.pages.items():
+            if not page.endswith('.html') or b'data-guide-language' not in data:
+                continue
+            sources = re.findall(r'<script src="([^"]+)" defer></script>', data.decode())
+            with self.subTest(page=page):
+                self.assertEqual([posixpath.normpath(posixpath.join(posixpath.dirname(page), source))
+                                  for source in sources], [script])
+
+    def test_guide_script_rejects_a_stale_content_digest(self):
+        with patch('user_guide.GUIDE_SCRIPT_SHA256', '0' * 64):
+            with self.assertRaisesRegex(ValueError, 'content digest'):
+                build(self.content)
 
     def test_every_incomplete_api_route_has_a_static_bilingual_reason_and_action(self):
         from coverage_gaps import validate_gaps

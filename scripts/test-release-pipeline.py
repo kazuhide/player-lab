@@ -275,6 +275,59 @@ class ReleaseTests(unittest.TestCase):
         self.assertTrue(any('--bundle' in args for args in self.signature_calls))
         self.assertTrue(all('--deny-self-hosted-runners' in args for args in self.signature_calls))
 
+    def test_web_only_native_skips_roundtrip_without_claiming_native_execution(self):
+        for job in self.f.jobs:
+            if job['name'] in ('ios', 'android'):
+                job['conclusion'] = 'skipped'
+                job.pop('started_at')
+                job.pop('completed_at')
+        self.assertEqual(self.publish(), 500)
+        names = contract.asset_names('0.1.0')
+        asset = self.f.api.assets[500][names['provenance']]
+        document = contract.json_load(self.f.api.asset_data[asset['id']])
+        self.assertEqual(document['schemaVersion'], 1)
+        self.assertEqual(document['qualificationJobs'], {
+            job['name']: {'id': job['id'], 'attempt': job['run_attempt']} for job in self.f.jobs})
+        site, state = self.prepare(producer=200)
+        self.assertTrue((site / 'index.html').is_file())
+        pipeline.recheck_pages(self.f.context(contract.PAGES_PATH), contract.json_load(state.read_bytes()))
+        for job in self.f.jobs:
+            if job['name'] in ('ios', 'android'):
+                self.assertEqual(job['conclusion'], 'skipped')
+                self.assertNotIn('started_at', job)
+                self.assertNotIn('completed_at', job)
+        latest = contract.effective_jobs(self.f.jobs, self.f.run)
+        for reference in ({'id': self.f.jobs[2]['id'], 'attempt': 1},
+                          {'id': self.f.jobs[4]['id'], 'attempt': 2}):
+            changed = deepcopy(document)
+            changed['qualificationJobs']['ios'] = reference
+            with self.subTest(reference=reference), self.assertRaises(ValueError):
+                contract.provenance(changed, repository_id=42, version='0.1.0', sha=self.f.sha,
+                                    run=self.f.run, jobs=latest, all_jobs=self.f.jobs)
+        failed_records = deepcopy(self.f.jobs)
+        failed_records[4]['conclusion'] = 'failure'
+        with self.assertRaises(ValueError):
+            contract.provenance(document, repository_id=42, version='0.1.0', sha=self.f.sha,
+                                run=self.f.run, jobs=latest, all_jobs=failed_records)
+
+    def test_failed_ci_with_native_skips_is_never_promoted_or_consumed(self):
+        for job in self.f.jobs:
+            if job['name'] in ('ios', 'android'):
+                job.update(conclusion='skipped', started_at=None, completed_at=None)
+        self.f.run['conclusion'] = 'failure'
+        with self.assertRaises(ValueError):
+            self.publish('failed-before-publication')
+        self.assertEqual(self.f.api.mutations, [])
+        self.assertEqual(self.signature_calls, [])
+        self.f.run['conclusion'] = 'success'
+        self.publish('valid-web-only')
+        _, state = self.prepare('valid-web-only-pages', producer=200)
+        self.f.run['conclusion'] = 'failure'
+        with self.assertRaises(ValueError):
+            self.prepare('failed-after-publication', producer=200)
+        with self.assertRaises(ValueError):
+            pipeline.recheck_pages(self.f.context(contract.PAGES_PATH), contract.json_load(state.read_bytes()))
+
     def test_media_release_uses_selected_source_helper_through_all_publication_gates(self):
         self.f = Fixture(self.f.root / 'media-release', with_media=True)
         helper = 'encoding/test-streams/local.py'
@@ -631,6 +684,55 @@ class ContractTests(unittest.TestCase):
             with self.subTest(mutation=mutation), self.assertRaises(ValueError):
                 contract.effective_jobs(jobs, f.run)
 
+    def test_skipped_native_timestamps_allow_absence_but_validate_available_values(self):
+        f = Fixture(self.root)
+        for started, completed in ((None, None), ('2026-10-22T00:01:00Z', None),
+                                   (None, '2026-10-22T00:10:00Z'),
+                                   ('2026-10-22T00:01:00Z', '2026-10-22T00:10:00Z')):
+            jobs = deepcopy(f.jobs)
+            for job in jobs[4:]:
+                job.update(conclusion='skipped', started_at=started, completed_at=completed)
+            with self.subTest(started=started, completed=completed):
+                self.assertEqual(contract.effective_jobs(jobs, f.run)['ios'], jobs[4])
+        for started, completed in (('invalid', None), (None, 'invalid'),
+                                   ('2026-10-22T00:11:00Z', '2026-10-22T00:10:00Z')):
+            jobs = deepcopy(f.jobs)
+            jobs[4].update(conclusion='skipped', started_at=started, completed_at=completed)
+            with self.subTest(started=started, completed=completed), self.assertRaises(ValueError):
+                contract.effective_jobs(jobs, f.run)
+        for index in range(6):
+            jobs = deepcopy(f.jobs)
+            jobs[index].pop('started_at')
+            with self.subTest(successful_job=jobs[index]['name']), self.assertRaises(ValueError):
+                contract.effective_jobs(jobs, f.run)
+
+    def test_web_scope_never_waives_failed_runs_web_gates_or_job_identity(self):
+        f = Fixture(self.root)
+        for job in f.jobs[4:]:
+            job.update(conclusion='skipped', started_at=None, completed_at=None)
+        for status, conclusion in (('completed', 'failure'), ('completed', 'cancelled'),
+                                   ('completed', 'timed_out'), ('in_progress', None)):
+            with self.subTest(run=(status, conclusion)), self.assertRaises(ValueError):
+                contract.effective_jobs(f.jobs, {**f.run, 'status': status, 'conclusion': conclusion})
+        for index in range(6):
+            conclusions = ('skipped', 'failure', 'timed_out', 'cancelled') if index < 4 else ('failure', 'timed_out', 'cancelled')
+            for conclusion in conclusions:
+                jobs = deepcopy(f.jobs)
+                jobs[index]['conclusion'] = conclusion
+                with self.subTest(job=jobs[index]['name'], conclusion=conclusion), self.assertRaises(ValueError):
+                    contract.effective_jobs(jobs, f.run)
+        for change in ('unknown', 'duplicate', 'missing', 'wrong-attempt', 'wrong-head', 'wrong-run', 'pending'):
+            jobs = deepcopy(f.jobs)
+            if change == 'unknown': jobs[4]['name'] = 'other'
+            elif change == 'duplicate': jobs.append(deepcopy(jobs[4]))
+            elif change == 'missing': jobs.pop()
+            elif change == 'wrong-attempt': jobs[4]['run_attempt'] = 2
+            elif change == 'wrong-head': jobs[4]['head_sha'] = '0' * 40
+            elif change == 'wrong-run': jobs[4]['run_id'] = 999
+            else: jobs[4]['status'] = 'in_progress'
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                contract.effective_jobs(jobs, f.run)
+
     def test_verified_certificate_binds_identity_run_attempt_and_signed_subject(self):
         f = Fixture(self.root)
         artifact = {'id': 900, 'sha256': contract.file_digest(f.archive)}
@@ -754,8 +856,9 @@ class ContractTests(unittest.TestCase):
     def test_workflows_preserve_six_jobs_and_remove_automatic_main_deployment(self):
         import re
         ci = (ROOT / '.github/workflows/ci.yml').read_text()
-        self.assertEqual(set(re.findall(r'^  ([a-z]+):\n    (?:needs:.*\n    )?runs-on:', ci, re.MULTILINE)),
-                         set(contract.REQUIRED_JOBS))
+        job_names = re.findall(r'^  ([a-z]+):\n(?:    (?:needs|if):[^\n]*\n)*    runs-on:', ci, re.MULTILINE)
+        self.assertEqual(len(job_names), len(contract.REQUIRED_JOBS))
+        self.assertEqual(set(job_names), set(contract.REQUIRED_JOBS))
         pages = (ROOT / '.github/workflows/pages.yml').read_text()
         self.assertNotIn('workflow_run:', pages)
         self.assertNotIn('\n  release:', pages)

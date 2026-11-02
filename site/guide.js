@@ -188,6 +188,7 @@
     preserveHash();
     window.addEventListener("hashchange", preserveHash);
     for (const link of languageLinks) link.addEventListener("click", preserveHash);
+    for (const link of languageLinks) link.hidden = false;
     const scheduleCurrentSections = setupCurrentSections();
     const header = document.querySelector(".guide-header");
     if (header) {

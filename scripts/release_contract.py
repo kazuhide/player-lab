@@ -16,6 +16,7 @@ CI_PATH = '.github/workflows/ci.yml'
 PRODUCER_PATH = '.github/workflows/release.yml'
 PAGES_PATH = '.github/workflows/pages.yml'
 REQUIRED_JOBS = ('publication', 'build', 'web', 'webkit', 'ios', 'android')
+NATIVE_JOBS = ('ios', 'android')
 SHA = re.compile(r'[0-9a-f]{40}')
 DIGEST = re.compile(r'[0-9a-f]{64}')
 MAX_ARCHIVE = 512 * 1024 * 1024
@@ -108,6 +109,22 @@ def workflow_run(document, *, workflow_id, path, repository_id, sha=None, events
     return document
 
 
+def release_job_result(job):
+    """Retain native skips without describing them as executed or successful tests."""
+    return (job.get('status') == 'completed'
+            and (job.get('conclusion') == 'success'
+                 or job.get('name') in NATIVE_JOBS and job.get('conclusion') == 'skipped'))
+
+
+def job_interval(job):
+    skipped = job.get('name') in NATIVE_JOBS and job.get('conclusion') == 'skipped'
+    start, end = job.get('started_at'), job.get('completed_at')
+    parsed_start = timestamp(start) if start is not None or not skipped else None
+    parsed_end = timestamp(end) if end is not None or not skipped else None
+    if parsed_start is not None and parsed_end is not None:
+        check(parsed_start <= parsed_end, 'A CI job interval is invalid.')
+
+
 def effective_jobs(jobs, run):
     latest, seen = {}, set()
     for job in jobs:
@@ -123,10 +140,10 @@ def effective_jobs(jobs, run):
     check(set(latest) == set(REQUIRED_JOBS), 'All required CI jobs must be present.')
     check(run.get('status') == 'completed' and run.get('conclusion') == 'success',
           'The selected CI run must have completed successfully.')
-    check(all(job.get('status') == 'completed' and job.get('conclusion') == 'success'
-              for job in latest.values()), 'Every effective CI job must succeed.')
+    check(all(release_job_result(job) for job in latest.values()),
+          'Every effective CI job must succeed or be a skipped native job.')
     for job in latest.values():
-        check(timestamp(job['started_at']) <= timestamp(job['completed_at']), 'A CI job interval is invalid.')
+        job_interval(job)
     return latest
 
 
@@ -286,9 +303,10 @@ def provenance(document, *, repository_id, version, sha, run, jobs, all_jobs):
         identifier(reference['id'])
         identifier(reference['attempt'])
         matches = [job for job in all_jobs if job['id'] == reference['id'] and job['name'] == name
-                   and job['run_attempt'] == reference['attempt'] and job.get('status') == 'completed'
-                   and job.get('conclusion') == 'success']
-        check(len(matches) == 1 and reference['attempt'] <= jobs[name]['run_attempt'], 'A recorded successful CI job is not present.')
+                   and job['run_attempt'] == reference['attempt'] and release_job_result(job)]
+        check(len(matches) == 1 and reference['attempt'] <= jobs[name]['run_attempt'],
+              'A recorded CI qualification job is not present with an accepted result.')
+        job_interval(matches[0])
         if name == 'web':
             source_web_job = matches[0]
         if name == 'webkit':
