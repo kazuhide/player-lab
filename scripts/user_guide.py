@@ -1,4 +1,5 @@
 """Validate the two language editions and generate static, searchable guide pages."""
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -7,6 +8,7 @@ import stat
 from guide_html import (TEXT, anchor, chapter_links, controls_html, esc, field_anchor, legacy_html, page_html, relative,
                         render_block, settings_group, source_url, sources_html, themes_html)
 from guide_routes import (CATEGORIES, CHAPTERS, CHAPTER_ORDER, CHILD_CHAPTERS, COVERAGE_APPS, DOCUMENTS, GUIDE_FILES,
+                          GUIDE_SCRIPT_FILE, GUIDE_SCRIPT_SHA256,
                           IMPLEMENTATION_GUIDES, IMPLEMENTATION_SECTIONS, LANGUAGES, LEGACY_ROUTES,
                           OPERATION_GUIDES, SETTING_GROUPS, THEMES, route_file)
 from guide_coverage import app_label, coverage_pages, validate_coverage
@@ -279,7 +281,10 @@ def build(content, *, coverage=None, gaps=None):
     validate_coverage(report, summary, content)
     gaps = gaps if gaps is not None else getattr(content, 'gaps', None)
     assessments = validate_gaps(gaps, report) if gaps is not None else None
-    pages = {}
+    script = (Path(__file__).resolve().parents[1] / 'site/guide.js').read_bytes()
+    if hashlib.sha256(script).hexdigest() != GUIDE_SCRIPT_SHA256:
+        raise ValueError('The guide script does not match its declared content digest.')
+    pages = {GUIDE_SCRIPT_FILE: script}
     headings = {name:section_ids(content['en'][name]) for name in CHAPTERS}
     # Give every rendered edition the same resolved bookmarks. Navigation and
     # content share these IDs without modifying the authored input documents.

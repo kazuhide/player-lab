@@ -299,8 +299,8 @@ def page_html(content, language, slug, title, lead, body, pagination='', *, head
     alternative = PUBLIC_BASE + route_file(other, slug).removesuffix('index.html')
     stylesheet = esc(relative(page, 'styles.css'))
     guide_css = esc(relative(page, 'guide.css'))
-    script = esc(relative(page, 'guide.js'))
-    from guide_routes import CHAPTER_PARENTS
+    from guide_routes import CHAPTER_PARENTS, GUIDE_SCRIPT_FILE
+    script = esc(relative(page, GUIDE_SCRIPT_FILE))
     parent = CHAPTER_PARENTS.get(slug)
     breadcrumb = (f'<a href="{esc(relative(page, route_file(language, parent)))}">{esc(content[parent]["title"])}</a>'
                   if parent else '')
@@ -322,7 +322,8 @@ def page_html(content, language, slug, title, lead, body, pagination='', *, head
 <header class="site-header guide-header wrap">
 <a class="wordmark" href="{esc(relative(page, home))}">Player Lab</a>
 <nav aria-label="{labels['guide']}"><a href="{esc(relative(page, 'web/index.html'))}">{labels['web']}</a>
-<a data-guide-language href="{esc(relative(page, route_file(other, slug)))}" lang="{other}" hreflang="{other}">{language_label}</a></nav>
+<a data-guide-language href="{esc(relative(page, route_file(other, slug)))}" lang="{other}" hreflang="{other}" hidden>{language_label}</a>
+<noscript><a data-guide-language-fallback href="{esc(relative(page, route_file(other, slug)))}" lang="{other}" hreflang="{other}">{language_label}</a></noscript></nav>
 </header>
 <div class="guide-shell wrap">
 <aside class="guide-sidebar"><h2>{labels['contents']}</h2>{nav}</aside>

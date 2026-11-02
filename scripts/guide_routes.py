@@ -175,6 +175,9 @@ SLUGS = ('', *DOCUMENTS, *IMPLEMENTATION_PAGES, *(f'settings/{name}' for name in
 SOURCE_REVISION = '8c57c70b5c3f6f0cc0068962bc336e7327a37bfe'
 CONTENT_REVIEW = '2026-10-26'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
+# Build verifies this digest before emitting the script and its referring HTML.
+GUIDE_SCRIPT_SHA256 = 'ce90d1a771cac15486ed4dd4e11ad9502fdedccc6b455aa039119f155d04e7eb'
+GUIDE_SCRIPT_FILE = f'guide-{GUIDE_SCRIPT_SHA256}.js'
 
 
 def route_file(language, slug=''):
@@ -186,6 +189,7 @@ GUIDE_FILES = {
     *(route_file(language, slug) for language in LANGUAGES for slug in SLUGS),
     *(route_file(language, slug) for language in LANGUAGES for slug in LEGACY_ROUTES),
     'guide/search-index.json', 'ja/guide/search-index.json',
+    GUIDE_SCRIPT_FILE,
 }
 GUIDE_ASSETS = {
     'guide.css', 'guide.js',
