@@ -91,6 +91,15 @@ def main():
                       'comparisonRunner-abcdefg.js', 'comparisonRunner-abcdefgh.js.map']:
             scan(f'const licenseKey="{player}";', 1, public, entry=entry)
         scan(f'const licenseKey="{pat}";', 1, {public_player: pat}, entry=runner)
+        demo = 'demo-session-abcdefgh.js'
+        scan(f'const licenseKey="{player}";', 1, entry=demo)
+        scan(f'const licenseKey="{player}";', 0, public, entry=demo)
+        scan(f'const licenseKey="{player}";const api_key="{unrelated}";', 1, public, entry=demo)
+        scan(f'const analyticsKey="{analytics}";', 1, public, entry=demo)
+        scan(f'const licenseKey="{changed}";', 1, public, entry=demo)
+        for entry in ['demo-sessionX-abcdefgh.js', 'demo-session-abcdefg.js', 'demo-session-abcdefgh.js.map']:
+            scan(f'const licenseKey="{player}";', 1, public, entry=entry)
+        scan(f'const licenseKey="{pat}";', 1, {public_player: pat}, entry=demo)
     print(f'Pages secret-scanner checks passed ({cases} cases; no values shown).')
 
 
