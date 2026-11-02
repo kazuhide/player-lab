@@ -1,9 +1,22 @@
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import type { Page, TestInfo } from "@playwright/test";
 import { expect, test } from "../src/browser-test";
 import { installCompatibleDashFixture } from "../src/compatible-dash";
 
+async function captureComparison(page: Page, testInfo: TestInfo, layout: string, language: string): Promise<void> {
+  const body = await page.locator("#app").screenshot();
+  await testInfo.attach(`comparison-${language}-${layout}.png`, { body, contentType: "image/png" });
+  const directory = process.env.E2E_COMPARISON_CAPTURE_DIR;
+  if (directory) {
+    await mkdir(directory, { recursive: true });
+    await writeFile(join(directory, `web-comparison-${layout}-${language}.png`), body);
+  }
+}
+
 for (const language of ["en", "ja"] as const) {
   test(`the ${language} comparison keeps playback visible, measures seeks and supports a fresh run`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("comparison.html");
     await page.getByRole("button", { name: language === "ja" ? "日本語" : "English", exact: true }).click();
     const measure = () => page.getByRole("button", { name: language === "ja" ? /^(計測する|再計測)$/ : /^(Measure|Measure again)$/, exact: true });
@@ -29,15 +42,15 @@ for (const language of ["en", "ja"] as const) {
       expect(trial.startup.status).toBe("success"); expect(trial.seek.status).toBe("success");
       expect(trial.seek.latencyMs).toBeGreaterThan(0);
     }
-    await testInfo.attach(`comparison-${language}-single.png`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    await captureComparison(page, testInfo, "single", language);
     await page.getByRole("button", { name: language === "ja" ? "並べて表示" : "Side by side", exact: true }).click();
     await expect(page.locator(".demo-stage iframe")).toHaveCount(3);
     await expect.poll(async () => {
       const states = await Promise.all(page.frames().filter((frame) => frame.url().includes("demo=1")).map((frame) =>
         frame.locator("video").evaluate((element) => ({ paused: (element as HTMLVideoElement).paused, time: (element as HTMLVideoElement).currentTime }))));
-      return states.length === 3 && states.every((state) => !state.paused && state.time > 0.2);
+      return states.length === 3 && states.every((state) => !state.paused && state.time > 3);
     }).toBe(true);
-    await testInfo.attach(`comparison-${language}-parallel.png`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    await captureComparison(page, testInfo, "parallel", language);
     await measure().click();
     await expect(page.locator('.demo-bar-row[data-metric="startup"][data-value-ms]:not([data-value-ms=""])')).toHaveCount(3);
     await expect(measure()).toBeEnabled();
@@ -96,6 +109,19 @@ test("comparison controls and graphs fit narrow screens", async ({ page }, testI
     await expect(page.getByRole("button", { name: "計測する", exact: true })).toBeFocused();
     await testInfo.attach(`comparison-${width}.png`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
   }
+});
+
+test("switching away from an invalid custom URL still allows the default demo to start", async ({ page }) => {
+  await page.goto("comparison.html");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  const content = page.getByRole("combobox", { name: "Content", exact: true });
+  await content.selectOption("custom");
+  await page.getByRole("textbox", { name: "Custom URL", exact: true }).fill("invalid media address");
+  await content.selectOption("default");
+  expect(await page.locator(".demo-toolbar").evaluate((form) => (form as HTMLFormElement).checkValidity())).toBe(true);
+  await page.getByRole("button", { name: "Measure", exact: true }).click();
+  const stop = page.getByRole("button", { name: "Stop", exact: true });
+  await expect(stop).toBeVisible(); await stop.click(); await expect(stop).toBeHidden();
 });
 
 test("a cold network scenario controls each engine and leaves the benchmark outside its worker scope", async ({ page }) => {

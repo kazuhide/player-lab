@@ -69,6 +69,22 @@ describe("retained comparison runtime", () => {
     await f.runtime.dispose(); await f.runtime.dispose(); expect(f.disposal).toHaveBeenCalledTimes(1);
     expect(f.video.frames.size).toBe(0);
   });
+  it("does not report a download stall while buffered playback keeps advancing", async () => {
+    const f = await fixture(); await playing(f);
+    f.video.readyState = 4;
+    f.video.frame(1); f.video.emit("stalled");
+    await vi.advanceTimersByTimeAsync(125); f.video.frame(1.25);
+    await vi.advanceTimersByTimeAsync(125);
+    expect(f.sample).toHaveBeenLastCalledWith(expect.objectContaining({ mediaTime: 1.25, bufferSeconds: 18.75, stalled: false }));
+    expect(f.disposal).not.toHaveBeenCalled();
+  });
+  it("reports playback waiting until playing resumes", async () => {
+    const f = await fixture(); await playing(f);
+    f.video.emit("waiting");
+    expect(f.sample).toHaveBeenLastCalledWith(expect.objectContaining({ stalled: true }));
+    f.video.readyState = 4; f.video.frame(0.4); f.video.emit("playing");
+    expect(f.sample).toHaveBeenLastCalledWith(expect.objectContaining({ mediaTime: 0.4, stalled: false }));
+  });
   it("never accepts seeked, old queued frames, or a stationary target frame as seek completion", async () => {
     const f = await fixture(); await playing(f);
     const seeking = f.runtime.seek(40, new AbortController().signal); let done = false; void seeking.then(() => { done = true; });

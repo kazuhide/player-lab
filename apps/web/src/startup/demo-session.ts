@@ -104,7 +104,6 @@ export class DemoRuntime {
     }
     this.listen("error", () => this.fatal("media-error"));
     this.listen("waiting", () => { this.stalled = true; this.sample(); });
-    this.listen("stalled", () => { this.stalled = true; this.sample(); });
     this.listen("playing", () => { this.stalled = false; this.sample(); });
     let startSettled = false;
     let firstMediaTime: number | null = null;

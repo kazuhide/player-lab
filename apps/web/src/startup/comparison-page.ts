@@ -148,6 +148,8 @@ function render(): void {
     hasMeasured ||= any;
     measure.textContent = hasMeasured ? pick({ ja: "再計測", en: "Measure again" }) : pick({ ja: "計測する", en: "Measure" });
     for (const control of [sourceSelect, urlInput, formatSelect, measure, startupMode, networkMode, single, parallel]) control.disabled = active;
+    urlInput.disabled = active || !custom;
+    formatSelect.disabled = active || !custom;
     networkMode.disabled = active || custom;
     networkMode.title = custom ? pick({ ja: "回線制御は共通のテスト素材で利用できます。", en: "Delivery control uses the common test fixture." }) : "";
     for (const control of languages.querySelectorAll<HTMLButtonElement>("button")) control.disabled = active;
