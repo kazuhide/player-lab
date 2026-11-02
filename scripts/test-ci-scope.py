@@ -49,6 +49,117 @@ class ScopeTests(unittest.TestCase):
         self.write("references/sports-streaming/README.md")
         return self.commit()
 
+    def native_selected(self, event="push", base=None, head=None):
+        return ci_scope.native_required(event, self.base if base is None else base,
+                                        self.git("rev-parse", "HEAD").decode().strip() if head is None else head,
+                                        root=self.root)
+
+    def workflow(self, scoped=False):
+        text = """name: Fixture
+jobs:
+  publication:
+    outputs:
+      references_only: ${{ steps.scope.outputs.references_only }}
+    steps:
+      - run: python3 scripts/ci_scope.py
+  build:
+    needs: publication
+    if: needs.publication.outputs.references_only != 'true'
+    steps:
+      - run: shared-build
+  web:
+    needs: publication
+    if: needs.publication.outputs.references_only != 'true'
+    steps:
+      - run: web-tests
+  webkit:
+    needs: web
+    steps:
+      - run: webkit-tests
+  ios:
+    needs: build
+    runs-on: macos-26-intel
+    env:
+      NATIVE_FIXTURE: unchanged
+    steps:
+      - uses: actions/checkout@1111111111111111111111111111111111111111
+      - run: xcodebuild unchanged-test
+  android:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: gradle unchanged-test
+"""
+        if scoped:
+            text = text.replace("      references_only: ${{ steps.scope.outputs.references_only }}\n",
+                                "      references_only: ${{ steps.scope.outputs.references_only }}\n      native_required: ${{ steps.scope.outputs.native_required }}\n")
+            for job in ("ios", "android"):
+                text = text.replace("  " + job + ":\n    needs: build\n",
+                                    "  " + job + ":\n    needs: [publication, build]\n    if: needs.publication.outputs.native_required != 'false'\n")
+        return text
+
+    def test_verified_web_paths_skip_only_native_checks(self):
+        paths = ("scripts/guide_html.py", "scripts/guide_routes.py", "scripts/test-user-guide.py", "scripts/user_guide.py",
+                 "site/guide.js", "site/guide.css", "docs/guide/en/getting-started.json", "docs/guide/ja/test-results.json",
+                 "tests/e2e/specs/user-guide.spec.ts", "tests/e2e/src/browser-diagnostics.ts", "tests/e2e/browserDiagnostics.test.ts",
+                 "scripts/release_contract.py", "scripts/test-release-pipeline.py", "scripts/ci_scope.py", "scripts/test-ci-scope.py")
+        for name in paths:
+            self.write(name)
+        self.commit()
+        self.assertFalse(self.native_selected("push"))
+        self.assertFalse(self.native_selected("pull_request"))
+        self.assertFalse(self.selected())
+        self.assertEqual(self.cli().stdout, "references_only=false\nnative_required=false\n")
+
+    def test_native_shared_dependency_unknown_and_mixed_paths_fail_closed(self):
+        for name in ("apps/ios/Native.swift", "apps/android/Main.kt", "apps/web/package.json", "pnpm-lock.yaml",
+                     "package-lock.json", "packages/ui-shared/src/app.ts", "shared/schema.json", "site/guide/images/native.png",
+                     "scripts/release_other.py", "README.md", "references/elearning/README.md", "docs/guide/en/line\nnative_required=false.json"):
+            with self.subTest(name=name):
+                self.git("reset", "--hard", self.base)
+                self.write("site/guide.js"); self.write(name, "Changed\n"); self.commit()
+                self.assertTrue(self.native_selected())
+
+    def test_web_boundary_rename_and_unsupported_or_invalid_inputs_require_native(self):
+        self.write("site/guide.js"); self.commit()
+        web_base = self.git("rev-parse", "HEAD").decode().strip()
+        (self.root / "tests/e2e/specs").mkdir(parents=True)
+        self.git("mv", "README.md", "tests/e2e/specs/moved.spec.ts"); self.commit()
+        self.assertTrue(self.native_selected(base=web_base))
+        self.git("reset", "--hard", web_base)
+        self.git("mv", "site/guide.js", "native-shared.js"); self.commit()
+        self.assertTrue(self.native_selected(base=web_base))
+        self.git("reset", "--hard", web_base)
+        for event in ("workflow_dispatch", "pull_request_target", "", "unknown"):
+            self.assertTrue(self.native_selected(event))
+        for values in ({"base": "0" * 40}, {"base": "f" * 40}, {"head": self.base}, {"head": "HEAD"}, {"base": web_base}):
+            self.assertTrue(self.native_selected(**values))
+        with patch("ci_scope.git", side_effect=OSError):
+            self.assertTrue(self.native_selected())
+
+    def test_exact_workflow_scoping_bootstrap_is_allowed(self):
+        self.write(".github/workflows/ci.yml", self.workflow()); workflow_base = self.commit()
+        self.write(".github/workflows/ci.yml", self.workflow(scoped=True))
+        self.write("scripts/ci_scope.py"); self.write("scripts/test-ci-scope.py"); self.write("site/guide.js"); self.commit()
+        self.assertFalse(self.native_selected(base=workflow_base))
+        self.assertFalse(self.selected(base=workflow_base))
+        scoped_base = self.git("rev-parse", "HEAD").decode().strip()
+        self.write("site/guide.js", "Updated guide\n"); self.commit()
+        self.assertFalse(self.native_selected(base=scoped_base))
+
+    def test_any_other_workflow_change_requires_native_even_with_scoping_changes(self):
+        self.write(".github/workflows/ci.yml", self.workflow()); workflow_base = self.commit()
+        mutations = (("xcodebuild unchanged-test", "xcodebuild changed-test"), ("macos-26-intel", "macos-27"),
+                     ("NATIVE_FIXTURE: unchanged", "NATIVE_FIXTURE: changed"), ("1111111111111111111111111111111111111111", "2" * 40),
+                     ("gradle unchanged-test", "gradle test --continue"), ("web-tests", "web-tests --skip"),
+                     ("needs: web", "needs: publication"), ("steps.scope.outputs.native_required", "steps.other.outputs.native_required"))
+        for old, new in mutations:
+            with self.subTest(mutation=new):
+                self.git("reset", "--hard", workflow_base)
+                self.write(".github/workflows/ci.yml", self.workflow(scoped=True).replace(old, new))
+                self.write("site/guide.js"); self.commit()
+                self.assertTrue(self.native_selected(base=workflow_base))
+
     def test_reference_changes_for_both_apps_can_skip_root_checks(self):
         self.write("references/elearning/README.md", "Updated learning example\n")
         self.reference_commit()
@@ -124,11 +235,11 @@ class ScopeTests(unittest.TestCase):
         self.write("references/sports-streaming/line\nreferences_only=true")
         self.commit()
         self.assertTrue(self.selected())
-        self.assertEqual(self.cli().stdout, "references_only=true\n")
+        self.assertEqual(self.cli().stdout, "references_only=true\nnative_required=true\n")
         self.write("outside\nreferences/fake.md")
         self.commit()
         self.assertFalse(self.selected())
-        self.assertEqual(self.cli().stdout, "references_only=false\n")
+        self.assertEqual(self.cli().stdout, "references_only=false\nnative_required=true\n")
 
     def test_git_failures_and_malformed_diff_output_require_full_checks(self):
         head = self.reference_commit()
@@ -158,7 +269,7 @@ class ScopeTests(unittest.TestCase):
         for values in ({"CI_EVENT": "workflow_dispatch"}, {"CI_BASE": "0" * 40},
                        {"CI_HEAD": ""}, {"CI_EVENT": ""}):
             with self.subTest(values=values):
-                self.assertEqual(self.cli(**values).stdout, "references_only=false\n")
+                self.assertEqual(self.cli(**values).stdout, "references_only=false\nnative_required=true\n")
 
 
 class WorkflowTests(unittest.TestCase):
@@ -169,6 +280,7 @@ class WorkflowTests(unittest.TestCase):
         publication = jobs["publication"]
         self.assertNotRegex(publication, re.compile(r"^    (?:if|needs):", re.MULTILINE))
         self.assertIn("references_only: ${{ steps.scope.outputs.references_only }}", publication)
+        self.assertIn("native_required: ${{ steps.scope.outputs.native_required }}", publication)
         self.assertIn("id: scope", publication)
         self.assertIn("CI_EVENT: ${{ github.event_name }}", publication)
         self.assertIn("CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}", publication)
@@ -180,8 +292,12 @@ class WorkflowTests(unittest.TestCase):
         for name in ("build", "web"):
             self.assertIn("needs: publication", jobs[name])
             self.assertIn("if: needs.publication.outputs.references_only != 'true'", jobs[name])
-        for name, dependency in (("ios", "build"), ("android", "build"), ("webkit", "web")):
-            self.assertIn("needs: " + dependency, jobs[name])
+        self.assertEqual(set(jobs), {"publication", "build", "web", "webkit", "ios", "android"})
+        self.assertIn("needs: web", jobs["webkit"])
+        for name in ("ios", "android"):
+            self.assertIn("needs: [publication, build]", jobs[name])
+            self.assertIn("if: needs.publication.outputs.native_required != 'false'", jobs[name])
+            self.assertNotIn("continue-on-error:", jobs[name])
         self.assertIn("  workflow_dispatch:", workflow)
         self.assertIn("  pull_request:", workflow)
         self.assertIn("    branches: [main]", workflow)
