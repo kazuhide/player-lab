@@ -4,7 +4,6 @@ import type { MergeApisAndEventBuses } from "@bitmovin/player-web-x/types/packag
 import type { PlaybackApi } from "@bitmovin/player-web-x/types/packages/playback-api/Types";
 import type { PlayerApi } from "@bitmovin/player-web-x/types/packages/player-api/Types";
 import type { SourceApiBase, SourcesApi } from "@bitmovin/player-web-x/types/packages/sources-api/Types";
-import type { ViewModeApi } from "@bitmovin/player-web-x/types/packages/view-mode/Types";
 import {
   SDK_VERSIONS,
   type AdapterMark,
@@ -13,7 +12,7 @@ import {
   type FailureCode,
 } from "../contract";
 
-export type NativeSourceApi = MergeApisAndEventBuses<[SourceApiBase, PlaybackApi, ViewModeApi]>;
+export type NativeSourceApi = MergeApisAndEventBuses<[SourceApiBase, PlaybackApi]>;
 export type NativePlayerApi = WithBaseApi<PlayerApi & SourcesApi<NativeSourceApi>>;
 export type NativePlayerFactory = (configuration: PlayerConfig) => NativePlayerApi | Promise<NativePlayerApi>;
 type NativePlayer = NativePlayerApi;
@@ -48,13 +47,14 @@ export const makeWebXAdapter = (Player: NativePlayerFactory, format: "hls" | "da
       bundle: bundle?.bundle ?? (format === "hls" ? "playerx-hls" : "playerx-dash"),
       ...(bundle ? { packages: [...bundle.packages] } : {}),
       muted: true,
-      autoplay: false,
+      autoplay: context.profile === "startup",
       preventSeeking: false,
       playsInline: true,
       controls: false,
       startTimeSeconds: 0,
       playbackRate: 1,
       defaultLogLevel: context.profile === "startup" ? 0 : null,
+      sourceLogLevel: context.profile === "startup" ? 0 : null,
       logLevelPolicy: context.profile === "startup" ? "explicit Off" : "SDK default",
       sourceType: format,
       contentType: "content",
@@ -136,7 +136,7 @@ export const makeWebXAdapter = (Player: NativePlayerFactory, format: "hls" | "da
       key: context.licenseKey,
       defaultContainer: container,
       defaultVideoElement: video,
-      playback: { muted: true, autoplay: false, preventSeeking: false },
+      playback: { muted: true, autoplay: context.profile === "startup", preventSeeking: false },
       ...(context.profile === "startup" ? { defaultLogLevel: 0 } : {}),
     });
     mark("constructorEnd");
@@ -167,6 +167,7 @@ export const makeWebXAdapter = (Player: NativePlayerFactory, format: "hls" | "da
       resources: [{ url: context.url, type: format }],
       contentType: "content",
     }, { attach: false, loadControl: 0 });
+    if (context.profile === "startup") source.logLevel = 0;
     source.currentTime = 0;
     source.playbackRate = 1;
     const ownedSource = source;
