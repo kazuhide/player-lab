@@ -38,7 +38,7 @@
       "rows": [
         [
           "Player Web X",
-          "共通の360p HLSでは公開パッケージを組み合わせます。任意のURL、複数画質のHLS、DASHでは形式に応じたバンドルを使います。いずれもPlayer Web XのPlayer・Source APIで操作します。10.3.1のDASH対応は一部に限られ、Shakaで再生できるマニフェストでも再生できない場合があります。読み込みと再生の前に監視を登録し、再生の終了時にはPlayerを破棄します。"
+          "共通の単一画質の360p HLSでは、公開のcoreバンドルと18個の公開パッケージを組み合わせ、NoAdaptationPackageで唯一の映像と音声を選びます。任意のURL、複数画質のHLS、DASHでは引き続き形式に応じたバンドルと通常の画質選択を使います。いずれもPlayer Web XのPlayer・Source APIで操作します。起動向け設定ではPlayerの生成時にplayback.autoplay=trueを渡し、PlayerとSourceのログをOffにします。Sourceはデータを取得せずに準備し、接続・データ取得・明示的なSource.play()の前に監視を登録します。defaultプロファイルはautoplay=falseとSDK既定のログ設定を維持します。10.3.1のDASH対応は一部に限られ、Shakaで再生できるマニフェストでも再生できない場合があります。再生の終了時にはPlayerを破棄します。"
         ],
         [
           "Bitmovin Player 8",
@@ -103,7 +103,7 @@
     },
     {
       "type": "p",
-      "text": "回線の制御は、同梱したBig Buck Bunnyの検証用ソースに限定します。任意のHLS/DASHのURLは起動とシークに使えますが、メディア通信全体への適用を確認できないため、「回線変化」は選べません。"
+      "text": "回線の制御は同梱したBig Buck Bunnyの検証用ソースに限定します。任意のHLS/DASHのURLは起動とシークに使えますが、メディア通信全体への適用を確認できないため、「回線変化」は選べません。"
     },
     {
       "type": "p",
@@ -172,7 +172,7 @@
     },
     {
       "type": "p",
-      "text": "Player Web X 10.3.1には、$RepresentationID$や$Number%05d$を使う一部のMPDを処理できない制約があります。対応するMPDを使います。任意のURLはそのまま渡し、アプリがマニフェストを書き換えたり、SDKを修正したり、失敗を0msの成功に変えたりはしません。DASHの選択は、全てのMPDとの互換性を保証するものではありません。"
+      "text": "Player Web X 10.3.1には、$RepresentationID$や$Number%05d$を使う一部のMPDを処理できない制約があります。対応するMPDを使います。任意のURLはそのまま渡し、アプリがマニフェストを書き換えたり、SDKを修正したり、失敗を0msの成功に変えたりはしません。DASHの選択は全てのMPDとの互換性を保証するものではありません。"
     },
     {
       "type": "h3",
@@ -252,31 +252,31 @@
       "label": "Resource Timingの転送量を取得できる条件"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/webx-shared.ts#L166",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/adapters/webx-shared.ts#L166",
       "label": "Web Xのソース設定とSourceイベント"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/hls.ts#L31",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/adapters/hls.ts#L31",
       "label": "hls.jsの共通条件と起動向け設定"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/shaka-shared.ts#L45",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/adapters/shaka-shared.ts#L45",
       "label": "Shakaの共通条件と起動向け設定"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/runner.ts#L63",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/runner.ts#L63",
       "label": "共通の時計とブラウザーの通知"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/calibration.ts#L12",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/calibration.ts#L12",
       "label": "設定候補の評価と確認"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/model.ts#L281",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/model.ts#L281",
       "label": "中央値の順位を表示する条件"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/export.ts#L20",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/export.ts#L20",
       "label": "保存する比較結果の項目"
     },
     {

@@ -137,20 +137,32 @@
     },
     {
       "type": "p",
-      "text": "For the app-owned fixed 360p HLS source, Web X uses an async createPlayer factory built from the public core bundle and 20 public packages. After measuring that source, open Applied configuration, expand Player Web X, and copy its public imports and complete createPlayer factory, including the ViewMode validation helpers. The example below uses that factory with the actual PlayerConfig and Source API calls. playerKey, mediaUrl, video and container are supplied by the surrounding application."
+      "text": "For the app-owned fixed 360p HLS source, Web X uses an async createPlayer factory built from the public core bundle and 18 public packages. After measuring that source, open Applied configuration, expand Player Web X, and copy its public imports and complete createPlayer factory. The example below uses that factory with the actual PlayerConfig and Source API calls. playerKey, mediaUrl, video and container are supplied by the surrounding application."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/webx-clear-fmp4.ts",
+          "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/adapters/webx-clear-fmp4.ts",
           "label": "Complete public Web X package factory"
+        },
+        {
+          "url": "https://developer.bitmovin.com/playback/docs/sourceapi-playbackapi",
+          "label": "Public Source API: per-source logLevel"
+        },
+        {
+          "url": "https://html.spec.whatwg.org/multipage/media.html#dom-media-pause",
+          "label": "HTML media pause and resource-selection algorithm"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/@bitmovin/player-web-x@10.3.1/types/packages/adaptation/NoAdaptation.package.d.ts",
+          "label": "Public NoAdaptationPackage type declaration (10.3.1)"
         }
       ]
     },
     {
       "type": "code",
-      "text": "// Copy the public imports, ViewMode validation helpers and createPlayer factory from Applied configuration.\nconst player = await createPlayer({\n  key: playerKey,\n  defaultContainer: container,\n  defaultVideoElement: video,\n  playback: { muted: true, autoplay: false, preventSeeking: false },\n  defaultLogLevel: 0,\n});\nconst source = player.sources.add({\n  resources: [{ url: mediaUrl, type: \"hls\" }],\n  contentType: \"content\",\n}, { attach: false, loadControl: 0 });\nsource.currentTime = 0;\nsource.playbackRate = 1;\n// Register source observers before starting data loading.\nplayer.sources.attachVideo(source, { video, container });\nvideo.controls = false;\nsource.loadControl = 2;\nawait source.play();"
+      "text": "// Copy the public imports and createPlayer factory from Applied configuration.\nconst player = await createPlayer({\n  key: playerKey,\n  defaultContainer: container,\n  defaultVideoElement: video,\n  playback: { muted: true, autoplay: true, preventSeeking: false },\n  defaultLogLevel: 0,\n});\nconst source = player.sources.add({\n  resources: [{ url: mediaUrl, type: \"hls\" }],\n  contentType: \"content\",\n}, { attach: false, loadControl: 0 });\nsource.logLevel = 0;\nsource.currentTime = 0;\nsource.playbackRate = 1;\n// Register source observers before starting data loading.\nplayer.sources.attachVideo(source, { video, container });\nvideo.controls = false;\nsource.loadControl = 2;\nawait source.play();"
     },
     {
       "type": "table",
@@ -162,8 +174,8 @@
       "rows": [
         [
           "Package selection (app policy)",
-          "playerx-core-clear-fmp4; 20 added packages",
-          "Use the recorded compact public composition only for the fixed clear-fMP4 HLS source; other sources keep the prebuilt format bundle. This is not a PlayerConfig property."
+          "playerx-core-clear-fmp4; 18 added packages",
+          "Use the recorded compact public composition, including NoAdaptationPackage, only for the fixed single-rendition clear-fMP4 HLS source. Custom sources and the adaptive HLS ladder keep their prebuilt format bundle and normal adaptation. This is not a PlayerConfig property."
         ],
         [
           "key",
@@ -187,8 +199,8 @@
         ],
         [
           "playback.autoplay",
-          "false",
-          "Request play explicitly after installing observers. The installed bundle’s initial value is false."
+          "true: startup profile; false: default profile",
+          "Declare SDK play intent when constructing the Player. The Source is still staged with attach:false and loadControl=0; observers are registered before attachment and data loading, then Source.play() is called explicitly. The bundle default is false. This SDK setting is separate from the common video.autoplay=false HTML property."
         ],
         [
           "playback.preventSeeking",
@@ -198,7 +210,7 @@
         [
           "defaultLogLevel",
           "0 (Off)",
-          "Disable console output in measured trials. The public type does not document a default; the installed 10.3.1 logger initializes at Verbose (5). This flag alone has not been established as a speed gain."
+          "Set the Player logger to Off in the startup profile. Source logging is controlled separately by source.logLevel. The public type does not document a default; the installed 10.3.1 logger initializes at Verbose (5). This flag alone has not been established as a speed gain."
         ],
         [
           "resources[0].url",
@@ -224,6 +236,11 @@
           "sources.add: loadControl",
           "0 (Nothing)",
           "Stage without manifest/segment requests; the documented default is Data (2). Staging is still inside the measured interval."
+        ],
+        [
+          "source.logLevel",
+          "0 (Off)",
+          "Set the Source logger to Off immediately after sources.add, before attachment, data loading or playback. This is a separate public property from Player defaultLogLevel. The default profile leaves it unset, retaining SDK defaults. This setting alone has not been established as a speed gain."
         ],
         [
           "source.currentTime",
@@ -254,7 +271,7 @@
     },
     {
       "type": "p",
-      "text": "The compact composition is selected only for the app-owned comparison-360p.m3u8 HLS source. It retains audio/video playback, automatic adaptation, Source controls and ViewMode. CorePlayer supplies Core, EventBus and PlayerApi; the factory adds the 20 packages in its recorded order. TS parsing/transmuxing, AES decryption, subtitles, UI, Analytics and advertising packages are omitted because this controlled source does not require them. This source-specific packaging choice does not establish a speed advantage or an optimal configuration."
+      "text": "The compact composition is selected only for the app-owned comparison-360p.m3u8 HLS source, which has one 640×360 video rendition and one English audio track. It uses the supported public NoAdaptationPackage in place of AdaptationPackage: the first video and audio tracks are selected without an adaptation task. This fixture therefore retains the same selected video and audio. CorePlayer supplies Core, EventBus and PlayerApi; the factory adds 18 packages in its recorded order, including Data and Network. ViewMode and PlatformDetection are omitted because this controlled comparison uses inline video and does not request fullscreen or picture-in-picture. TS parsing/transmuxing, AES decryption, subtitles, UI, Analytics and advertising packages remain omitted because this source does not require them. This source-specific packaging choice does not establish a speed advantage or an optimal configuration."
     },
     {
       "type": "p",
@@ -262,11 +279,15 @@
     },
     {
       "type": "p",
-      "text": "Before constructing CorePlayer, the factory checks the public ViewMode package: onAdd must be a function and its dependencies must be exactly core-effects, source-state-atom and source-api-manager. It accepts the package directly or inside one default namespace wrapper, preserving the package object. Deeper or incompatible wrappers fail before construction. If adding a package fails after construction, the async factory awaits player.dispose() before rethrowing; constructorEnd is recorded only after successful factory resolution, including package registration. SDK import starts after the measurement clock; normal licensing behavior is retained."
+      "text": "If adding a package fails after CorePlayer construction, the async factory awaits player.dispose() before rethrowing. constructorEnd is recorded only after successful factory resolution, including package registration. SDK import starts after the measurement clock; normal licensing behavior is retained."
     },
     {
       "type": "p",
-      "text": "Native PlayerConfig in 10.3.1 exposes no startup bitrate, buffer threshold, worker toggle or request-concurrency setting used by this adapter. The installed public Streaming implementation initializes forward/backward buffer targets to 12/6 seconds; this adapter does not override those initial targets and retains default WISH adaptation. These are version-specific implementation observations, not additional PlayerConfig controls or measured optima. v8 TweaksConfig names cannot be copied into the native Web X API."
+      "text": "For this SDK version, autoplay=true initializes the Source target state to Playing. It avoids starting with a paused SDK target and its initial native pause operation. Under the HTML pause algorithm, calling pause() while a fresh media element is NETWORK_EMPTY invokes resource selection. Source staging still requests no manifests or segments, and the explicit Source.play() promise remains tied to Playing. This describes the configuration rationale; it does not establish a latency benefit for autoplay or source logging alone."
+    },
+    {
+      "type": "p",
+      "text": "Native PlayerConfig in 10.3.1 exposes no startup bitrate, buffer threshold, worker toggle or request-concurrency setting used by this adapter. The installed public Streaming implementation initializes forward/backward buffer targets to 12/6 seconds; this adapter does not override those initial targets. The fixed single-rendition composition uses NoAdaptationPackage; custom and adaptive sources keep their prebuilt bundle and SDK adaptation behavior. These are version-specific implementation observations, not additional PlayerConfig controls or measured optima. v8 TweaksConfig names cannot be copied into the native Web X API."
     },
     {
       "type": "h2",

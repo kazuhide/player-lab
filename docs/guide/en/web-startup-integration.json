@@ -38,7 +38,7 @@
       "rows": [
         [
           "Player Web X",
-          "The common 360p HLS uses a composition of public Web X packages. Custom URLs, the adaptive HLS ladder and DASH use their format-specific prebuilt bundles. The native Player and Source APIs are used throughout. DASH support in 10.3.1 is partial, so a manifest that plays in Shaka may still be incompatible. Observers are registered before loading or playback, and the player is disposed when its session ends."
+          "The common single-rendition 360p HLS uses the public core bundle and 18 public packages, including NoAdaptationPackage to select its only video and audio tracks. Custom URLs, the adaptive HLS ladder and DASH keep their format-specific prebuilt bundles and normal adaptation. The native Player and Source APIs are used throughout. In the startup profile, playback.autoplay=true declares SDK play intent at construction and both Player and Source logging are set to Off. The Source is staged without data loading; observers are registered before attachment, data loading and explicit Source.play(). The default profile retains autoplay=false and SDK logging defaults. DASH support in 10.3.1 is partial, so a manifest that plays in Shaka may still be incompatible. The player is disposed when its session ends."
         ],
         [
           "Bitmovin Player 8",
@@ -252,31 +252,31 @@
       "label": "Resource Timing transfer-size visibility"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/webx-shared.ts#L166",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/adapters/webx-shared.ts#L166",
       "label": "Web X source setup and real Source events"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/hls.ts#L31",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/adapters/hls.ts#L31",
       "label": "hls.js common and startup configuration"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/shaka-shared.ts#L45",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/adapters/shaka-shared.ts#L45",
       "label": "Shaka common and startup configuration"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/runner.ts#L63",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/runner.ts#L63",
       "label": "Shared clock and browser observations"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/calibration.ts#L12",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/calibration.ts#L12",
       "label": "Candidate screening and independent confirmation"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/model.ts#L281",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/model.ts#L281",
       "label": "Conditions required before ranking medians"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/export.ts#L20",
+      "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/export.ts#L20",
       "label": "Allowlisted comparison export"
     },
     {
