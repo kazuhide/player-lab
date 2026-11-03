@@ -64,6 +64,19 @@ for (const language of ["en", "ja"] as const) {
     }
     const v8 = exported.trials.find((trial: { engine: string }) => trial.engine === "bitmovin-8");
     expect(v8.version).toMatch(/^8\.\d+\.\d+$/);
+    const applied = page.locator(".demo-applied-configuration");
+    await applied.locator(":scope > summary").click();
+    await expect(applied.locator(".demo-configuration-player code")).toHaveCount(4);
+    const code = await applied.locator(".demo-configuration-player code").allTextContents();
+    expect(code[0]).toContain("bundles/playerx-core");
+    expect(code[0]).toContain("await createPlayer(");
+    expect(code[1]).toContain("bitmovinplayer-core");
+    expect(code[1]).toContain('"key": playerKey');
+    expect(code[2]).toContain('"enableWorker": false');
+    expect(code[3]).toContain("shaka-player.hls-es2021");
+    expect(code[3]).not.toContain('"segmentPrefetchLimit"');
+    expect(code.join("\n")).not.toMatch(/https?:|blob:|authorization|password|do-not-export/i);
+    await applied.locator(":scope > summary").click();
     await captureComparison(page, testInfo, "single", language);
     await page.getByRole("button", { name: language === "ja" ? "並べて表示" : "Side by side", exact: true }).click();
     await expect(page.locator(".demo-stage iframe")).toHaveCount(4);
