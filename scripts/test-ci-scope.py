@@ -209,6 +209,18 @@ jobs:
                 self.git("reset", "--hard", base); self.write(name); self.commit()
                 self.assertTrue(self.native_selected(base=base))
 
+    def test_dated_web_result_datasets_keep_native_checks_light(self):
+        for name in ("docs/web-startup-results-2026-11-01.json", "docs/web-comparison-results-2026-11-03.json"):
+            self.write(name)
+        self.commit()
+        self.assertFalse(self.native_selected())
+        base = self.git("rev-parse", "HEAD").decode().strip()
+        for name in ("docs/native-results-2026-11-03.json", "docs/web-comparison-results-latest.json",
+                     "docs/web-comparison-results-2026-11-03.py"):
+            with self.subTest(path=name):
+                self.git("reset", "--hard", base); self.write(name); self.commit()
+                self.assertTrue(self.native_selected(base=base))
+
     def test_exact_coordinated_web_sdk_pins_and_lock_keep_native_checks_light(self):
         for old, new in (("8.281.0", "8.283.0"), ("8.283.0", "8.284.0")):
             with self.subTest(old=old, new=new):

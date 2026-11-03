@@ -28,6 +28,7 @@ WEB_SDK_PINS = {b"apps/web/package.json": b"dependencies",
                 b"tests/e2e/package.json": b"devDependencies"}
 WEB_SDK_FILES = frozenset(WEB_SDK_PINS) | {b"pnpm-lock.yaml"}
 WEB_PATH = re.compile(rb"(?:docs/guide/(?:en|ja)/[a-z0-9-]+\.json|"
+                      rb"docs/web-(?:startup|comparison)-results-[0-9]{4}-[0-9]{2}-[0-9]{2}\.json|"
                       rb"apps/web/src/startup/(?:adapters/)?[a-z0-9-]+\.(?:ts|css)|"
                       rb"apps/web/test/[A-Za-z0-9-]+\.test\.ts|"
                       rb"site/assets/guide/web-[a-z0-9-]+\.(?:png|jpg)|"
