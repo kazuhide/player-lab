@@ -154,6 +154,19 @@ describe("native Web X startup adapter", () => {
     await session.dispose();
   });
 
+  it("keeps native controls hidden when SDK attachment enables them", async () => {
+    const f = fixture();
+    f.player.sources.attachVideo.mockImplementation(() => { f.context.video.controls = true; });
+    const session = await createAdapter(f.context);
+    const starting = session.start();
+    expect(f.context.video.controls).toBe(false);
+    f.context.video.controls = true;
+    f.playerEvents.emit("video-attached", { sourceId: f.source.id, videoElement: f.context.video });
+    expect(f.context.video.controls).toBe(false);
+    await session.dispose();
+    await starting.catch(() => {});
+  });
+
   it.each([0, 1, 2] as const)("records startup loadControl %s without inventing a load-completion event", async (loadControl) => {
     const f = fixture("startup", { webXLoadControl: loadControl });
     const session = await createAdapter(f.context);

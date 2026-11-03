@@ -1,10 +1,17 @@
 export type EngineId = "web-x" | "hls" | "shaka";
+/** The retained demo includes v8; historical benchmark cohorts keep their schema. */
+export type DemoEngineId = EngineId | "bitmovin-8";
 export type StartupProfile = "default" | "startup";
 
 export const SDK_VERSIONS: Readonly<Record<EngineId, string>> = {
   "web-x": "10.3.1",
   hls: "1.7.4",
   shaka: "5.3.3",
+};
+
+export const DEMO_SDK_VERSIONS: Readonly<Record<DemoEngineId, string>> = {
+  ...SDK_VERSIONS,
+  "bitmovin-8": "8.283.0",
 };
 
 export type AdapterMark =
@@ -30,7 +37,7 @@ export interface StartupTuning {
 }
 
 export interface AdapterMetadata {
-  readonly engine: EngineId;
+  readonly engine: DemoEngineId;
   readonly name: string;
   readonly version: string;
   /** Exact provider event names; these events do not have equivalent semantics. */

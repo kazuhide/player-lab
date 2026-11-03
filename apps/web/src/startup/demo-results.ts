@@ -1,12 +1,25 @@
-import { SDK_VERSIONS, type EngineId } from "./contract";
+import { DEMO_SDK_VERSIONS, type DemoEngineId } from "./contract";
 import type { BrowserMark, BrowserMarks } from "./runner";
 import type { DemoSample, DemoSeek, DemoSource, DemoStartup } from "./demo-session";
 import { parseDemoSource } from "./demo-contract";
 
-export const DEMO_ENGINES: readonly EngineId[] = ["web-x", "hls", "shaka"];
-export const ENGINE_NAMES: Record<EngineId, string> = { "web-x": "Player Web X", hls: "hls.js", shaka: "Shaka Player" };
+export const DEMO_ENGINES: readonly DemoEngineId[] = ["web-x", "bitmovin-8", "hls", "shaka"];
+export const ENGINE_NAMES: Record<DemoEngineId, string> = {
+  "web-x": "Player Web X", "bitmovin-8": "Bitmovin Player 8", hls: "hls.js", shaka: "Shaka Player",
+};
+
+const permutations = (remaining: readonly DemoEngineId[]): DemoEngineId[][] => remaining.length === 0 ? [[]]
+  : remaining.flatMap((engine, index) => permutations(remaining.filter((_, other) => other !== index))
+    .map((tail) => [engine, ...tail]));
+const DEMO_ORDERS = permutations(DEMO_ENGINES);
+
+/** A fresh order per cohort; the advanced benchmark's historical schedule is separate. */
+export function makeDemoTrialOrder(seed: number): DemoEngineId[] {
+  if (!Number.isInteger(seed) || seed < 0 || seed > 0xffff_ffff) throw new Error("invalid-seed");
+  return [...DEMO_ORDERS[seed % DEMO_ORDERS.length]!];
+}
 export interface DemoRecord {
-  engine: EngineId;
+  engine: DemoEngineId;
   startup: DemoStartup | null;
   seek: DemoSeek | null;
   samples: DemoSample[];
@@ -36,15 +49,16 @@ export function seekTarget(sample: Pick<DemoSample, "seekableStart" | "seekableE
 }
 
 /** Explicit primitive allowlist; SDK metadata and custom media addresses are private. */
-export function safeDemoExport(records: readonly DemoRecord[], format: "hls" | "dash", custom: boolean) {
+export function safeDemoExport(records: readonly DemoRecord[], format: "hls" | "dash", custom: boolean, network = false) {
   return {
     schemaVersion: 1,
     exportedAt: new Date().toISOString(),
-    source: { format, kind: custom ? "custom" : "big-buck-bunny" },
+    source: { format, kind: custom ? "custom" : "big-buck-bunny",
+      renditions: custom ? "source-defined" : network ? "adaptive" : "fixed-360p" },
     method: "sequential-visible-playback",
     cache: "browser-managed",
     trials: records.map((record) => ({
-      engine: record.engine, version: SDK_VERSIONS[record.engine],
+      engine: record.engine, version: DEMO_SDK_VERSIONS[record.engine],
       startup: record.startup ? { status: record.startup.status, failureCode: record.startup.failureCode,
         marks: { ...record.startup.marks }, frameCallbackAvailable: record.startup.frameCallbackAvailable } : null,
       seek: record.seek ? { status: record.seek.status, failureCode: record.seek.failureCode,

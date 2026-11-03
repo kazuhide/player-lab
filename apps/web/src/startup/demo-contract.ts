@@ -1,4 +1,4 @@
-import type { AdapterMetadata, EngineId, FailureCode, StartupProfile, StartupTuning } from "./contract";
+import type { AdapterMetadata, DemoEngineId, FailureCode, StartupProfile, StartupTuning } from "./contract";
 import type { BrowserMarks } from "./runner";
 import type { DemoNetworkStatus } from "./demo-network";
 
@@ -47,7 +47,7 @@ export interface DemoStartOptions {
   readonly selectedAt?: number;
 }
 export interface DemoOptions {
-  readonly engine: EngineId;
+  readonly engine: DemoEngineId;
   readonly container: HTMLElement;
   readonly onSample?: (sample: DemoSample) => void;
 }

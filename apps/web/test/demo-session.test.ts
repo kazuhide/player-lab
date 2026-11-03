@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DemoRuntime } from "../src/startup/demo-session";
-import type { AdapterContext, AdapterSession } from "../src/startup/contract";
+import type { AdapterContext, AdapterSession, DemoEngineId, StartupProfile, StartupTuning } from "../src/startup/contract";
+import type { DemoSource } from "../src/startup/demo-contract";
+const routes = vi.hoisted(() => ({ compact: vi.fn(), hls: vi.fn(), dash: vi.fn() }));
+vi.mock("../src/startup/adapters/webx-clear-fmp4", () => ({ createAdapter: routes.compact }));
+vi.mock("../src/startup/adapters/webx", () => ({ createAdapter: routes.hls }));
+vi.mock("../src/startup/adapters/webx-dash", () => ({ createAdapter: routes.dash }));
 
 class Video extends EventTarget {
   paused = false; ended = false; seeking = false; readyState = 2;
@@ -28,8 +33,8 @@ const metadata = { engine: "hls", name: "fixture", version: "1.7.4", readyEvent:
   loadCompletion: "unavailable", attachCompletion: "synchronous-return", configuration: {}, unavailable: {}, sampleLimitations: {} } as const;
 const runtimes: DemoRuntime[] = [];
 async function drain() { for (let i = 0; i < 12; i++) await Promise.resolve(); }
-async function fixture(options: { frames?: boolean; engine?: "hls" | "shaka" | "web-x"; format?: "hls" | "dash";
-  createGate?: Promise<void>; startGate?: Promise<void> } = {}) {
+async function fixture(options: { frames?: boolean; engine?: DemoEngineId; format?: "hls" | "dash";
+  createGate?: Promise<void>; startGate?: Promise<void>; source?: DemoSource; profile?: StartupProfile; tuning?: StartupTuning } = {}) {
   const video = new Video();
   if (options.frames === false) Object.defineProperty(video, "requestVideoFrameCallback", { value: undefined });
   const controller = new AbortController(); let context!: AdapterContext;
@@ -43,7 +48,9 @@ async function fixture(options: { frames?: boolean; engine?: "hls" | "shaka" | "
   const runtime = new DemoRuntime({ engine: options.engine ?? "hls", video: video as unknown as HTMLVideoElement,
     container: {} as HTMLElement, onSample: sample, clock: { timeOrigin: 0, now: () => Date.now() }, loadAdapter: load });
   runtimes.push(runtime);
-  const started = runtime.start({ source: { url: "https://media.invalid/asset", format: options.format ?? "hls", label: "asset", custom: true },
+  const started = runtime.start({ source: options.source ?? { url: "https://media.invalid/asset", format: options.format ?? "hls", label: "asset", custom: true },
+    ...(options.profile === undefined ? {} : { profile: options.profile }),
+    ...(options.tuning === undefined ? {} : { tuning: options.tuning }),
     signal: controller.signal, selectedAt: 0 });
   await drain();
   return { runtime, video, controller, context, disposal, playback, load, sample, started };
@@ -53,13 +60,52 @@ async function playing(f: Awaited<ReturnType<typeof fixture>>) {
   return f.started;
 }
 beforeEach(() => {
+  Object.values(routes).forEach((route) => route.mockReset());
   vi.useFakeTimers(); vi.setSystemTime(0);
   vi.stubGlobal("location", new URL("https://player-lab.invalid/comparison-runner.html?demo=1"));
   vi.stubGlobal("window", { setTimeout, clearTimeout, setInterval, clearInterval });
 });
-afterEach(async () => { await Promise.all(runtimes.splice(0).map((runtime) => runtime.dispose().catch(() => {}))); vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(async () => { await Promise.all(runtimes.splice(0).map((runtime) => runtime.dispose().catch(() => {}))); vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("retained comparison runtime", () => {
+  const fixed: DemoSource = { url: "https://player-lab.invalid/player-lab/web/media/vod-baseline/comparison-360p.m3u8",
+    format: "hls", custom: false, label: "fixture" };
+  const workerCases: readonly { name: string; engine: DemoEngineId; source: DemoSource;
+    profile?: StartupProfile; expected?: boolean }[] = [
+    { name: "matching explicit startup", engine: "hls", source: fixed, profile: "startup", expected: false },
+    { name: "matching implicit startup", engine: "hls", source: fixed, expected: false },
+    { name: "default profile", engine: "hls", source: fixed, profile: "default" },
+    { name: "custom URL", engine: "hls", source: { ...fixed, custom: true }, profile: "startup" },
+    { name: "adaptive network source", engine: "hls", source: { ...fixed, url: fixed.url.replace("comparison-360p", "master") }, profile: "startup" },
+    { name: "other origin", engine: "hls", source: { ...fixed, url: fixed.url.replace("player-lab.invalid", "media.invalid") }, profile: "startup" },
+    { name: "Shaka", engine: "shaka", source: fixed, profile: "startup" },
+    { name: "Web X", engine: "web-x", source: fixed, profile: "startup" },
+    { name: "Bitmovin v8", engine: "bitmovin-8", source: fixed, profile: "startup" },
+  ];
+  it.each(workerCases)("scopes calibrated hls worker policy to $name", async (choice) => {
+    vi.stubEnv("BASE_URL", "/player-lab/web/");
+    const f = await fixture({ engine: choice.engine, source: choice.source,
+      ...(choice.profile === undefined ? {} : { profile: choice.profile }) });
+    expect(f.context.tuning?.hlsWorker).toBe(choice.expected);
+    if (choice.expected === undefined) expect(f.context.tuning).toBeUndefined();
+    expect((await playing(f)).status).toBe("success");
+  });
+  it.each([true, false])("preserves an explicit hlsWorker=%s and other caller tuning", async (hlsWorker) => {
+    vi.stubEnv("BASE_URL", "/player-lab/web/");
+    const tuning = Object.freeze({ hlsWorker, shakaPrefetchLimit: 2 as const });
+    const f = await fixture({ source: fixed, profile: "startup", tuning });
+    expect(f.context.tuning).toEqual(tuning);
+    expect(tuning).toEqual({ hlsWorker, shakaPrefetchLimit: 2 });
+    expect((await playing(f)).status).toBe("success");
+  });
+  it("retains other tuning when adding the calibrated worker setting", async () => {
+    vi.stubEnv("BASE_URL", "/player-lab/web/");
+    const tuning = Object.freeze({ shakaPrefetchLimit: 0 as const });
+    const f = await fixture({ source: fixed, profile: "startup", tuning });
+    expect(f.context.tuning).toEqual({ shakaPrefetchLimit: 0, hlsWorker: false });
+    expect(tuning).toEqual({ shakaPrefetchLimit: 0 });
+    expect((await playing(f)).status).toBe("success");
+  });
   it("retains playback after genuine startup and disposes exactly once on explicit close", async () => {
     const f = await fixture(); const result = await playing(f);
     expect(result).toMatchObject({ status: "success", failureCode: null, marks: { firstFrame: 0, firstMovingFrame: 20, advanced: 20 } });
@@ -144,10 +190,45 @@ describe("retained comparison runtime", () => {
     expect(f.video.frames.size).toBe(0);
   });
   it("routes supported DASH engines to the actual DASH adapter boundary", async () => {
-    for (const engine of ["web-x", "shaka"] as const) {
+    for (const engine of ["web-x", "bitmovin-8", "shaka"] as const) {
       const f = await fixture({ engine, format: "dash" }); await playing(f);
-      expect(f.load).toHaveBeenCalledExactlyOnceWith(engine, "dash");
+      expect(f.load).toHaveBeenCalledExactlyOnceWith(engine, {
+        url: "https://media.invalid/asset", format: "dash", label: "asset", custom: true,
+      });
     }
+  });
+  it.each([
+    { path: "comparison-360p.m3u8", format: "hls", custom: false, selected: "compact" },
+    { path: "comparison-360p.m3u8", format: "hls", custom: true, selected: "hls" },
+    { path: "master.m3u8", format: "hls", custom: false, selected: "hls" },
+    { path: "other.m3u8", format: "hls", custom: false, selected: "hls" },
+    { path: "manifest.mpd", format: "dash", custom: true, selected: "dash" },
+  ] as const)("imports the $selected Web X adapter only after validated $path selection", async (choice) => {
+    vi.stubEnv("BASE_URL", "/player-lab/web/");
+    const base = "https://player-lab.invalid/player-lab/web/";
+    vi.stubGlobal("location", new URL(`${base}demo-runner.html?demo=1`));
+    const video = new Video();
+    const dispose = vi.fn(async () => {});
+    const session: AdapterSession = { metadata, start: vi.fn(async () => {}), dispose,
+      sample: () => ({ mediaEngine: "unknown", audioLanguage: null, workerActive: null,
+        loadLatencySeconds: null, timeToFirstFrameSeconds: null, bandwidthEstimateBps: null }) };
+    for (const route of Object.values(routes)) route.mockResolvedValue(session);
+    const runtime = new DemoRuntime({ engine: "web-x", video: video as unknown as HTMLVideoElement,
+      container: {} as HTMLElement, clock: { timeOrigin: 0, now: () => Date.now() } });
+    runtimes.push(runtime);
+    expect(Object.values(routes).every((route) => route.mock.calls.length === 0)).toBe(true);
+    const started = runtime.start({ source: { url: `${base}media/vod-baseline/${choice.path}`, format: choice.format,
+      custom: choice.custom, label: "asset" }, signal: new AbortController().signal, selectedAt: 0 });
+    await vi.dynamicImportSettled(); await drain();
+    video.emit("playing"); video.frame(0); await vi.advanceTimersByTimeAsync(20); video.frame(0.2);
+    const result = await started;
+    expect(result).toMatchObject({ status: "success", marks: { sdkImportStart: 0 } });
+    expect(result.marks.sdkImportEnd).toBeGreaterThanOrEqual(result.marks.sdkImportStart!);
+    expect(routes[choice.selected]).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
+      url: `${base}media/vod-baseline/${choice.path}`,
+    }));
+    for (const [name, route] of Object.entries(routes)) if (name !== choice.selected) expect(route).not.toHaveBeenCalled();
+    await runtime.dispose(); expect(dispose).toHaveBeenCalledOnce();
   });
   it("preserves observed frame/advancement times while awaiting a late genuine start promise", async () => {
     let resolve!: () => void; const gate = new Promise<void>((yes) => { resolve = yes; });

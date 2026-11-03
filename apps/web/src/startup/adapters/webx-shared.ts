@@ -1,4 +1,10 @@
-import type { Player as BundlePlayer } from "@bitmovin/player-web-x/bundles/playerx-dash";
+import type { WithBaseApi } from "@bitmovin/player-web-x/framework-types/framework";
+import type { PlayerConfig } from "@bitmovin/player-web-x/types/bundles/Types";
+import type { MergeApisAndEventBuses } from "@bitmovin/player-web-x/types/packages/event-bus/Types";
+import type { PlaybackApi } from "@bitmovin/player-web-x/types/packages/playback-api/Types";
+import type { PlayerApi } from "@bitmovin/player-web-x/types/packages/player-api/Types";
+import type { SourceApiBase, SourcesApi } from "@bitmovin/player-web-x/types/packages/sources-api/Types";
+import type { ViewModeApi } from "@bitmovin/player-web-x/types/packages/view-mode/Types";
 import {
   SDK_VERSIONS,
   type AdapterMark,
@@ -7,13 +13,17 @@ import {
   type FailureCode,
 } from "../contract";
 
-type NativePlayer = ReturnType<typeof BundlePlayer>;
+export type NativeSourceApi = MergeApisAndEventBuses<[SourceApiBase, PlaybackApi, ViewModeApi]>;
+export type NativePlayerApi = WithBaseApi<PlayerApi & SourcesApi<NativeSourceApi>>;
+export type NativePlayerFactory = (configuration: PlayerConfig) => NativePlayerApi | Promise<NativePlayerApi>;
+type NativePlayer = NativePlayerApi;
 type NativeSource = ReturnType<NativePlayer["sources"]["add"]>;
+interface BundleMetadata { readonly bundle: string; readonly packages: readonly string[] }
 
 const failureError = (code: FailureCode): Error => new Error(`Web X startup failed (${code}).`);
 
 /** Native Source/Playback API, without the separate v8 compatibility layer. */
-export const makeWebXAdapter = (Player: typeof BundlePlayer, format: "hls" | "dash"): CreateAdapter => async (context) => {
+export const makeWebXAdapter = (Player: NativePlayerFactory, format: "hls" | "dash", bundle?: BundleMetadata): CreateAdapter => async (context) => {
   const { video, container, signal } = context;
   if (signal.aborted) {
     context.fatal("aborted");
@@ -35,7 +45,8 @@ export const makeWebXAdapter = (Player: typeof BundlePlayer, format: "hls" | "da
     attachCompletion: "event",
     configuration: {
       profile: context.profile,
-      bundle: format === "hls" ? "playerx-hls" : "playerx-dash",
+      bundle: bundle?.bundle ?? (format === "hls" ? "playerx-hls" : "playerx-dash"),
+      ...(bundle ? { packages: [...bundle.packages] } : {}),
       muted: true,
       autoplay: false,
       preventSeeking: false,
@@ -50,6 +61,7 @@ export const makeWebXAdapter = (Player: typeof BundlePlayer, format: "hls" | "da
       stagingAttach: false,
       stagingLoadControl: 0,
       startLoadControl: loadControl,
+      startSequence: "attach-before-load",
       optionalAnalytics: false,
       optionalAdvertising: false,
       optionalUI: false,
@@ -120,7 +132,7 @@ export const makeWebXAdapter = (Player: typeof BundlePlayer, format: "hls" | "da
     video.playbackRate = 1;
     mark("constructorStart");
     if (signal.aborted) throw failureError("aborted");
-    player = Player({
+    player = await Player({
       key: context.licenseKey,
       defaultContainer: container,
       defaultVideoElement: video,
@@ -136,7 +148,10 @@ export const makeWebXAdapter = (Player: typeof BundlePlayer, format: "hls" | "da
       if (!source || event.sourceId === source.id) fail("sdk-error");
     };
     const onAttached = (event: { sourceId: string; videoElement: HTMLVideoElement }): void => {
-      if (source && event.sourceId === source.id && event.videoElement === video) mark("attachComplete");
+      if (active() && source && event.sourceId === source.id && event.videoElement === video) {
+        video.controls = false;
+        mark("attachComplete");
+      }
     };
     const ownedPlayer = player;
     removeListeners.push(() => ownedPlayer.events.off(ownedPlayer.events.Type.PlayerError, onError));
@@ -183,6 +198,8 @@ export const makeWebXAdapter = (Player: typeof BundlePlayer, format: "hls" | "da
           mark("attachStart");
           ownedPlayer.sources.attachVideo(ownedSource, { video, container });
           if (!active()) throw failureError(failure ?? "aborted");
+          // Attachment can enable native controls; the comparison owns its controls.
+          video.controls = false;
           if (loadControl !== 0) mark("loadStart");
           ownedSource.loadControl = loadControl;
           if (!active()) throw failureError(failure ?? "aborted");

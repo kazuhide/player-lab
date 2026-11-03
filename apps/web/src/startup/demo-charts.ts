@@ -1,6 +1,6 @@
 import { pick } from "../i18n";
 import { DEMO_ENGINES, ENGINE_NAMES, metricDuration, type DemoRecord } from "./demo-results";
-import type { EngineId } from "./contract";
+import type { DemoEngineId } from "./contract";
 
 export function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -9,7 +9,7 @@ export function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: st
   return node;
 }
 const format = (value: number) => `${value.toFixed(0)} ms`;
-const colors: Record<EngineId, string> = { "web-x": "#2054d8", hls: "#59677e", shaka: "#087b72" };
+const colors: Record<DemoEngineId, string> = { "web-x": "#2054d8", "bitmovin-8": "#7441a9", hls: "#59677e", shaka: "#087b72" };
 
 function status(record: DemoRecord | undefined, kind: "startup" | "seek"): string {
   const observation = record?.[kind];

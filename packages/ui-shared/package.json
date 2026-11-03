@@ -37,7 +37,7 @@
     "bitmovin-player": "^8.19.0"
   },
   "devDependencies": {
-    "bitmovin-player": "8.281.0",
+    "bitmovin-player": "8.283.0",
     "sass": "^1.80.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.0",
