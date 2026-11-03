@@ -3,7 +3,9 @@
 
 import importlib.util
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import redirect_stdout
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
@@ -43,6 +45,18 @@ COMPARISON_MASTER = (
     '#EXT-X-STREAM-INF:BANDWIDTH=66234,RESOLUTION=320x180,'
     'CODECS="avc1.64000c,mp4a.40.2",AUDIO="audio"\nmedia_1.m3u8\n'
 )
+
+
+def write_hls_rendition(root, number, durations, sizes, target=4):
+    lines = ['#EXTM3U', '#EXT-X-VERSION:6', f'#EXT-X-TARGETDURATION:{target}',
+             '#EXT-X-MEDIA-SEQUENCE:1', f'#EXT-X-MAP:URI="init-stream{number}.m4s"']
+    (root / f'init-stream{number}.m4s').write_bytes(b'initialization bytes are not media segments' * 1000)
+    for index, (duration, size) in enumerate(zip(durations, sizes), 1):
+        name = f'chunk-stream{number}-{index:05}.m4s'
+        (root / name).write_bytes(b'x' * size)
+        lines.extend([f'#EXTINF:{duration},', f'#EXT-X-PROGRAM-DATE-TIME:2026-01-01T00:00:{index:02}.000Z', name])
+    lines.append('#EXT-X-ENDLIST')
+    (root / f'media_{number}.m3u8').write_text('\n'.join(lines) + '\n')
 
 
 def write_download(command, options, contents):
@@ -263,6 +277,113 @@ class LocalMediaTests(unittest.TestCase):
                       'media_0.m3u8?token=fake', '%6dedia_0.m3u8', 'media_0.m3u8#fragment']:
             with self.subTest(reference=value), self.assertRaises(ValueError):
                 MEDIA.comparison_master(COMPARISON_MASTER.replace('media_0.m3u8', value), '640x360')
+
+    def test_hls_peak_uses_eligible_contiguous_windows_and_average_uses_all_segments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_hls_rendition(root, 0, ['0.5', '1.5', '4'], [900, 100, 200])
+            # The short first segment alone is not an eligible 2..6-second window.
+            # Initialization bytes must not inflate either segment rate.
+            self.assertEqual(MEDIA.hls_playlist_bitrates(root / 'media_0.m3u8'), (4000, 1600))
+
+    def test_hls_master_adds_only_the_largest_playable_audio_rendition(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_hls_rendition(root, 0, ['0.5', '1.5', '4'], [900, 100, 200])
+            write_hls_rendition(root, 1, ['2', '2', '2'], [100, 100, 100])
+            write_hls_rendition(root, 2, ['2', '2', '2'], [25, 25, 25])
+            write_hls_rendition(root, 3, ['2', '2', '2'], [50, 50, 50])
+            alternate = ('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="German test track",'
+                         'LANGUAGE="de",DEFAULT=NO,URI="media_3.m3u8"\n')
+            master = COMPARISON_MASTER.replace('#EXT-X-STREAM-INF:', alternate + '#EXT-X-STREAM-INF:', 1)
+            before = {p.name: MEDIA.digest(p) for p in root.iterdir()}
+            corrected = MEDIA.hls_master_bandwidth(master, root)
+            variants = [MEDIA.hls_attributes(line) for line in corrected.splitlines() if line.startswith('#EXT-X-STREAM-INF:')]
+            self.assertEqual([(v['BANDWIDTH'], v['AVERAGE-BANDWIDTH']) for v in variants], [('4200', '1800'), ('600', '600')])
+            self.assertEqual({p.name: MEDIA.digest(p) for p in root.iterdir()}, before)
+            self.assertEqual(MEDIA.hls_master_bandwidth(corrected, root), corrected)
+            baseline = MEDIA.hls_master_bandwidth(COMPARISON_MASTER, root)
+            for name, resolution in MEDIA.COMPARISON_MASTERS.items():
+                comparison = MEDIA.comparison_master(baseline, resolution)
+                variant = next(MEDIA.hls_attributes(line) for line in comparison.splitlines() if line.startswith('#EXT-X-STREAM-INF:'))
+                expected = ('4100', '1700') if '360p' in name else ('500', '500')
+                self.assertEqual((variant['BANDWIDTH'], variant['AVERAGE-BANDWIDTH']), expected)
+
+    def test_hls_master_rounds_up_only_after_combining_rendition_rates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for number in (0, 1, 2):
+                write_hls_rendition(root, number, ['1.5'], [1], target=2)
+            corrected = MEDIA.hls_master_bandwidth(COMPARISON_MASTER, root)
+            self.assertEqual(corrected.count('BANDWIDTH=11,AVERAGE-BANDWIDTH=11,'), 2)
+
+    def test_hls_bandwidth_rejects_unsupported_or_incomplete_media_without_writing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_hls_rendition(root, 0, ['2', '2'], [100, 100], target=2)
+            playlist = root / 'media_0.m3u8'
+            original = playlist.read_text()
+            invalid = [original.replace('#EXTINF:2,', '#EXTINF:0,', 1),
+                       original.replace('#EXTINF:2,', '#EXTINF:NaN,', 1),
+                       original.replace('#EXT-X-ENDLIST\n', ''),
+                       original.replace('#EXT-X-MEDIA-SEQUENCE:1', '#EXT-X-KEY:METHOD=AES-128,URI="key.bin"'),
+                       original.replace('#EXT-X-MEDIA-SEQUENCE:1', '#EXT-X-BYTERANGE:100@0'),
+                       original.replace('chunk-stream0-00001.m4s', '../other.m4s'),
+                       original.replace('chunk-stream0-00001.m4s', 'https://example.invalid/segment.m4s'),
+                       original.replace('#EXTINF:2,\n', '', 1)]
+            for text in invalid:
+                with self.subTest(playlist=text):
+                    playlist.write_text(text)
+                    with self.assertRaises(ValueError):
+                        MEDIA.hls_playlist_bitrates(playlist)
+                    self.assertEqual(playlist.read_text(), text)
+
+    def test_generated_masters_use_the_actual_media_rates_without_reencoding(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive = root / 'source.zip'
+            with zipfile.ZipFile(archive, 'w') as zipped:
+                zipped.writestr(MEDIA.SOURCE_MEMBER, b'controlled source placeholder')
+            output = root / 'output'
+
+            def encode(command, **_options):
+                if '-version' in command:
+                    return SimpleNamespace(stdout='controlled tool version\n')
+                self.assertEqual(command[0], 'ffmpeg')
+                baseline = output / 'vod-baseline'
+                for number, size in enumerate([100, 50, 20, 40]):
+                    write_hls_rendition(baseline, number, ['2'] * 30, [size] * 30, target=2)
+                raw = COMPARISON_MASTER.replace('English test track",LANGUAGE="en"', 'audio_2"')
+                raw = raw.replace('#EXT-X-STREAM-INF:',
+                    '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="audio_3",DEFAULT=NO,URI="media_3.m3u8"\n#EXT-X-STREAM-INF:', 1)
+                (baseline / 'master.m3u8').write_text(raw)
+                (baseline / 'manifest.mpd').write_text('<MPD xmlns="urn:mpeg:dash:schema:mpd:2011"><Period><AdaptationSet lang="en"/><AdaptationSet lang="de"/></Period></MPD>')
+                return SimpleNamespace(returncode=0)
+
+            with patch.object(MEDIA, 'SOURCE_SHA256', MEDIA.digest(archive)), \
+                 patch.object(MEDIA.shutil, 'which', return_value='/available-tool'), \
+                 patch.object(MEDIA, 'available_cpus', return_value=2), \
+                 patch.object(MEDIA, 'available_memory', return_value=1024 ** 3), \
+                 patch.object(MEDIA, 'probe_representation', return_value={'last_packet_end_seconds': 60}), \
+                 patch.object(MEDIA.subprocess, 'run', side_effect=encode), redirect_stdout(io.StringIO()):
+                MEDIA.build(output, archive)
+            for relative in ['vod-baseline/master.m3u8', 'vod-baseline/comparison-360p.m3u8',
+                             'vod-baseline/comparison-180p.m3u8', 'vod-multiaudio/master.m3u8', 'vod-sprites/master.m3u8']:
+                master = output / relative
+                variants = [MEDIA.hls_attributes(line) for line in master.read_text().splitlines() if line.startswith('#EXT-X-STREAM-INF:')]
+                self.assertTrue(all(int(v['BANDWIDTH']) != 66234 and 'AVERAGE-BANDWIDTH' in v for v in variants))
+                if 'multiaudio' not in relative:
+                    self.assertTrue(all(int(v['BANDWIDTH']) == (480 if v['RESOLUTION'] == '640x360' else 280) for v in variants))
+                else:
+                    # Uniform two-second VTT segments have one-segment peak windows.
+                    subtitles = [[p.stat().st_size for p in master.parent.glob(f'subtitle-{lang}-*.vtt')]
+                                 for lang in ('en', 'de')]
+                    peak = max(max(sizes) * 4 for sizes in subtitles)
+                    total = max(sum(sizes) * 8 for sizes in subtitles)
+                    for variant in variants:
+                        video_audio = 560 if variant['RESOLUTION'] == '640x360' else 360
+                        self.assertEqual(int(variant['BANDWIDTH']), video_audio + peak)
+                        self.assertEqual(int(variant['AVERAGE-BANDWIDTH']), (video_audio * 60 + total + 59) // 60)
 
     def test_native_hls_subtitles_have_two_second_segments_and_distinct_languages(self):
         with tempfile.TemporaryDirectory() as directory:
