@@ -1,0 +1,792 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-03",
+  "evidenceKind": "exploratory-incomplete",
+  "appSourceRevision": "6d45c1c4c50f134f6d6037de6371f41eb127a69a",
+  "buildProvenance": "Built before the app-source commit. All selected compact Web source hashes were later verified against this commit; this is not a claim that the artifact was built from its clean checkout.",
+  "sdkVersions": {
+    "web-x": "10.3.1",
+    "bitmovin-8": "8.283.0",
+    "hls": "1.7.4",
+    "shaka": "5.3.3"
+  },
+  "environment": {
+    "browser": "Chromium 156.0.8078.4",
+    "osFamily": "macOS",
+    "arch": "arm64",
+    "cpuModel": "Apple M5",
+    "memoryGiB": 32
+  },
+  "source": {
+    "name": "Big Buck Bunny",
+    "format": "hls",
+    "durationSeconds": 60,
+    "targetSegmentDurationSeconds": 2,
+    "rendition": "640x360",
+    "audioLanguage": "en",
+    "fixtureMasterSha256": "78daab11b335d5eebc9af9d5545a835c09786f861e28e8cc358b859bf7d2a9d7"
+  },
+  "method": {
+    "layout": "one visible measured engine at a time",
+    "cache": "disabled through CDP; fresh browser context per cohort",
+    "startup": "Per-engine acceptance to first observed moving video frame, including runner document and SDK import.",
+    "seek": "Request to a frame near the target followed by advancing playback. All recorded seeks targeted 40 seconds outside the buffered range.",
+    "plannedGroupsPerVariantCache": 8,
+    "completedGroupsPerVariantCache": {
+      "disabled": 2,
+      "browser-managed": 0
+    },
+    "conditioning": "One excluded functional preflight for every variant/cache combination; none is pooled into timing statistics.",
+    "interruption": "The automation stopped while preparing the next cohort before measurement. The interrupted campaign did not complete the planned execution-position balance. No timing retry, trimming or replacement was used."
+  },
+  "variants": {
+    "baseline": {
+      "cohorts": [
+        {
+          "group": 1,
+          "engineOrder": [
+            "web-x",
+            "bitmovin-8",
+            "shaka",
+            "hls"
+          ],
+          "trials": [
+            {
+              "engine": "web-x",
+              "version": "10.3.1",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 181.300048828125,
+              "sdkPlayingMs": 117.699951171875,
+              "nativePlayingMs": 107.199951171875,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 97.599853515625,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "bitmovin-8",
+              "version": "8.283.0",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 150.800048828125,
+              "sdkPlayingMs": 78.5,
+              "nativePlayingMs": 78.099853515625,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 347.2001953125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "shaka",
+              "version": "5.3.3",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 127.900146484375,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 63.900146484375,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 84.400146484375,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "hls",
+              "version": "1.7.4",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 110.60009765625,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 34.89990234375,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 80.300048828125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "engineOrder": [
+            "bitmovin-8",
+            "hls",
+            "web-x",
+            "shaka"
+          ],
+          "trials": [
+            {
+              "engine": "bitmovin-8",
+              "version": "8.283.0",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 164.900146484375,
+              "sdkPlayingMs": 98.60009765625,
+              "nativePlayingMs": 98.300048828125,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 330.7001953125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "hls",
+              "version": "1.7.4",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 112.099853515625,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 34.5,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 84.39990234375,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "web-x",
+              "version": "10.3.1",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 163.10009765625,
+              "sdkPlayingMs": 106.89990234375,
+              "nativePlayingMs": 95.199951171875,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 81.89990234375,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "shaka",
+              "version": "5.3.3",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 140.199951171875,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 77.099853515625,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 81.2001953125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "candidate": {
+      "cohorts": [
+        {
+          "group": 1,
+          "engineOrder": [
+            "web-x",
+            "bitmovin-8",
+            "shaka",
+            "hls"
+          ],
+          "trials": [
+            {
+              "engine": "web-x",
+              "version": "10.3.1",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 181.199951171875,
+              "sdkPlayingMs": 120.800048828125,
+              "nativePlayingMs": 110.10009765625,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 80.199951171875,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "bitmovin-8",
+              "version": "8.283.0",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 140.699951171875,
+              "sdkPlayingMs": 75.300048828125,
+              "nativePlayingMs": 74.199951171875,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 348.2001953125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "shaka",
+              "version": "5.3.3",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 126.7998046875,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 64.099853515625,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 82.60009765625,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "hls",
+              "version": "1.7.4",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 113.5,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 44.2998046875,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 81.300048828125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "engineOrder": [
+            "bitmovin-8",
+            "hls",
+            "web-x",
+            "shaka"
+          ],
+          "trials": [
+            {
+              "engine": "bitmovin-8",
+              "version": "8.283.0",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 164.699951171875,
+              "sdkPlayingMs": 90,
+              "nativePlayingMs": 89.599853515625,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 79.7001953125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "hls",
+              "version": "1.7.4",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 112.400146484375,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 35.60009765625,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 68.2001953125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "web-x",
+              "version": "10.3.1",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 163.199951171875,
+              "sdkPlayingMs": 108.300048828125,
+              "nativePlayingMs": 97,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 81.2001953125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "shaka",
+              "version": "5.3.3",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 149.7001953125,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 71.2001953125,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 81.39990234375,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "compact": {
+      "cohorts": [
+        {
+          "group": 1,
+          "engineOrder": [
+            "web-x",
+            "bitmovin-8",
+            "shaka",
+            "hls"
+          ],
+          "trials": [
+            {
+              "engine": "web-x",
+              "version": "10.3.1",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 162.89990234375,
+              "sdkPlayingMs": 112.60009765625,
+              "nativePlayingMs": 102.5,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 80.2998046875,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "bitmovin-8",
+              "version": "8.283.0",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 157.800048828125,
+              "sdkPlayingMs": 85.800048828125,
+              "nativePlayingMs": 83.89990234375,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 330.300048828125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "shaka",
+              "version": "5.3.3",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 144.699951171875,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 66.699951171875,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 82,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "hls",
+              "version": "1.7.4",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 95.89990234375,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 34,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 81,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "engineOrder": [
+            "bitmovin-8",
+            "hls",
+            "web-x",
+            "shaka"
+          ],
+          "trials": [
+            {
+              "engine": "bitmovin-8",
+              "version": "8.283.0",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 164.10009765625,
+              "sdkPlayingMs": 95.900146484375,
+              "nativePlayingMs": 95.60009765625,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 346.800048828125,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "hls",
+              "version": "1.7.4",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 111.89990234375,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 44.199951171875,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 82.60009765625,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "web-x",
+              "version": "10.3.1",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 161.5,
+              "sdkPlayingMs": 101.699951171875,
+              "nativePlayingMs": 91.300048828125,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 79.699951171875,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            },
+            {
+              "engine": "shaka",
+              "version": "5.3.3",
+              "startupStatus": "success",
+              "selectionToMovingFrameMs": 158.60009765625,
+              "sdkPlayingMs": null,
+              "nativePlayingMs": 80.300048828125,
+              "seekStatus": "success",
+              "seekToMovingFrameMs": 80.5,
+              "seekTargetSeconds": 40,
+              "seekWasBuffered": false,
+              "renderedDimensions": [
+                "640x360"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "selectedCompactDescriptive": {
+    "web-x": {
+      "version": "10.3.1",
+      "startupMs": {
+        "n": 2,
+        "median": 162.199951171875,
+        "min": 161.5,
+        "max": 162.89990234375,
+        "mad": 0.699951171875
+      },
+      "seekMs": {
+        "n": 2,
+        "median": 79.9998779296875,
+        "min": 79.699951171875,
+        "max": 80.2998046875,
+        "mad": 0.2999267578125
+      }
+    },
+    "bitmovin-8": {
+      "version": "8.283.0",
+      "startupMs": {
+        "n": 2,
+        "median": 160.9500732421875,
+        "min": 157.800048828125,
+        "max": 164.10009765625,
+        "mad": 3.1500244140625
+      },
+      "seekMs": {
+        "n": 2,
+        "median": 338.550048828125,
+        "min": 330.300048828125,
+        "max": 346.800048828125,
+        "mad": 8.25
+      }
+    },
+    "hls": {
+      "version": "1.7.4",
+      "startupMs": {
+        "n": 2,
+        "median": 103.89990234375,
+        "min": 95.89990234375,
+        "max": 111.89990234375,
+        "mad": 8.0
+      },
+      "seekMs": {
+        "n": 2,
+        "median": 81.800048828125,
+        "min": 81,
+        "max": 82.60009765625,
+        "mad": 0.800048828125
+      }
+    },
+    "shaka": {
+      "version": "5.3.3",
+      "startupMs": {
+        "n": 2,
+        "median": 151.6500244140625,
+        "min": 144.699951171875,
+        "max": 158.60009765625,
+        "mad": 6.9500732421875
+      },
+      "seekMs": {
+        "n": 2,
+        "median": 81.25,
+        "min": 80.5,
+        "max": 82,
+        "mad": 0.75
+      }
+    }
+  },
+  "baselineVsCompactPairedExploratory": {
+    "web-x": {
+      "startupMs": {
+        "pairs": [
+          {
+            "group": 1,
+            "baseline": 181.300048828125,
+            "compact": 162.89990234375,
+            "compactMinusBaseline": -18.400146484375
+          },
+          {
+            "group": 2,
+            "baseline": 163.10009765625,
+            "compact": 161.5,
+            "compactMinusBaseline": -1.60009765625
+          }
+        ],
+        "difference": {
+          "n": 2,
+          "median": -10.0001220703125,
+          "min": -18.400146484375,
+          "max": -1.60009765625,
+          "mad": 8.4000244140625
+        }
+      },
+      "seekMs": {
+        "pairs": [
+          {
+            "group": 1,
+            "baseline": 97.599853515625,
+            "compact": 80.2998046875,
+            "compactMinusBaseline": -17.300048828125
+          },
+          {
+            "group": 2,
+            "baseline": 81.89990234375,
+            "compact": 79.699951171875,
+            "compactMinusBaseline": -2.199951171875
+          }
+        ],
+        "difference": {
+          "n": 2,
+          "median": -9.75,
+          "min": -17.300048828125,
+          "max": -2.199951171875,
+          "mad": 7.550048828125
+        }
+      }
+    },
+    "bitmovin-8": {
+      "startupMs": {
+        "pairs": [
+          {
+            "group": 1,
+            "baseline": 150.800048828125,
+            "compact": 157.800048828125,
+            "compactMinusBaseline": 7.0
+          },
+          {
+            "group": 2,
+            "baseline": 164.900146484375,
+            "compact": 164.10009765625,
+            "compactMinusBaseline": -0.800048828125
+          }
+        ],
+        "difference": {
+          "n": 2,
+          "median": 3.0999755859375,
+          "min": -0.800048828125,
+          "max": 7.0,
+          "mad": 3.9000244140625
+        }
+      },
+      "seekMs": {
+        "pairs": [
+          {
+            "group": 1,
+            "baseline": 347.2001953125,
+            "compact": 330.300048828125,
+            "compactMinusBaseline": -16.900146484375
+          },
+          {
+            "group": 2,
+            "baseline": 330.7001953125,
+            "compact": 346.800048828125,
+            "compactMinusBaseline": 16.099853515625
+          }
+        ],
+        "difference": {
+          "n": 2,
+          "median": -0.400146484375,
+          "min": -16.900146484375,
+          "max": 16.099853515625,
+          "mad": 16.5
+        }
+      }
+    },
+    "hls": {
+      "startupMs": {
+        "pairs": [
+          {
+            "group": 1,
+            "baseline": 110.60009765625,
+            "compact": 95.89990234375,
+            "compactMinusBaseline": -14.7001953125
+          },
+          {
+            "group": 2,
+            "baseline": 112.099853515625,
+            "compact": 111.89990234375,
+            "compactMinusBaseline": -0.199951171875
+          }
+        ],
+        "difference": {
+          "n": 2,
+          "median": -7.4500732421875,
+          "min": -14.7001953125,
+          "max": -0.199951171875,
+          "mad": 7.2501220703125
+        }
+      },
+      "seekMs": {
+        "pairs": [
+          {
+            "group": 1,
+            "baseline": 80.300048828125,
+            "compact": 81,
+            "compactMinusBaseline": 0.699951171875
+          },
+          {
+            "group": 2,
+            "baseline": 84.39990234375,
+            "compact": 82.60009765625,
+            "compactMinusBaseline": -1.7998046875
+          }
+        ],
+        "difference": {
+          "n": 2,
+          "median": -0.5499267578125,
+          "min": -1.7998046875,
+          "max": 0.699951171875,
+          "mad": 1.2498779296875
+        }
+      }
+    },
+    "shaka": {
+      "startupMs": {
+        "pairs": [
+          {
+            "group": 1,
+            "baseline": 127.900146484375,
+            "compact": 144.699951171875,
+            "compactMinusBaseline": 16.7998046875
+          },
+          {
+            "group": 2,
+            "baseline": 140.199951171875,
+            "compact": 158.60009765625,
+            "compactMinusBaseline": 18.400146484375
+          }
+        ],
+        "difference": {
+          "n": 2,
+          "median": 17.5999755859375,
+          "min": 16.7998046875,
+          "max": 18.400146484375,
+          "mad": 0.8001708984375
+        }
+      },
+      "seekMs": {
+        "pairs": [
+          {
+            "group": 1,
+            "baseline": 84.400146484375,
+            "compact": 82,
+            "compactMinusBaseline": -2.400146484375
+          },
+          {
+            "group": 2,
+            "baseline": 81.2001953125,
+            "compact": 80.5,
+            "compactMinusBaseline": -0.7001953125
+          }
+        ],
+        "difference": {
+          "n": 2,
+          "median": -1.5501708984375,
+          "min": -2.400146484375,
+          "max": -0.7001953125,
+          "mad": 0.8499755859375
+        }
+      }
+    }
+  },
+  "staticAdapterImportClosure": {
+    "baseline-four": {
+      "files": [
+        "assets/chunk-Cyuzqnbw.js",
+        "assets/contract-B7n8qgLq.js",
+        "assets/webx-Di1yHcIN.js",
+        "assets/webx-shared-DuohcmQP.js"
+      ],
+      "rawBytes": 543059,
+      "gzip9BytesPerFile": 138786
+    },
+    "load-before-attach": {
+      "files": [
+        "assets/chunk-Cyuzqnbw.js",
+        "assets/contract-B7n8qgLq.js",
+        "assets/webx-DBIDlRF2.js",
+        "assets/webx-shared-DJf3wtmt.js"
+      ],
+      "rawBytes": 543059,
+      "gzip9BytesPerFile": 138786
+    },
+    "compact-hls": {
+      "files": [
+        "assets/chunk-Cyuzqnbw.js",
+        "assets/contract-B7n8qgLq.js",
+        "assets/webx-clear-fmp4-PucUPZk2.js",
+        "assets/webx-shared-DuohcmQP.js"
+      ],
+      "rawBytes": 485005,
+      "gzip9BytesPerFile": 118236
+    }
+  },
+  "decisions": {
+    "selected": "compact, attach-before-load",
+    "reason": "20,550 fewer bytes in the per-file gzip9 static import closure (14.8%). This is not measured HTTP transfer or a proven startup/seek improvement.",
+    "loadBeforeAttach": "Not selected; no qualified benefit established.",
+    "startupSpeedWinProven": false,
+    "fastestPlayerClaim": false
+  },
+  "limitations": [
+    "Only two of eight planned groups completed, so the timings are examples rather than a qualified ranking or optimization proof.",
+    "The unchanged Player 8, hls.js and Shaka controls also shifted between variants.",
+    "No browser-managed measured set was completed.",
+    "The fixed clear fMP4 fixture does not establish custom-source, live, codec or device-wide performance.",
+    "All 24 recorded startup and seek outcomes succeeded; sampled dimensions were exclusively 640x360."
+  ]
+}
