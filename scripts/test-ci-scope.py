@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify conservative CI routing against real Git histories."""
+import json
 import os
 from pathlib import Path
 import re
@@ -53,6 +54,35 @@ class ScopeTests(unittest.TestCase):
         return ci_scope.native_required(event, self.base if base is None else base,
                                         self.git("rev-parse", "HEAD").decode().strip() if head is None else head,
                                         root=self.root)
+
+    def sdk_files(self, version):
+        files = {}
+        for name, section in (("apps/web/package.json", "dependencies"),
+                              ("packages/ui-shared/package.json", "devDependencies"),
+                              ("tests/e2e/package.json", "devDependencies")):
+            data = {"name": name, section: {"bitmovin-player": version}}
+            if name.startswith("packages/"):
+                data["dependencies"] = {"bitmovin-player-ui": "4.23.0"}
+            files[name] = json.dumps(data, indent=2) + "\n"
+        peer = "4.23.0(patch_hash=" + "a" * 64 + ")(bitmovin-player@" + version + ")"
+        lock = "lockfileVersion: '9.0'\n\nimporters:\n"
+        for owner, section in (("apps/web", "dependencies"), ("packages/ui-shared", "devDependencies"), ("tests/e2e", "devDependencies")):
+            lock += "  " + owner + ":\n"
+            if owner == "packages/ui-shared":
+                lock += "    dependencies:\n      bitmovin-player-ui:\n        specifier: 4.23.0\n        version: " + peer + "\n"
+            lock += "    " + section + ":\n      bitmovin-player:\n        specifier: " + version + "\n        version: " + version + "\n\n"
+        integrity = chr(65 + int(version.split('.')[1]) % 26) * 86 + "=="
+        lock += ("  apps/vega:\n    dependencies:\n      bitmovin-player:\n        specifier: 8.138.0-beta.28\n        version: 8.138.0-beta.28\n\n"
+                 "packages:\n\n  bitmovin-player@" + version + ":\n    resolution: {integrity: sha512-" + integrity + "}\n\n"
+                 "  shaka-player@5.3.3:\n    resolution: {integrity: unchanged}\n    engines: {node: '>=18'}\n\n"
+                 "snapshots:\n\n  bitmovin-player-ui@" + peer + ":\n    dependencies:\n      bitmovin-player: " + version + "\n\n"
+                 "  bitmovin-player@" + version + ": {}\n")
+        files["pnpm-lock.yaml"] = lock
+        return files
+
+    def write_sdk(self, version):
+        for name, text in self.sdk_files(version).items():
+            self.write(name, text)
 
     def workflow(self, scoped=False, light=False, comparison=False):
         text = """name: Fixture
@@ -165,6 +195,87 @@ jobs:
         self.assertFalse(self.native_selected("push"))
         self.assertFalse(self.native_selected("pull_request"))
         self.assertFalse(self.selected())
+
+    def test_generated_web_api_and_local_media_paths_are_exactly_scoped(self):
+        for name in ("apps/web/src/api/schema.json", "docs/api-coverage/coverage.json",
+                     "docs/api-coverage/inventory.json", "docs/api-coverage/summary.json", "docs/api-coverage/gaps.json",
+                     "encoding/test-streams/local.py", "scripts/test-local-media.py"):
+            self.write(name)
+        self.commit()
+        self.assertFalse(self.native_selected())
+        base = self.git("rev-parse", "HEAD").decode().strip()
+        for name in ("docs/api-coverage/native.json", "apps/web/src/api/other.json", "encoding/test-streams/other.py"):
+            with self.subTest(path=name):
+                self.git("reset", "--hard", base); self.write(name); self.commit()
+                self.assertTrue(self.native_selected(base=base))
+
+    def test_exact_coordinated_web_sdk_pins_and_lock_keep_native_checks_light(self):
+        for old, new in (("8.281.0", "8.283.0"), ("8.283.0", "8.284.0")):
+            with self.subTest(old=old, new=new):
+                self.git("reset", "--hard", self.base)
+                self.write_sdk(old); base = self.commit()
+                self.write_sdk(new); self.write("apps/web/src/startup/demo-session.ts"); self.commit()
+                self.assertFalse(self.native_selected(base=base))
+                self.assertFalse(self.native_selected("pull_request", base=base))
+
+    def test_sdk_pin_exception_rejects_partial_inconsistent_or_nonstable_manifest_changes(self):
+        self.write_sdk("8.281.0"); base = self.commit()
+        invalid = ("8.282.0", "^8.283.0", "latest", "9.0.0", "8.280.0", "8.283.0-beta.1")
+        for version in invalid:
+            with self.subTest(version=version):
+                self.git("reset", "--hard", base); self.write_sdk("8.283.0")
+                data = json.loads((self.root / "apps/web/package.json").read_text())
+                data["dependencies"]["bitmovin-player"] = version
+                self.write("apps/web/package.json", json.dumps(data)); self.commit()
+                self.assertTrue(self.native_selected(base=base))
+        for version in ("^8.283.0", "9.0.0", "8.280.0", "8.283.0-beta.1"):
+            with self.subTest(coordinated_invalid_version=version):
+                self.git("reset", "--hard", base); self.write_sdk(version); self.commit()
+                self.assertTrue(self.native_selected(base=base))
+        for omitted in self.sdk_files("8.283.0"):
+            with self.subTest(omitted=omitted):
+                self.git("reset", "--hard", base)
+                for name, text in self.sdk_files("8.283.0").items():
+                    if name != omitted:
+                        self.write(name, text)
+                self.commit(); self.assertTrue(self.native_selected(base=base))
+        for addition in ('"extraDependency":"1.0.0",', '"bitmovin-player":"8.283.0",'):
+            with self.subTest(addition=addition):
+                self.git("reset", "--hard", base); self.write_sdk("8.283.0")
+                name = "apps/web/package.json"
+                self.write(name, (self.root / name).read_text().replace('"dependencies": {', '"dependencies": {' + addition))
+                self.commit(); self.assertTrue(self.native_selected(base=base))
+        self.git("reset", "--hard", base); self.write_sdk("8.283.0")
+        self.write("apps/web/package.json", '{"dependencies": {"bitmovin-player": "8.283.0", "invalid": NaN}}')
+        self.commit(); self.assertTrue(self.native_selected(base=base))
+
+    def test_sdk_pin_exception_rejects_all_unrelated_or_malformed_lock_changes(self):
+        self.write_sdk("8.281.0"); base = self.commit()
+        lock = self.sdk_files("8.283.0")["pnpm-lock.yaml"]
+        mutations = (("    engines: {node: '>=18'}\n", ""),
+                     ("8.138.0-beta.28", "8.138.0-beta.29"),
+                     ("patch_hash=" + "a" * 64, "patch_hash=" + "b" * 64),
+                     ("bitmovin-player-ui@4.23.0", "bitmovin-player-ui@4.24.0"),
+                     ("resolution: {integrity: unchanged}", "resolution: {integrity: changed}"),
+                     ("specifier: 8.283.0\n        version: 8.283.0", "specifier: 8.283.0\n        version: 8.282.0"),
+                     ("bitmovin-player@8.283.0: {}", "bitmovin-player@8.283.0: {dependencies: {other: 1.0.0}}"),
+                     ("sha512-", "sha256-"),
+                     ("snapshots:\n", "snapshots:\n  apps/web:\n    dependencies: {}\n"))
+        for old, new in mutations:
+            with self.subTest(mutation=new):
+                self.git("reset", "--hard", base); self.write_sdk("8.283.0")
+                changed = lock.replace(old, new); self.assertNotEqual(changed, lock)
+                self.write("pnpm-lock.yaml", changed); self.commit()
+                self.assertTrue(self.native_selected(base=base))
+
+    def test_sdk_pin_exception_never_hides_shared_native_or_other_dependency_changes(self):
+        self.write_sdk("8.281.0"); base = self.commit()
+        for name in ("packages/ui-shared/src/global.ts", "packages/ui-shared/tsup.config.ts", "pnpm-workspace.yaml",
+                     "apps/ios/Native.swift", "apps/ios/Package.resolved", "apps/android/app/build.gradle.kts",
+                     "apps/react-native/package.json", "apps/web/src/main.ts", "apps/web/other-lock.yaml"):
+            with self.subTest(path=name):
+                self.git("reset", "--hard", base); self.write_sdk("8.283.0"); self.write(name); self.commit()
+                self.assertTrue(self.native_selected(base=base))
 
     def test_native_shared_dependency_unknown_and_mixed_paths_fail_closed(self):
         for name in ("apps/ios/Native.swift", "apps/android/Main.kt", "apps/web/package.json", "pnpm-lock.yaml",

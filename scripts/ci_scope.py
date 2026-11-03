@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Select application checks only from a verified, narrowly scoped Git diff."""
+import json
 import os
 from pathlib import Path
 import re
@@ -18,7 +19,14 @@ WEB_FILES = frozenset(path.encode() for path in (
     "scripts/package-pages.py", "scripts/test-pages-package.py",
     "scripts/scan-pages-secrets.py", "scripts/test-pages-secrets.py",
     "apps/ios/test_track_qualification.py",
+    "apps/web/src/api/schema.json", "docs/api-coverage/coverage.json",
+    "docs/api-coverage/inventory.json", "docs/api-coverage/summary.json", "docs/api-coverage/gaps.json",
+    "encoding/test-streams/local.py", "scripts/test-local-media.py",
 ))
+WEB_SDK_PINS = {b"apps/web/package.json": b"dependencies",
+                b"packages/ui-shared/package.json": b"devDependencies",
+                b"tests/e2e/package.json": b"devDependencies"}
+WEB_SDK_FILES = frozenset(WEB_SDK_PINS) | {b"pnpm-lock.yaml"}
 WEB_PATH = re.compile(rb"(?:docs/guide/(?:en|ja)/[a-z0-9-]+\.json|"
                       rb"apps/web/src/startup/(?:adapters/)?[a-z0-9-]+\.(?:ts|css)|"
                       rb"apps/web/test/[A-Za-z0-9-]+\.test\.ts|"
@@ -85,6 +93,81 @@ def changed_paths(event, base, head, *, root):
 def references_only(event, base, head, *, root=Path(".")):
     paths = changed_paths(event, base, head, root=root)
     return paths is not None and all(path.startswith(b"references/") for path in paths)
+
+
+def replace_one(data, pattern, replacement):
+    if len(list(re.finditer(pattern, data))) != 1:
+        raise ValueError("Expected one reviewed lock fragment.")
+    return re.sub(pattern, replacement, data, count=1)
+
+
+def normalize_web_sdk_lock(data, version):
+    """Normalize only the three managed pins and their exact UI peer/package records."""
+    value, marker = version.encode(), b"__WEB_PLAYER__"
+    escaped = re.escape(value)
+    for name, section in WEB_SDK_PINS.items():
+        owner = re.escape(name.removesuffix(b"/package.json"))
+        matches = list(re.finditer(rb'(?ms)^  ' + owner + rb':\n.*?(?=^  \S|^\S|\Z)', data))
+        if len(matches) != 1:
+            raise ValueError("Expected one managed lock importer.")
+        match, block = matches[0], matches[0].group()
+        pair = b"      bitmovin-player:\n        specifier: " + value + b"\n        version: " + value + b"\n"
+        field = re.search(rb'(?ms)^    ' + section + rb':\n.*?(?=^    \S|\Z)', block)
+        if field is None or pair not in field.group() or block.count(pair) != 1:
+            raise ValueError("The lock importer differs from its managed manifest pin.")
+        block = block.replace(pair, pair.replace(value, marker), 1)
+        if name == b"packages/ui-shared/package.json":
+            peer = (rb'(?m)(^      bitmovin-player-ui:\n        specifier: [^\n]+\n'
+                    rb'        version: [0-9]+\.[0-9]+\.[0-9]+\(patch_hash=[a-f0-9]{64}\))'
+                    rb'\(bitmovin-player@' + escaped + rb'\)\n')
+            block = replace_one(block, peer, lambda m: m[1] + b"(bitmovin-player@" + marker + b")\n")
+        data = data[:match.start()] + block + data[match.end():]
+    package = (rb'(?m)^  bitmovin-player@' + escaped +
+               rb':\n    resolution: \{integrity: sha512-[A-Za-z0-9+/]{86}==\}\n')
+    data = replace_one(data, package, b"  bitmovin-player@" + marker + b":\n    resolution: {integrity: __SDK_INTEGRITY__}\n")
+    snapshot = (rb'(?m)(^  bitmovin-player-ui@[0-9]+\.[0-9]+\.[0-9]+\(patch_hash=[a-f0-9]{64}\))'
+                rb'\(bitmovin-player@' + escaped + rb'\):\n    dependencies:\n      bitmovin-player: ' + escaped + rb'\n')
+    data = replace_one(data, snapshot, lambda m: m[1] + b"(bitmovin-player@" + marker +
+                       b"):\n    dependencies:\n      bitmovin-player: " + marker + b"\n")
+    return replace_one(data, rb'(?m)^  bitmovin-player@' + escaped + rb': \{\}\n',
+                       b"  bitmovin-player@" + marker + b": {}\n")
+
+
+def unique_json(pairs):
+    result = dict(pairs)
+    if len(result) != len(pairs):
+        raise ValueError("Duplicate manifest JSON key.")
+    return result
+
+
+def invalid_json_constant(_value):
+    raise ValueError("Non-standard manifest JSON constant.")
+
+
+def web_sdk_pin_change(base, head, *, root):
+    """A coordinated stable-v8 pin is the only dependency exception; keep all other bytes."""
+    previous, current = set(), set()
+    try:
+        for name, section in WEB_SDK_PINS.items():
+            records = [json.loads(git(root, "show", revision + ":" + name.decode()),
+                                  object_pairs_hook=unique_json, parse_constant=invalid_json_constant)
+                       for revision in (base, head)]
+            old, new = (record[section.decode()].pop("bitmovin-player") for record in records)
+            if records[0] != records[1]:
+                return False
+            previous.add(old); current.add(new)
+        if len(previous) != 1 or len(current) != 1:
+            return False
+        old, new = previous.pop(), current.pop()
+        stable = r"8\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
+        if not all(isinstance(value, str) and re.fullmatch(stable, value) for value in (old, new)):
+            return False
+        if tuple(map(int, old.split('.'))) >= tuple(map(int, new.split('.'))):
+            return False
+        return (normalize_web_sdk_lock(git(root, "show", base + ":pnpm-lock.yaml"), old)
+                == normalize_web_sdk_lock(git(root, "show", head + ":pnpm-lock.yaml"), new))
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.SubprocessError):
+        return False
 
 
 def normalize_light_job(block, job):
@@ -173,8 +256,11 @@ def normalize_workflow(data):
 
 def native_required(event, base, head, *, root=Path(".")):
     paths = changed_paths(event, base, head, root=root)
-    if paths is None or any(path != WORKFLOW and path not in WEB_FILES
+    if paths is None or any(path != WORKFLOW and path not in WEB_FILES and path not in WEB_SDK_FILES
                             and not WEB_PATH.fullmatch(path) for path in paths):
+        return True
+    if WEB_SDK_FILES.intersection(paths) and (not WEB_SDK_FILES.issubset(paths)
+                                             or not web_sdk_pin_change(base, head, root=root)):
         return True
     if WORKFLOW in paths:
         try:
