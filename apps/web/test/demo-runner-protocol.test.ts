@@ -16,25 +16,49 @@ function emit(type: string, id: number, payload: unknown = {}, source: unknown =
 }
 async function drain() { for (let i = 0; i < 8; i++) await Promise.resolve(); }
 const source = { url: "https://media.invalid/asset.m3u8", format: "hls", label: "asset", custom: true };
+function selectEngine(engine: string): void {
+  vi.stubGlobal("location", new URL(`${origin}/demo-runner.html?demo=1&engine=${engine}&channel=${channel}`));
+}
 beforeEach(() => {
   Object.values(runtime).forEach((fn) => fn.mockReset());
   runtime.start.mockResolvedValue({ status: "failure", failureCode: "unsupported" }); runtime.dispose.mockResolvedValue(undefined);
   surface = new EventTarget(); owner = { performance: { timeOrigin: 1000, now: () => 20 }, postMessage: vi.fn() };
   vi.stubGlobal("window", surface); vi.stubGlobal("parent", owner);
-  vi.stubGlobal("location", new URL(`${origin}/demo-runner.html?demo=1&engine=hls&channel=${channel}`));
+  selectEngine("hls");
   vi.stubGlobal("document", { querySelector: () => ({}), getElementById: () => ({}) });
 });
 afterEach(() => vi.unstubAllGlobals());
 
 describe("retained child command boundary", () => {
-  it("boots with the parent clock and accepts only its exact owner/origin/channel", async () => {
-    bootDemoRunner(); expect(runtime.construct).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ engine: "hls", clock: owner.performance }));
+  it.each(["web-x", "bitmovin-8", "hls", "shaka"])("boots %s with the parent clock and accepts only its exact owner/origin/channel", async (engine) => {
+    selectEngine(engine);
+    bootDemoRunner(); expect(runtime.construct).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ engine, clock: owner.performance }));
     expect(owner.postMessage).toHaveBeenCalledExactlyOnceWith({ type: "ready", channel }, origin);
     emit("start", 1, { source }, {}); emit("start", 1, { source }, owner, "https://other.invalid");
     const wrong = new Event("message"); Object.defineProperties(wrong, { source: { value: owner }, origin: { value: origin }, data: { value: { type: "start", channel: "other", operationId: 1, payload: { source } } } }); surface.dispatchEvent(wrong);
     await drain(); expect(runtime.start).not.toHaveBeenCalled();
     emit("start", 1, { source, selectedAt: 1000 }); await drain();
     expect(runtime.start).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ source, selectedAt: 1000, signal: expect.any(AbortSignal) }));
+  });
+  it("returns v8 startup and target-seek results on the same retained child channel", async () => {
+    selectEngine("bitmovin-8");
+    const startup = { status: "success", failureCode: null, sdkCode: null, metadata: null,
+      marks: { nativePlaying: 20, firstFrame: 24, firstMovingFrame: 40 }, frameCallbackAvailable: true };
+    const seek = { status: "success", failureCode: null, targetSeconds: 40, latencyMs: 25,
+      buffered: false, frameCallbackAvailable: true };
+    runtime.start.mockResolvedValue(startup); runtime.seek.mockResolvedValue(seek);
+    bootDemoRunner(); emit("start", 1, { source, profile: "startup", selectedAt: 1000 }); await drain();
+    expect(owner.postMessage).toHaveBeenCalledWith({ type: "response", channel, operationId: 1, result: startup }, origin);
+    emit("seek", 2, { targetSeconds: 40 }); await drain();
+    expect(runtime.seek).toHaveBeenCalledExactlyOnceWith(40, expect.any(AbortSignal));
+    expect(owner.postMessage).toHaveBeenCalledWith({ type: "response", channel, operationId: 2, result: seek }, origin);
+    emit("dispose", 3); await drain();
+    expect(runtime.dispose).toHaveBeenCalledOnce();
+    expect(owner.postMessage).toHaveBeenCalledWith({ type: "response", channel, operationId: 3, result: undefined }, origin);
+  });
+  it.each(["bitmovin", "bitmovin8", "unknown"])("does not construct a runtime for unregistered engine %s", (engine) => {
+    selectEngine(engine); bootDemoRunner();
+    expect(runtime.construct).not.toHaveBeenCalled(); expect(owner.postMessage).not.toHaveBeenCalled();
   });
   it("rejects malformed tuning, profile, time and stale operation IDs", async () => {
     bootDemoRunner();
@@ -44,7 +68,8 @@ describe("retained child command boundary", () => {
     emit("start", 9, { source, tuning: { hlsWorker: false, shakaPrefetchLimit: 0 } }); await drain();
     emit("start", 9, { source }); emit("start", 8, { source }); await drain(); expect(runtime.start).toHaveBeenCalledTimes(1);
   });
-  it("cancels only the matching active operation and releases the runtime on pagehide", async () => {
+  it.each(["hls", "bitmovin-8"])("cancels only the matching %s operation and releases the runtime on pagehide", async (engine) => {
+    selectEngine(engine);
     let finish!: () => void; runtime.start.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve; }));
     bootDemoRunner(); emit("start", 1, { source });
     const signal = runtime.start.mock.calls[0]![0].signal as AbortSignal;

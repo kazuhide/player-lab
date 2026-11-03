@@ -1,0 +1,655 @@
+{
+  "id": "web-comparison-configuration",
+  "title": "比較に使う設定",
+  "lead": "比較に使うSDKの設定値と各項目の採用理由、結果に影響する既定動作を示します。",
+  "blocks": [
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-comparison/",
+          "label": "比較画面の操作とグラフ"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-integration/",
+          "label": "計測と再生処理の実装"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "configuration",
+      "text": "適用した設定を確認する"
+    },
+    {
+      "type": "p",
+      "text": "計測後の「適用した設定」には、その試行で記録した設定から組み立てたコードを表示します。ライセンスキーとソースURLは変数で表します。以下は既定のHLS素材を使う起動向け設定の例です。DASHや明示的に変更した設定は、アプリで該当するプレイヤーを選んで確認してください。"
+    },
+    {
+      "type": "p",
+      "text": "各項目にはSDKを組み込むための指定、比較条件として固定した値、実測で評価する調整を区別して記載します。先読み12秒・保持6秒は比較条件であり、最適と実証した値やメモリ使用量の上限ではありません。Web X 10.3.1の標準のPlayerConfigには同等のバッファー設定がありません。SDKに任せている動作も結果に影響します。"
+    },
+    {
+      "type": "p",
+      "text": "「起動とシーク」の共通素材は360pの単一画質と同じ英語音声に固定します。初期画質の自動選択で、一部のプレイヤーだけが低い画質を処理することを避けるためです。「回線変化」では複数画質を使います。任意のURLでは配信元の画質と各SDKの選択を使うため、時間を比較する前に実際の解像度を確認してください。"
+    },
+    {
+      "type": "h2",
+      "id": "evaluated-settings",
+      "text": "共通素材で評価した設定"
+    },
+    {
+      "type": "p",
+      "text": "従来の起動ベンチマークで、同じ360pのHLSを使ってワーカーと先読みの候補を評価し、選んだ値で新しい確認試行を実行しました。候補の選択にはvideoのplaying通知を使い、動くフレームまでの時間も別に記録しています。以下はそのベンチマークの計測区間の値であり、再生デモの結果には混ぜません。候補ごとの件数が少なく、確認試行も選んだ値だけで行っているため、全ての条件での最適値を示すものではありません。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "候補",
+        "候補評価の中央値（playing / 動くフレーム）",
+        "確認試行と採否"
+      ],
+      "rows": [
+        [
+          "hls.js enableWorker=true",
+          "112.8 / 190.5 ms; n=3",
+          "任意のソースでは維持します。共通のfMP4素材では採用しません。"
+        ],
+        [
+          "hls.js enableWorker=false",
+          "12.7 / 90.4 ms; n=3",
+          "新しい6試行で13.35 / 85.50ms。共通素材の起動向け設定だけに採用します。"
+        ],
+        [
+          "Shaka segmentPrefetchLimit=0 / 1 / 2",
+          "36.8 / 107.15; 22.8 / 93.30; 15.8 / 87.70 ms; n=2 each",
+          "2の確認試行は17.15 / 85.90ms（6試行）。既定値の新しい比較試行がなく差も確定できないため、既定の1を維持します。"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "media-element",
+      "text": "共通のvideo要素"
+    },
+    {
+      "type": "code",
+      "text": "const video = document.createElement(\"video\");\nvideo.muted = true;\nvideo.defaultMuted = true;\nvideo.autoplay = false;\nvideo.playsInline = true;\nvideo.controls = false;\nvideo.playbackRate = 1;\nvideo.defaultPlaybackRate = 1;\nvideo.preload = \"none\";\ncontainer.append(video);"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "項目",
+        "設定値",
+        "採用理由とSDKの既定値"
+      ],
+      "rows": [
+        [
+          "muted",
+          "true",
+          "ブラウザーの自動再生制限に配慮し、無音で再生します。通常の初期値はfalseです。"
+        ],
+        [
+          "defaultMuted",
+          "true",
+          "muted属性も再生時の無音設定にそろえます。属性がなければ初期値はfalseです。"
+        ],
+        [
+          "autoplay",
+          "false",
+          "計測区間内でアプリから再生を要求します。新しい要素の初期値もfalseです。"
+        ],
+        [
+          "playsInline",
+          "true",
+          "対応ブラウザーでは映像を比較パネル内に表示します。属性がなければ初期値はfalseです。"
+        ],
+        [
+          "controls",
+          "false",
+          "比較画面の再生ボタンを使います。ブラウザー標準の操作部の表示条件であり、速度を調整する項目ではありません。"
+        ],
+        [
+          "playbackRate",
+          "1",
+          "通常速度にそろえます。ブラウザーの初期値も1です。"
+        ],
+        [
+          "defaultPlaybackRate",
+          "1",
+          "既定の再生速度も通常速度にそろえます。ブラウザーの初期値も1です。"
+        ],
+        [
+          "preload",
+          "\"none\"",
+          "ブラウザーのsrc属性による事前読み込みを要求しません。この指定があっても、読み込みを要求したSDKはMediaSource用のデータを取得できます。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "各アダプターでは再生開始位置も0に指定します。共通素材はオンデマンド動画です。ライブでは0やstartOffset=0が指す時刻の基準がSDKごとに異なるため、ライブ端へ移動する共通設定とは扱わず、実際の移動可能範囲を確認してください。"
+    },
+    {
+      "type": "h2",
+      "id": "web-x",
+      "text": "Player Web X 10.3.1"
+    },
+    {
+      "type": "p",
+      "text": "アプリに付属する360p固定のHLS素材では、公開のcoreバンドルと20個の公開パッケージを組み合わせた非同期のcreatePlayer関数を使います。この素材を計測した後、「適用した設定」のPlayer Web Xを開き、公開パッケージのimport文とViewModeの確認処理を含むcreatePlayer関数一式をコピーしてください。以下はその関数へ渡す実際のPlayerConfigとSource APIの呼び出しです。playerKey、mediaUrl、video、containerは組み込み先で用意します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/webx-clear-fmp4.ts",
+          "label": "公開パッケージを組み合わせる関数の全体"
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "text": "// Copy the public imports, ViewMode validation helpers and createPlayer factory from Applied configuration.\nconst player = await createPlayer({\n  key: playerKey,\n  defaultContainer: container,\n  defaultVideoElement: video,\n  playback: { muted: true, autoplay: false, preventSeeking: false },\n  defaultLogLevel: 0,\n});\nconst source = player.sources.add({\n  resources: [{ url: mediaUrl, type: \"hls\" }],\n  contentType: \"content\",\n}, { attach: false, loadControl: 0 });\nsource.currentTime = 0;\nsource.playbackRate = 1;\n// Register source observers before starting data loading.\nplayer.sources.attachVideo(source, { video, container });\nvideo.controls = false;\nsource.loadControl = 2;\nawait source.play();"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "項目",
+        "設定値",
+        "採用理由とSDKの既定値"
+      ],
+      "rows": [
+        [
+          "パッケージの選択（アプリ側の条件）",
+          "playerx-core-clear-fmp4・20個のパッケージを追加",
+          "共通の暗号化されていないfMP4のHLS素材だけに、記録された公開パッケージの構成を使います。その他のソースは形式に対応する既成のバンドルを使います。PlayerConfigの項目ではありません。"
+        ],
+        [
+          "key",
+          "playerKey",
+          "再生するドメインで有効なライセンスを渡します。性能の調整項目ではありません。"
+        ],
+        [
+          "defaultContainer",
+          "container",
+          "再生用の文書が所有する表示領域へ接続します。"
+        ],
+        [
+          "defaultVideoElement",
+          "video",
+          "全SDKで同じ方法でフレームを観測するため、用意した要素を渡します。省略時はバンドルが要素を生成できます。"
+        ],
+        [
+          "playback.muted",
+          "true",
+          "無音再生にそろえます。このバンドルの初期値はfalseです。"
+        ],
+        [
+          "playback.autoplay",
+          "false",
+          "監視を登録してから明示的に再生を要求します。このバンドルの初期値もfalseです。"
+        ],
+        [
+          "playback.preventSeeking",
+          "false",
+          "シークの計測を許可します。このバンドルの初期値もfalseです。"
+        ],
+        [
+          "defaultLogLevel",
+          "0 (Off)",
+          "計測中のコンソール出力を無効にします。公開の型には既定値の説明がなく、10.3.1のロガーの初期値はVerbose（5）です。この指定単独の速度改善は実証していません。"
+        ],
+        [
+          "resources[0].url",
+          "mediaUrl",
+          "他のプレイヤーと同じソースを渡します。再生に必要な入力です。"
+        ],
+        [
+          "resources[0].type",
+          "\"hls\" / \"dash\"",
+          "選択した形式の解析処理を使います。再生に必要な入力です。"
+        ],
+        [
+          "contentType",
+          "\"content\"",
+          "通常の動画として扱います。このバンドルの初期値もcontentです。"
+        ],
+        [
+          "sources.add: attach",
+          "false",
+          "ソースの監視を登録するまでvideo要素へ接続しません。このバンドルの初期値はtrueです。"
+        ],
+        [
+          "sources.add: loadControl",
+          "0 (Nothing)",
+          "マニフェストやセグメントを取得せずに準備します。文書に記載された既定値はData（2）です。この準備処理も計測区間に含めます。"
+        ],
+        [
+          "source.currentTime",
+          "0",
+          "オンデマンド素材の先頭から再生します。公開の型には全ソース共通の初期時刻の規定はありません。"
+        ],
+        [
+          "source.playbackRate",
+          "1",
+          "通常速度にそろえます。このバンドルの初期値も1です。"
+        ],
+        [
+          "attachVideo: video",
+          "video",
+          "観測対象の要素を明示的に接続します。このバンドルでは省略時にdefaultVideoElementを使います。"
+        ],
+        [
+          "attachVideo: container",
+          "container",
+          "用意した表示領域へ接続します。このバンドルでは省略時にdefaultContainerを使います。"
+        ],
+        [
+          "source.loadControl",
+          "2 (Data)",
+          "再生要求の直前にマニフェストとセグメントの取得を許可します。文書に記載された既定値であり、Ready通知を待つ処理は加えません。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "この構成を選ぶのは、アプリに付属するcomparison-360p.m3u8のHLS素材だけです。音声と映像の再生、画質の自動選択、Sourceの操作、ViewModeは維持します。CorePlayerがCore、EventBus、PlayerApiを用意し、createPlayer関数が記録された順序で20個のパッケージを追加します。この素材では不要なTSの解析・変換、AES復号、字幕、UI、Analytics、広告のパッケージは追加しません。この素材に必要な機能へ絞った構成であり、速度の優位性や最適な設定を示すものではありません。"
+    },
+    {
+      "type": "p",
+      "text": "任意のHLS URLと「回線変化」で使う複数画質の素材には、機能を省かないplayerx-hlsバンドルを使います。DASHにはplayerx-dashを使いますが、Web X 10.3.1のDASH対応は一部に限られます。共通素材と同じURLをカスタムURLとして入力した場合も、既成のバンドルを使います。任意のHLS URLで一部のパッケージを省いてよいとは判断しません。実際に使ったバンドルと設定は、その試行の「適用した設定」で確認してください。"
+    },
+    {
+      "type": "p",
+      "text": "CorePlayerを生成する前に、公開のViewModeパッケージを確認します。onAddが関数であり、依存先がcore-effects、source-state-atom、source-api-managerの3つであることが条件です。パッケージ自体、またはdefaultプロパティの1階層内にあるパッケージを受け取り、同じオブジェクトを使います。さらに深い階層や条件に合わない形式では、Playerを生成せずに失敗します。生成後のパッケージ追加に失敗した場合は、非同期関数がplayer.dispose()の完了を待ってから例外を投げ直します。constructorEndは、パッケージの登録まで含むcreatePlayer関数が正常に完了した後に記録します。SDKの読み込みは計測開始後に行い、通常のライセンス処理も維持します。"
+    },
+    {
+      "type": "p",
+      "text": "10.3.1の標準のPlayerConfigには、このアダプターで指定できる開始ビットレート、バッファー開始しきい値、ワーカー切り替え、同時要求数の項目はありません。インストールされた公開のStreaming実装では、先読みと再生済みデータの保持の初期値は12秒と6秒です。このアダプターでは初期値を上書きせず、画質選択にはWISHの既定動作を使います。これらは特定のバージョンの実装で確認した動作であり、PlayerConfigで追加指定できる項目や、実測で選んだ最適値ではありません。v8のTweaksConfigの項目は、Web Xの標準APIへ流用できません。"
+    },
+    {
+      "type": "h2",
+      "id": "bitmovin-8",
+      "text": "Bitmovin Player 8.283.0"
+    },
+    {
+      "type": "code",
+      "text": "import { Player, LogLevel } from \"bitmovin-player/modules/bitmovinplayer-core\";\n// Register EngineBitmovin, RendererMSE, HLS, ABR, MP4 and TS modules first.\nconst player = new Player(container, {\n  key: playerKey,\n  playback: {\n    muted: true, autoplay: false, audioLanguage: \"en\",\n    preferredTech: [{ player: \"html5\", streaming: \"hls\" }],\n  },\n  ui: false, analytics: false,\n  storage: { disableStorageApi: true },\n  buffer: {\n    audio: { forwardduration: 12, backwardduration: 6 },\n    video: { forwardduration: 12, backwardduration: 6 },\n  },\n  logs: { level: LogLevel.OFF, bitmovin: false },\n});\nplayer.setVideoElement(video);\nawait player.load({ hls: mediaUrl, options: { startOffset: 0 } }, \"html5.hls\");\nawait player.play();"
+    },
+    {
+      "type": "p",
+      "text": "Playerを生成する前にモジュールを登録します。8.283.0では最初のaddModuleが登録領域を初期化するため、その前にgetModulesで登録済みかを判定できません。また、バンドラーがCommonJSを変換すると、defaultプロパティの中にモジュール定義が入る場合があります。アプリでは定義のオブジェクトを取り出し、そのままaddModuleへ渡します。省略のないコードは「適用した設定」で確認できます。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "項目",
+        "設定値",
+        "採用理由とSDKの既定値"
+      ],
+      "rows": [
+        [
+          "key",
+          "playerKey",
+          "再生するドメインで有効なライセンスを渡します。既定値はありません。"
+        ],
+        [
+          "playback.muted",
+          "true",
+          "無音再生にそろえます。SDKの既定値はfalseです。"
+        ],
+        [
+          "playback.autoplay",
+          "false",
+          "loadの完了後に明示的に再生を要求します。SDKの既定値もfalseです。"
+        ],
+        [
+          "playback.audioLanguage",
+          "\"en\"",
+          "共通素材の英語音声を指定します。特定の言語の既定値は公開されていません。"
+        ],
+        [
+          "playback.preferredTech[0].player",
+          "\"html5\"",
+          "JavaScriptのMediaSource方式を選び、ブラウザー標準の方式へ暗黙に切り替えません。"
+        ],
+        [
+          "playback.preferredTech[0].streaming",
+          "\"hls\" / \"dash\"",
+          "選択したソース形式を使います。省略時はSDKが対応方式を選びます。"
+        ],
+        [
+          "ui",
+          "false",
+          "SDKのUIを比較対象から外します。UIを使えるかどうかは登録したモジュールにも依存します。"
+        ],
+        [
+          "analytics",
+          "false",
+          "再生エンジンの計測にAnalyticsの収集処理を含めません。収集機能の有無はモジュールにも依存します。"
+        ],
+        [
+          "storage.disableStorageApi",
+          "true",
+          "試行間でSDKの保存状態を引き継がないための指定です。既定値はfalseです。HTTPキャッシュを消去・無効化するものではありません。"
+        ],
+        [
+          "buffer.audio.forwardduration",
+          "12 s",
+          "音声の先読みを比較条件にそろえます。SDKの既定値は40秒です。最適と実証した値ではありません。"
+        ],
+        [
+          "buffer.audio.backwardduration",
+          "6 s",
+          "再生済み音声の保持を比較条件にそろえます。SDKの既定値は20秒です。"
+        ],
+        [
+          "buffer.video.forwardduration",
+          "12 s",
+          "映像の先読みを比較条件にそろえます。SDKの既定値は40秒です。"
+        ],
+        [
+          "buffer.video.backwardduration",
+          "6 s",
+          "再生済み映像の保持を比較条件にそろえます。SDKの既定値は20秒です。"
+        ],
+        [
+          "logs.level",
+          "LogLevel.OFF",
+          "コンソール出力を無効にします。SDKの既定値はWARNです。"
+        ],
+        [
+          "logs.bitmovin",
+          "false",
+          "コンソールへのクレジット表示を無効にします。SDKの既定値はtrueです。"
+        ],
+        [
+          "SourceConfig.hls / dash",
+          "mediaUrl",
+          "他のプレイヤーと同じソースを渡します。再生に必要な指定です。"
+        ],
+        [
+          "SourceConfig.options.startOffset",
+          "0",
+          "オンデマンド動画の先頭を指定します。時刻の基準の既定値はオンデマンドではStart、ライブではEndです。"
+        ],
+        [
+          "load: forceTechnology",
+          "\"html5.hls\" / \"html5.dash\"",
+          "選択したMediaSource方式で読み込みます。省略時はSDKが方式を選べます。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "HLSではcore、EngineBitmovin、RendererMSE、HLS、ABR、MP4、TSを登録します。DASHではHLSとTSをXMLとDASHへ置き換えます。UI、Analytics、広告のモジュールは登録しません。開始ビットレートは自動、画質選択の既定ロジックはDOWNLOAD_PREDICTION（v3）、preloadはオンデマンドでtrue、ライブでfalseです。startup_thresholdとrestart_thresholdは既定の0.9秒を使い、forwardduration=12では変更されません。hls_parse_manifest_in_workerはfalseのままです。音声・映像のコーデック優先順と、機器ごとのmax_startup_bufferもSDKの既定動作に任せます。"
+    },
+    {
+      "type": "h2",
+      "id": "hls",
+      "text": "hls.js 1.7.4"
+    },
+    {
+      "type": "code",
+      "text": "import Hls from \"hls.js\";\nimport workerURL from \"hls.js/dist/hls.worker.js?url\";\n\nconst hls = new Hls({\n  debug: false, autoStartLoad: true, startPosition: 0,\n  audioPreference: { lang: \"en\" }, preferManagedMediaSource: false,\n  enableWorker: false, workerPath: workerURL,\n  lowLatencyMode: false, enableInterstitialPlayback: false,\n  maxBufferLength: 12, maxMaxBufferLength: 12,\n  backBufferLength: 6, frontBufferFlushThreshold: 12,\n});\nhls.attachMedia(video);\nhls.loadSource(mediaUrl);\nawait video.play();"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "項目",
+        "設定値",
+        "採用理由とSDKの既定値"
+      ],
+      "rows": [
+        [
+          "debug",
+          "false",
+          "デバッグ出力を無効にします。SDKの既定値もfalseです。"
+        ],
+        [
+          "autoStartLoad",
+          "true",
+          "loadSourceの後に別の開始処理を待たずに読み込みます。SDKの既定値もtrueです。"
+        ],
+        [
+          "startPosition",
+          "0",
+          "オンデマンド素材の先頭を指定します。既定の-1ではSDKが開始位置を決めます。"
+        ],
+        [
+          "audioPreference.lang",
+          "\"en\"",
+          "共通素材の英語音声を選びます。既定では音声の優先設定はありません。"
+        ],
+        [
+          "preferManagedMediaSource",
+          "false",
+          "両方使える場合は通常のMediaSourceを優先します。SDKの既定値もfalseです。通常のMediaSourceが使えなければManagedMediaSourceになる場合があります。"
+        ],
+        [
+          "enableWorker",
+          "固定素材をstartupで再生するときはfalse、その他はtrue",
+          "共通の暗号化されていないfMP4素材では、falseの方が起動が短かったためです。アプリに付属するcomparison-360p.m3u8の起動向け設定だけに適用し、任意のURL、「回線変化」、defaultプロファイルではSDK既定のtrueを使います。呼び出し側が明示した値を優先します。ワーカーの準備時間とメインスレッドの処理負荷にはトレードオフがあり、全ての素材や機器に適した値とは限りません。指定値だけでワーカーの稼働も断定しません。"
+        ],
+        [
+          "workerPath",
+          "workerURL",
+          "バンドラーが出力した同じバージョンのワーカーを渡します。既定値はnullで、SDKに解決を任せます。"
+        ],
+        [
+          "lowLatencyMode",
+          "false",
+          "通常のセグメント再生を比較条件にします。SDKの既定値はtrueです。"
+        ],
+        [
+          "enableInterstitialPlayback",
+          "false",
+          "コンテンツ再生の比較から挿入広告を除きます。このfullビルドの既定値はtrueです。"
+        ],
+        [
+          "maxBufferLength",
+          "12 s",
+          "先読みの比較条件を指定します。SDKの既定値は30秒です。"
+        ],
+        [
+          "maxMaxBufferLength",
+          "12 s",
+          "サイズに基づく計算で先読み目標が12秒を超えないようにします。SDKの既定値は600秒です。"
+        ],
+        [
+          "backBufferLength",
+          "6 s",
+          "再生済みデータの保持を比較条件にそろえます。SDKの既定値はInfinityです。"
+        ],
+        [
+          "frontBufferFlushThreshold",
+          "12 s",
+          "ギャップの先にある削除可能なデータの保持条件を指定します。SDKの既定値はInfinityです。再生を始めるためのバッファー量ではありません。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "初期画質は自動です。startLevelは固定せず、abrEwmaDefaultEstimateは500,000bit/s、testBandwidthはtrueのままです。コーデックは固定しません。表示サイズやフレーム落ちによる画質制限も既定のfalseです。ワーカーはデータ形式によって不要な場合や、別の実行方式へ切り替わる場合があります。DASHは非対応として記録し、別のソースに差し替えて時間を測りません。"
+    },
+    {
+      "type": "h2",
+      "id": "shaka",
+      "text": "Shaka Player 5.3.3"
+    },
+    {
+      "type": "code",
+      "text": "import shaka from \"shaka-player/dist/shaka-player.hls-es2021.js\";\n\nshaka.polyfill.installAll();\nconst player = new shaka.Player();\nif (!player.configure({\n  preferredAudio: [{ language: \"en\", role: \"\", label: \"\", channelCount: 2,\n    codec: \"\", spatialAudio: false }],\n  streaming: {\n    preferNativeHls: false, fallbackToNativeHlsOnMseError: false,\n    useNativeHlsForFairPlay: false, lowLatencyMode: false,\n    bufferingGoal: 12, bufferBehind: 6, rebufferingGoal: 0,\n  },\n  cmcd: { enabled: false }, cmsd: { enabled: false },\n  ads: { disableHLSInterstitial: true, disableDASHInterstitial: true, disableSVTA: true },\n})) throw new Error(\"Configuration rejected\");\nawait player.attach(video);\nconst loading = player.load(mediaUrl, 0, \"application/x-mpegurl\");\nawait Promise.all([loading, video.play()]);"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "項目",
+        "設定値",
+        "採用理由とSDKの既定値"
+      ],
+      "rows": [
+        [
+          "preferredAudio[0].language",
+          "\"en\"",
+          "同じ英語音声を選びます。既定値は空文字列です。"
+        ],
+        [
+          "preferredAudio[0].role",
+          "\"\"",
+          "音声の役割は指定しません。既定値も空文字列です。"
+        ],
+        [
+          "preferredAudio[0].label",
+          "\"\"",
+          "音声ラベルは指定しません。既定値も空文字列です。"
+        ],
+        [
+          "preferredAudio[0].channelCount",
+          "2",
+          "ステレオを優先します。5.3.3の設定生成処理の既定値は2ですが、公開のexternコメントには0と記載されています。"
+        ],
+        [
+          "preferredAudio[0].codec",
+          "\"\"",
+          "音声コーデックは固定しません。既定値も空文字列です。"
+        ],
+        [
+          "preferredAudio[0].spatialAudio",
+          "false",
+          "立体音響ではない音声を指定します。この項目の省略とfalseの明示は、常に同じ絞り込みになるとは限りません。"
+        ],
+        [
+          "streaming.preferNativeHls",
+          "false",
+          "MediaSource方式を使います。既定値もfalseです。"
+        ],
+        [
+          "streaming.fallbackToNativeHlsOnMseError",
+          "false",
+          "MediaSourceで失敗したときに方式を切り替えず、失敗を記録します。既定値もfalseです。"
+        ],
+        [
+          "streaming.useNativeHlsForFairPlay",
+          "false",
+          "暗号化されていない共通素材をMediaSourceで再生します。既定値もfalseです。この素材ではFairPlayを使いません。"
+        ],
+        [
+          "streaming.lowLatencyMode",
+          "false",
+          "通常のセグメント再生を比較条件にします。SDKの既定値はtrueです。"
+        ],
+        [
+          "streaming.bufferingGoal",
+          "12 s",
+          "先読みの比較条件を指定します。SDKの既定値は10秒です。"
+        ],
+        [
+          "streaming.bufferBehind",
+          "6 s",
+          "再生済みデータの保持を比較条件にそろえます。SDKの既定値は30秒です。"
+        ],
+        [
+          "streaming.rebufferingGoal",
+          "0 s",
+          "再生可能とするバッファー量には5.3.3の既定値を使います。bufferingGoalとは別の項目です。"
+        ],
+        [
+          "cmcd.enabled",
+          "false",
+          "Common Media Client Dataによるクライアント情報の送信を無効にします。既定値もfalseです。"
+        ],
+        [
+          "cmsd.enabled",
+          "false",
+          "Common Media Server Dataによるサーバーからの情報を使いません。SDKの既定値はtrueです。"
+        ],
+        [
+          "ads.disableHLSInterstitial",
+          "true",
+          "HLSの挿入広告の処理を無効にします。SDKの既定値はfalseです。"
+        ],
+        [
+          "ads.disableDASHInterstitial",
+          "true",
+          "DASHの挿入広告の処理を無効にします。SDKの既定値はfalseです。"
+        ],
+        [
+          "ads.disableSVTA",
+          "true",
+          "Streaming Video Technology Allianceの方式による広告処理を無効にします。SDKの既定値はfalseです。"
+        ],
+        [
+          "load: url",
+          "mediaUrl",
+          "他のプレイヤーと同じソースを渡します。必須の入力です。"
+        ],
+        [
+          "load: startTime",
+          "0",
+          "オンデマンド素材の先頭から再生します。"
+        ],
+        [
+          "load: mimeType",
+          "application/x-mpegurl / application/dash+xml",
+          "拡張子から形式を判別できないURLでも、HLSかDASHかを明示します。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "DASHではshaka-player.dash-es2021.jsを使います。segmentPrefetchLimitは明示的な調整を行う試行を除き、5.3.3の既定値1に任せます。画質の自動選択は有効のままで、帯域の初期推定値1,000,000bit/sはブラウザーのNetwork Informationの値に置き換わる場合があります。表示領域や画面サイズによる画質上限は指定しません。transmuxWorkerUrlも指定せず、ワーカーが動いたとは断定しません。マニフェストにCODECSがあればHLSの代替コーデック指定より優先され、このアダプターからコーデックは固定しません。"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/player-web-x-bundles-packages",
+      "label": "Player Web Xのバンドルとパッケージ"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/load-control",
+      "label": "Web XのLoadControl"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/sourceapi-playbackapi",
+      "label": "Web XのSource / Playback API"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/@bitmovin/player-web-x@10.3.1/types/bundles/Types.d.ts",
+      "label": "Web X 10.3.1の公開設定型"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/core_config.playerconfig.html",
+      "label": "Bitmovin Player 8のPlayerConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.BufferConfig.html",
+      "label": "Bitmovin Player 8のバッファー設定"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.TweaksConfig.html",
+      "label": "Bitmovin Player 8の詳細設定と既定値"
+    },
+    {
+      "url": "https://github.com/video-dev/hls.js/blob/v1.7.4/src/config.ts",
+      "label": "hls.js 1.7.4の既定値"
+    },
+    {
+      "url": "https://github.com/shaka-project/shaka-player/blob/v5.3.3/lib/util/player_configuration.js",
+      "label": "Shaka 5.3.3の設定生成処理"
+    },
+    {
+      "url": "https://github.com/shaka-project/shaka-player/blob/v5.3.3/externs/shaka/player.js",
+      "label": "Shaka 5.3.3の公開設定文書"
+    },
+    {
+      "url": "https://html.spec.whatwg.org/multipage/media.html",
+      "label": "HTMLのメディア要素の動作"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/bitmovin-player@8.283.0/types/core/PlayerConfigAPI.d.ts",
+      "label": "Bitmovin Player 8.283.0の公開設定型"
+    }
+  ]
+}

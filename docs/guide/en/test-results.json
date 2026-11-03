@@ -5,6 +5,70 @@
   "blocks": [
     {
       "type": "h2",
+      "id": "web-comparison-2026-11-03",
+      "text": "Four-player playback checks, 2026-11-03"
+    },
+    {
+      "type": "p",
+      "text": "Exploratory observations from the current comparison, with two startup and seek trials per player. Chromium 156.0.8078.4 ran on macOS arm64, Apple M5 and 32 GiB. The same Mac served the 60-second clear fMP4 HLS fixture over HTTP. Every player rendered 640×360 with English audio, muted at normal speed. Browser HTTP caching was disabled and each cohort used a fresh context."
+    },
+    {
+      "type": "p",
+      "text": "Startup measures per-engine acceptance to an observed moving frame, including the runner document, SDK import and initialization. Seek measures the request to advancing playback near 40 seconds; all recorded targets were outside the buffered range. Values below are the median [minimum–maximum] in milliseconds; n=2 for each player."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Player / version",
+        "Startup (n=2, ms)",
+        "Seek (n=2, ms)"
+      ],
+      "rows": [
+        [
+          "Player Web X 10.3.1",
+          "162.2 [161.5–162.9]",
+          "80.0 [79.7–80.3]"
+        ],
+        [
+          "Bitmovin Player 8.283.0",
+          "161.0 [157.8–164.1]",
+          "338.6 [330.3–346.8]"
+        ],
+        [
+          "hls.js 1.7.4",
+          "103.9 [95.9–111.9]",
+          "81.8 [81.0–82.6]"
+        ],
+        [
+          "Shaka Player 5.3.3",
+          "151.7 [144.7–158.6]",
+          "81.3 [80.5–82.0]"
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Automation stopped while preparing the next cohort after two of eight planned groups. All recorded startup and seek operations succeeded, but the execution-order balance and browser-managed cache set were not completed. These values are examples, not a qualified ranking or evidence of a startup-speed improvement; the unchanged control players also varied between variants."
+    },
+    {
+      "type": "p",
+      "text": "For the common clear fMP4 fixture, the Web X Core composition reduced the static adapter import closure from 543,059 to 485,005 bytes, or from 138,786 to 118,236 bytes when each file is compressed with gzip level 9 (14.8%). These are build-file totals, not observed HTTP transfer. Custom sources and the adaptive HLS ladder keep the full prebuilt bundles."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://raw.githubusercontent.com/kazuhide/player-lab/f901a3c48a1791e5c09cdf5d511f9e3c155fecd0/docs/web-comparison-results-2026-11-03.json",
+          "label": "All recorded variants and individual values (JSON)"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-comparison-configuration/",
+          "label": "Applied settings, selection reasons and defaults"
+        }
+      ]
+    },
+    {
+      "type": "h2",
       "id": "web-startup-2026-11-01",
       "text": "Web startup comparison, 2026-11-01"
     },

@@ -1,26 +1,25 @@
 import { pick } from "../i18n";
 import { DemoSession, type DemoSource, type DemoSample } from "./demo-session";
-import { DEMO_ENGINES, ENGINE_NAMES, seekTarget, type DemoRecord } from "./demo-results";
-import { makeTrialOrder } from "./model";
-import type { EngineId } from "./contract";
+import { DEMO_ENGINES, ENGINE_NAMES, makeDemoTrialOrder, seekTarget, type DemoRecord } from "./demo-results";
+import type { DemoEngineId } from "./contract";
 
 /** Owns active players; charts never create or mutate playback sessions. */
 export class DemoComparison {
   readonly records: DemoRecord[] = [];
   running = false;
-  selected: EngineId = "web-x";
+  selected: DemoEngineId = "web-x";
   parallel = false;
   source: DemoSource | null = null;
   measuredNetwork = false;
   private generation = 0;
   private controller: AbortController | null = null;
-  private sessions = new Map<EngineId, DemoSession>();
-  private available = new Set<EngineId>();
-  private latest = new Map<EngineId, DemoSample>();
+  private sessions = new Map<DemoEngineId, DemoSession>();
+  private available = new Set<DemoEngineId>();
+  private latest = new Map<DemoEngineId, DemoSample>();
   private releasing: Promise<boolean> | null = null;
 
   constructor(private readonly ui: {
-    stages: Map<EngineId, HTMLElement>;
+    stages: Map<DemoEngineId, HTMLElement>;
     update: () => void;
     status: (message: string) => void;
     network: (message: string) => void;
@@ -39,7 +38,7 @@ export class DemoComparison {
     return this.releasing;
   }
 
-  private create(engine: EngineId, record?: DemoRecord): DemoSession {
+  private create(engine: DemoEngineId, record?: DemoRecord): DemoSession {
     const session = new DemoSession({ engine, container: this.ui.stages.get(engine)!, onSample: (sample) => {
       this.latest.set(engine, sample);
       if (!record || !this.running || this.controller?.signal.aborted) return;
@@ -61,7 +60,7 @@ export class DemoComparison {
     try {
       if (!await this.release()) throw new Error("cleanup-failed");
       const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
-      const order = makeTrialOrder(1, seed)[0]!;
+      const order = makeDemoTrialOrder(seed);
       for (const engine of order) {
         if (controller.signal.aborted) break;
         if (!await this.release()) throw new Error("cleanup-failed");

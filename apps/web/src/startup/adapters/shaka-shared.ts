@@ -66,6 +66,7 @@ export const makeShakaAdapter = (shaka: ShakaDriver, format: "hls" | "dash"): Cr
     // Snapshot only these primitive settings before passing a separate object
     // to the SDK; runtime mutation cannot turn exported settings into SDK data.
     configuration: {
+      bundle: `shaka-player.${format}-es2021`, sourceType: format, startTimeSeconds: 0,
       preferredAudio: configuration.preferredAudio.map((preference) => ({ ...preference })),
       streaming: { ...configuration.streaming }, cmcd: { ...configuration.cmcd },
       cmsd: { ...configuration.cmsd }, ads: { ...configuration.ads },

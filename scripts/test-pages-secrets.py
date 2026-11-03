@@ -60,6 +60,16 @@ def main():
             cases += 1
 
         scan(declaration, 0)
+        # Modular SDK exports use a different minified identifier in their shared chunk.
+        modular = 'e.' + 'getEncryptionKey=' + 'e.' + 'getAllEncryptionKeys=void 0;'
+        entry = 'bitmovin8-shared-abcdefgh.js'
+        scan(modular, 0, entry=entry)
+        scan(modular + f'const api_key="{unrelated}";', 1, entry=entry)
+        scan(f'e.getEncryptionKey="{unrelated}";', 1, entry=entry)
+        scan(modular + licenses, 1, public, entry=entry)
+        for unreviewed in ['bitmovin8-sharedX-abcdefgh.js', 'bitmovin8-shared-abcdefg.js',
+                           'bitmovin8-shared-abcdefgh.js.map', 'other-abcdefgh.js']:
+            scan(modular, 1, entry=unreviewed)
         # A real-looking synthetic key on the same line must still fail.
         scan(declaration + f'const api_key="{unrelated}";', 1)
         # The declaration must not suppress an assigned string in its own slot.

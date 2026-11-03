@@ -146,8 +146,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui-shared
       bitmovin-player:
-        specifier: 8.281.0
-        version: 8.281.0
+        specifier: 8.283.0
+        version: 8.283.0
       hls.js:
         specifier: 1.7.4
         version: 1.7.4
@@ -169,11 +169,11 @@ importers:
     dependencies:
       bitmovin-player-ui:
         specifier: 4.23.0
-        version: 4.23.0(patch_hash=a9129f8a2ba4fbf7bd14c90474a315db26c8d19f066445b353490d5bd9ba81ae)(bitmovin-player@8.281.0)
+        version: 4.23.0(patch_hash=a9129f8a2ba4fbf7bd14c90474a315db26c8d19f066445b353490d5bd9ba81ae)(bitmovin-player@8.283.0)
     devDependencies:
       bitmovin-player:
-        specifier: 8.281.0
-        version: 8.281.0
+        specifier: 8.283.0
+        version: 8.283.0
       sass:
         specifier: ^1.80.0
         version: 1.101.0
@@ -199,8 +199,8 @@ importers:
         specifier: workspace:*
         version: link:../../apps/web
       bitmovin-player:
-        specifier: 8.281.0
-        version: 8.281.0
+        specifier: 8.283.0
+        version: 8.283.0
       typescript:
         specifier: ^5.9.0
         version: 5.9.3
@@ -2370,8 +2370,8 @@ packages:
   bitmovin-player@8.138.0-beta.28:
     resolution: {integrity: sha512-+NEzbfqjYo9uxXx2Gxf8hRbiZ0Gl76+EZvsiU/s+amBU/11YxnHX85oO3eikeL6ll0aPgk/+yNI0VIsPVq3NDg==}
 
-  bitmovin-player@8.281.0:
-    resolution: {integrity: sha512-1IgLMPZDR1cclP6G8T+CO3pLTS4V6HipF3fViW+12XAKHeBGNOGxI2XdO3b0byEHUj1WQnVFaNIgD39NJJ01fA==}
+  bitmovin-player@8.283.0:
+    resolution: {integrity: sha512-qUKBfrCOGl3nu7ryqwdTUmqHinqefzaLmmnYkEgN6pdoX6Ixvss4ManUgaZYTVfnWldf7Ma9X8F0/uiqWtqTkw==}
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
@@ -7684,13 +7684,13 @@ snapshots:
       react: 19.2.3
       react-native: 0.86.3(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3)
 
-  bitmovin-player-ui@4.23.0(patch_hash=a9129f8a2ba4fbf7bd14c90474a315db26c8d19f066445b353490d5bd9ba81ae)(bitmovin-player@8.281.0):
+  bitmovin-player-ui@4.23.0(patch_hash=a9129f8a2ba4fbf7bd14c90474a315db26c8d19f066445b353490d5bd9ba81ae)(bitmovin-player@8.283.0):
     dependencies:
-      bitmovin-player: 8.281.0
+      bitmovin-player: 8.283.0
 
   bitmovin-player@8.138.0-beta.28: {}
 
-  bitmovin-player@8.281.0: {}
+  bitmovin-player@8.283.0: {}
 
   bl@4.1.0:
     dependencies:

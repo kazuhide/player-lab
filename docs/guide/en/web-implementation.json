@@ -63,7 +63,7 @@
     {
       "type": "code",
       "title": "Install the Player and UI",
-      "text": "npm install bitmovin-player@8.281.0 bitmovin-player-ui@4.23.0"
+      "text": "npm install bitmovin-player@8.283.0 bitmovin-player-ui@4.23.0"
     },
     {
       "type": "code",
@@ -497,6 +497,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
           "label": "Startup comparison: native SDK integration, timing and tuning"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-comparison-configuration/",
+          "label": "Applied settings and defaults"
         }
       ]
     },

@@ -2,8 +2,10 @@
 """Build small public playback fixtures locally; no cloud account is used."""
 
 import argparse
+from fractions import Fraction
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -134,6 +136,154 @@ def hls_attributes(line):
     return attributes
 
 
+def generated_hls_file(directory, uri):
+    """Resolve only the flat, clear files emitted by this fixture generator."""
+    prefix = '../vod-baseline/'
+    parent = directory / prefix if uri.startswith(prefix) else directory
+    name = uri[len(prefix):] if uri.startswith(prefix) else uri
+    if not re.fullmatch(r'(?:media_[0-3]\.m3u8|init-stream[0-3]\.m4s|'
+                        r'chunk-stream[0-3]-[0-9]{5}\.m4s|subtitle-(?:en|de)(?:\.m3u8|-[0-9]{2}\.vtt))', name):
+        raise ValueError("Unexpected generated HLS file reference.")
+    target = parent / name
+    if parent.is_symlink() or target.is_symlink() or not target.is_file() or not 0 < target.stat().st_size <= 16 * 1024 * 1024:
+        raise ValueError("A generated HLS file is missing, empty, oversized or a symlink.")
+    return target
+
+
+def hls_playlist_bitrates(playlist):
+    """RFC 8216 section 4.1 rates: EXTINF durations and media bytes, not init bytes."""
+    playlist = generated_hls_file(playlist.parent, playlist.name)
+    if playlist.stat().st_size > 256 * 1024:
+        raise ValueError("A generated HLS playlist exceeds its size bound.")
+    lines = playlist.read_text().splitlines()
+    if not lines or lines[0] != '#EXTM3U' or len(lines) > 4096:
+        raise ValueError("Expected a bounded generated HLS media playlist.")
+    media = re.fullmatch(r'media_([0-3])\.m3u8', playlist.name)
+    subtitle = re.fullmatch(r'subtitle-(en|de)\.m3u8', playlist.name)
+    if not media and not subtitle:
+        raise ValueError("Expected a generated audio, video or subtitle playlist.")
+    segment_pattern = (rf'chunk-stream{media[1]}-[0-9]{{5}}\.m4s' if media
+                       else rf'subtitle-{subtitle[1]}-[0-9]{{2}}\.vtt')
+    target = pending = None
+    mapped = ended = False
+    segments, seen = [], set()
+    for line in lines[1:]:
+        if not line:
+            continue
+        if ended:
+            raise ValueError("Unexpected data after generated HLS ENDLIST.")
+        if line.startswith('#EXT-X-TARGETDURATION:'):
+            value = line.partition(':')[2]
+            if target is not None or not re.fullmatch(r'[1-9][0-9]?', value):
+                raise ValueError("Expected one bounded HLS target duration.")
+            target = Fraction(value)
+        elif line.startswith('#EXTINF:'):
+            match = re.fullmatch(r'#EXTINF:([0-9]+(?:\.[0-9]{1,9})?),', line)
+            if pending is not None or not match or not 0 < Fraction(match[1]) <= 60:
+                raise ValueError("Expected one positive bounded duration per media segment.")
+            pending = Fraction(match[1])
+        elif line.startswith('#EXT-X-MAP:'):
+            attributes = hls_attributes(line)
+            if mapped or not media or attributes != {'URI': f'init-stream{media[1]}.m4s'}:
+                raise ValueError("Unexpected generated initialization segment.")
+            generated_hls_file(playlist.parent, attributes['URI'])
+            mapped = True
+        elif line == '#EXT-X-ENDLIST':
+            ended = True
+        elif re.fullmatch(r'#EXT-X-(?:VERSION|MEDIA-SEQUENCE):[0-9]+|#EXT-X-PLAYLIST-TYPE:VOD|#EXT-X-INDEPENDENT-SEGMENTS', line):
+            continue
+        elif line.startswith('#EXT-X-PROGRAM-DATE-TIME:') and line.partition(':')[2]:
+            continue
+        elif re.fullmatch(segment_pattern, line):
+            if pending is None or line in seen or len(segments) >= 300 or (media and not mapped):
+                raise ValueError("Generated HLS segment duration, identity or count is invalid.")
+            segments.append((pending, generated_hls_file(playlist.parent, line).stat().st_size * 8))
+            seen.add(line)
+            pending = None
+        else:
+            # Encryption, byte ranges and arbitrary URI forms are not generated here.
+            raise ValueError("Unexpected tag or segment in a generated clear HLS playlist.")
+    if target is None or pending is not None or not ended or not segments:
+        raise ValueError("Generated HLS media timing is incomplete.")
+    peak = Fraction(0)
+    for start in range(len(segments)):
+        duration = Fraction(0)
+        bits = 0
+        for length, size in segments[start:]:
+            duration += length
+            bits += size
+            if duration > target * Fraction(3, 2):
+                break
+            if duration >= target / 2:
+                peak = max(peak, bits / duration)
+    if not peak:
+        raise ValueError("No generated HLS segment window fits the target duration.")
+    return peak, sum(size for _, size in segments) / sum((length for length, _ in segments), Fraction(0))
+
+
+def hls_master_bandwidth(master, directory):
+    """Replace only bitrate attributes, including the largest playable rendition sums.
+
+    RFC 8216 sections 4.1 and 4.3.4.2 use 0.5..1.5-target-duration peak
+    windows and whole-playlist averages. Optional audio/subtitle groups choose
+    one rendition each; their maxima are added to the selected video rate.
+    """
+    if not master.startswith('#EXTM3U\n') or len(master) > 256 * 1024:
+        raise ValueError("Expected a bounded generated HLS master.")
+    lines, groups, streams = master.splitlines(), {}, []
+    index = 1
+    while index < len(lines):
+        line = lines[index]
+        if line.startswith('#EXT-X-MEDIA:'):
+            attributes = hls_attributes(line)
+            kind, group, uri = (attributes.get(key) for key in ('TYPE', 'GROUP-ID', 'URI'))
+            expected = r'(?:\.\./vod-baseline/)?media_[23]\.m3u8' if kind == 'AUDIO' else r'subtitle-(?:en|de)\.m3u8'
+            if kind not in ('AUDIO', 'SUBTITLES') or not group or not uri or not re.fullmatch(expected, uri):
+                raise ValueError("Unexpected generated HLS rendition group.")
+            renditions = groups.setdefault((kind, group), [])
+            if uri in renditions:
+                raise ValueError("A generated HLS rendition is duplicated.")
+            renditions.append(uri)
+        elif line.startswith('#EXT-X-STREAM-INF:'):
+            attributes = hls_attributes(line)
+            uri = lines[index + 1] if index + 1 < len(lines) else ''
+            if (not re.fullmatch(r'(?:\.\./vod-baseline/)?media_[01]\.m3u8', uri)
+                    or not attributes.get('AUDIO') or attributes.get('RESOLUTION') not in COMPARISON_VARIANTS
+                    or not re.fullmatch(r'[1-9][0-9]*', attributes.get('BANDWIDTH', ''))
+                    or set(attributes) - {'BANDWIDTH', 'AVERAGE-BANDWIDTH', 'RESOLUTION', 'CODECS', 'AUDIO', 'FRAME-RATE', 'SUBTITLES'}):
+                raise ValueError("Unexpected generated HLS variant.")
+            streams.append((index, attributes, uri))
+            index += 1
+        elif line and not re.fullmatch(r'#EXT-X-VERSION:[1-9][0-9]*|#EXT-X-INDEPENDENT-SEGMENTS', line):
+            raise ValueError("Unexpected generated HLS master tag.")
+        index += 1
+    if not 1 <= len(streams) <= 2:
+        raise ValueError("Expected one or two generated video variants.")
+    rates = {}
+    def bitrate(uri):
+        if uri not in rates:
+            rates[uri] = hls_playlist_bitrates(generated_hls_file(directory, uri))
+        return rates[uri]
+    for index, attributes, uri in streams:
+        peak, average = bitrate(uri)
+        for kind in ('AUDIO', 'SUBTITLES'):
+            group = attributes.get(kind)
+            if group is not None:
+                renditions = groups.get((kind, group))
+                if not renditions:
+                    raise ValueError("A generated HLS variant references a missing rendition group.")
+                peak += max(bitrate(value)[0] for value in renditions)
+                average += max(bitrate(value)[1] for value in renditions)
+        updated = {'BANDWIDTH': str(math.ceil(peak)), 'AVERAGE-BANDWIDTH': str(math.ceil(average))}
+        tokens = []
+        for match in re.finditer(r'([A-Z0-9-]+)=("[^"]*"|[^,"\s]+)(?:,|$)', lines[index].partition(':')[2]):
+            tokens.append(match[1] + '=' + updated.get(match[1], match[2]))
+            if match[1] == 'BANDWIDTH' and 'AVERAGE-BANDWIDTH' not in attributes:
+                tokens.append('AVERAGE-BANDWIDTH=' + updated['AVERAGE-BANDWIDTH'])
+        lines[index] = '#EXT-X-STREAM-INF:' + ','.join(tokens)
+    return '\n'.join(lines) + '\n'
+
+
 def comparison_master(master, resolution):
     """Select one original video rendition and its existing English audio."""
     if resolution not in COMPARISON_VARIANTS or not master.startswith('#EXTM3U\n'):
@@ -175,8 +325,7 @@ def comparison_master(master, resolution):
     if (resolution not in variants or len(english) != 1 or english[0][1].get('URI') != 'media_2.m3u8'
             or english[0][1].get('GROUP-ID') != variants[resolution][2]['AUDIO']):
         raise ValueError("The comparison rendition must reference exactly one existing English audio track.")
-    # BANDWIDTH can be identical across different resolutions in this tiny ladder.
-    # Preserve the selected STREAM-INF and URI bytes instead of relying on ABR selection.
+    # Preserve the corrected STREAM-INF and URI bytes instead of relying on ABR selection.
     return '\n'.join(headers + [english[0][0], *variants[resolution][:2]]) + '\n'
 
 
@@ -432,7 +581,7 @@ def build(output, archive):
         ], check=True)
 
     master = (baseline / 'master.m3u8').read_text()
-    baseline_master = audio_master(master, alternate=False)
+    baseline_master = hls_master_bandwidth(audio_master(master, alternate=False), baseline)
     comparisons = {name: comparison_master(baseline_master, resolution)
                    for name, resolution in COMPARISON_MASTERS.items()}
     (baseline / 'master.m3u8').write_text(baseline_master)
@@ -442,10 +591,10 @@ def build(output, archive):
     multi.mkdir()
     program_dates = [line.split(':', 1)[1] for line in (baseline / 'media_0.m3u8').read_text().splitlines()
                      if line.startswith('#EXT-X-PROGRAM-DATE-TIME:')]
-    (multi / 'master.m3u8').write_text(add_hls_subtitles(
-        audio_master(master, prefix='../vod-baseline/'), multi, program_dates))
+    (multi / 'master.m3u8').write_text(hls_master_bandwidth(add_hls_subtitles(
+        audio_master(master, prefix='../vod-baseline/'), multi, program_dates), multi))
     (output / 'vod-sprites/master.m3u8').write_text(
-        audio_master(master, prefix='../vod-baseline/', alternate=False)
+        hls_master_bandwidth(audio_master(master, prefix='../vod-baseline/', alternate=False), output / 'vod-sprites')
     )
     # The baseline DASH selects one audio track; its second audio payload is reused
     # by the multi-audio HLS fixture, without copying the encoded media.

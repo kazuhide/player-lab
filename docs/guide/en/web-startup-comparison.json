@@ -13,6 +13,14 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
           "label": "How the observations are measured"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-comparison-configuration/",
+          "label": "Applied settings and defaults"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/test-results/#web-comparison-2026-11-03",
+          "label": "Current playback checks and reference values"
         }
       ]
     },
@@ -23,11 +31,11 @@
     },
     {
       "type": "p",
-      "text": "The default is one Big Buck Bunny HLS source shared by Player Web X, hls.js and Shaka Player. You can instead enter a custom HLS or DASH URL and select its format. Use the same source and conditions for each player."
+      "text": "The default is Big Buck Bunny HLS, shared by Player Web X, Bitmovin Player 8, hls.js and Shaka Player. Startup and seek uses the same fixed 360p rendition and English audio for every player. Network change uses the same video with an adaptive ladder. You can instead enter a custom HLS or DASH URL; its initial quality is selected by each SDK and may differ."
     },
     {
       "type": "p",
-      "text": "Player Web X and Shaka select a bundle for the chosen format. Player Web X 10.3.1 has partial DASH support, so some custom DASH manifests may be incompatible. hls.js supports HLS; a DASH run is shown as unsupported, not as a zero-duration result."
+      "text": "Player Web X 10.3.1 has partial DASH support, so some custom DASH manifests may be incompatible. hls.js supports HLS; a DASH run is shown as unsupported, not as a zero-duration result."
     },
     {
       "type": "p",
@@ -154,7 +162,7 @@
     },
     {
       "type": "p",
-      "text": "Player Web X uses its native Player and Source APIs alongside hls.js and Shaka Player. The main Web lab uses Player v8 for configuration and API inspection; those settings and the v8 compatibility layer are separate from this comparison."
+      "text": "Player Web X uses its native Player and Source APIs alongside Bitmovin Player 8, hls.js and Shaka Player. The main Web lab uses Player v8 for configuration and API inspection; those settings and the v8 compatibility layer are separate from this comparison."
     },
     {
       "type": "h2",

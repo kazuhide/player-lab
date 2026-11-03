@@ -22721,8 +22721,8 @@
       "sdkId": "web-ui"
     }
   ],
-  "checkedAt": "2026-11-01",
-  "inputSha256": "ab6dec0da7cd560b770e485a4d2f90735dcfc4d9c930d3bd0600d645045d0d0d",
+  "checkedAt": "2026-11-03",
+  "inputSha256": "331d352843df5f950b3baef83320a581c72036ad5040028a131ead92d24d41a5",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22866,18 +22866,18 @@
     {
       "channel": "stable",
       "id": "web",
-      "latestCheckedAt": "2026-10-22",
-      "latestVersion": "8.281.0",
+      "latestCheckedAt": "2026-11-03",
+      "latestVersion": "8.283.0",
       "name": "Bitmovin Player Web",
       "sources": [
         {
           "url": "https://developer.bitmovin.com/playback/docs/release-notes-web"
         },
         {
-          "url": "https://registry.npmjs.org/bitmovin-player/8.281.0"
+          "url": "https://registry.npmjs.org/bitmovin-player/8.283.0"
         }
       ],
-      "version": "8.281.0"
+      "version": "8.283.0"
     },
     {
       "channel": "stable",
@@ -22896,5 +22896,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "8c57c70b5c3f6f0cc0068962bc336e7327a37bfe"
+  "sourceRevision": "6d45c1c4c50f134f6d6037de6371f41eb127a69a"
 }

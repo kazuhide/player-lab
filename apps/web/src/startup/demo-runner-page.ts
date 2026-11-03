@@ -1,5 +1,5 @@
 import { DemoRuntime } from "./demo-session";
-import type { EngineId, StartupProfile, StartupTuning } from "./contract";
+import type { DemoEngineId, StartupProfile, StartupTuning } from "./contract";
 import type { DemoSource } from "./demo-contract";
 
 function validTuning(value: unknown): value is StartupTuning | undefined {
@@ -14,11 +14,11 @@ export function bootDemoRunner(): void {
   const query = new URLSearchParams(location.search);
   const channel = query.get("channel"); const engine = query.get("engine");
   if (window === parent || query.get("demo") !== "1" || !channel || !/^[\da-f-]{36}$/i.test(channel)
-    || !engine || !["web-x", "hls", "shaka"].includes(engine)) return;
+    || !engine || !["web-x", "bitmovin-8", "hls", "shaka"].includes(engine)) return;
   const video = document.querySelector<HTMLVideoElement>("video"); const container = document.getElementById("stage");
   if (!video || !container) return;
   const reply = (type: string, fields: Record<string, unknown> = {}) => parent.postMessage({ type, channel, ...fields }, location.origin);
-  const runtime = new DemoRuntime({ engine: engine as EngineId, video, container, clock: parent.performance,
+  const runtime = new DemoRuntime({ engine: engine as DemoEngineId, video, container, clock: parent.performance,
     onSample: (sample) => reply("sample", { sample }) });
   const pending = new Map<number, AbortController>();
   let latest = 0;

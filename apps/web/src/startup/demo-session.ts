@@ -1,15 +1,24 @@
-import type { AdapterSession, CreateAdapter, EngineId, FailureCode } from "./contract";
+import type { AdapterSession, CreateAdapter, DemoEngineId, FailureCode } from "./contract";
 import type { BrowserMarks } from "./runner";
 import { DEMO_CLEANUP_TIMEOUT_MS, DEMO_SAMPLE_INTERVAL_MS, DEMO_SEEK_TIMEOUT_MS, DEMO_STARTUP_TIMEOUT_MS,
   parseDemoSource, type DemoNetworkStatus, type DemoSample, type DemoSeek, type DemoStartOptions, type DemoStartup } from "./demo-contract";
 import type { DemoNetworkController } from "./demo-network";
+import { isCommonFixedHls, useCompactCommonHls } from "./webx-bundle-policy";
+import type { DemoSource } from "./demo-contract";
 
 export { DemoSession } from "./demo-frame";
 export * from "./demo-contract";
 type Clock = Pick<Performance, "timeOrigin" | "now">;
-type Loader = (engine: EngineId, format: "hls" | "dash") => Promise<CreateAdapter>;
-const loadAdapter: Loader = async (engine, format) => {
-  if (engine === "web-x") return (format === "dash" ? await import("./adapters/webx-dash") : await import("./adapters/webx")).createAdapter;
+type Loader = (engine: DemoEngineId, source: DemoSource) => Promise<CreateAdapter>;
+const loadAdapter: Loader = async (engine, source) => {
+  const { format } = source;
+  if (engine === "web-x") {
+    if (useCompactCommonHls(source, new URL(import.meta.env.BASE_URL, location.origin).href)) {
+      return (await import("./adapters/webx-clear-fmp4")).createAdapter;
+    }
+    return (format === "dash" ? await import("./adapters/webx-dash") : await import("./adapters/webx")).createAdapter;
+  }
+  if (engine === "bitmovin-8") return (format === "dash" ? await import("./adapters/bitmovin8-dash") : await import("./adapters/bitmovin8")).createAdapter;
   if (engine === "shaka") return (format === "dash" ? await import("./adapters/shaka-dash") : await import("./adapters/shaka")).createAdapter;
   return (await import("./adapters/hls")).createAdapter;
 };
@@ -49,7 +58,7 @@ export class DemoRuntime {
   private preparingNetwork: Promise<DemoNetworkController> | null = null;
   private readonly listeners: Array<() => void> = [];
 
-  constructor(private readonly options: { engine: EngineId; video: HTMLVideoElement; container: HTMLElement;
+  constructor(private readonly options: { engine: DemoEngineId; video: HTMLVideoElement; container: HTMLElement;
     onSample?: (sample: DemoSample) => void; clock?: Clock; loadAdapter?: Loader }) {
     this.clock = options.clock ?? performance;
   }
@@ -126,12 +135,17 @@ export class DemoRuntime {
     });
     this.creation = (async () => {
       this.mark("sdkImportStart");
-      const create = await (this.options.loadAdapter ?? loadAdapter)(this.options.engine, options.source.format);
+      const create = await (this.options.loadAdapter ?? loadAdapter)(this.options.engine, options.source);
       this.mark("sdkImportEnd");
       if (this.life.signal.aborted) return;
+      const profile = options.profile ?? "startup";
+      // Use the fixed fixture's calibrated policy while retaining caller overrides.
+      const tuning = this.options.engine === "hls" && profile === "startup"
+        && isCommonFixedHls(options.source, new URL(import.meta.env.BASE_URL, location.origin).href)
+        ? { ...options.tuning, hlsWorker: options.tuning?.hlsWorker === undefined ? false : options.tuning.hlsWorker } : options.tuning;
       const created = await create({ video, container: this.options.container, url: options.source.url,
-        licenseKey: import.meta.env.VITE_BITMOVIN_PLAYER_LICENSE_KEY ?? "", profile: options.profile ?? "startup",
-        ...(options.tuning ? { tuning: options.tuning } : {}), signal: this.life.signal,
+        licenseKey: import.meta.env.VITE_BITMOVIN_PLAYER_LICENSE_KEY ?? "", profile,
+        ...(tuning ? { tuning } : {}), signal: this.life.signal,
         mark: (name) => this.mark(name), fatal: (code, sdk) => this.fatal(code, sdk) });
       if (this.closed) { try { await created.dispose(); } catch { this.lateCleanupFailed = true; } return; }
       this.session = created;
