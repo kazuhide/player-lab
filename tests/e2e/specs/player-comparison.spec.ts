@@ -70,6 +70,10 @@ for (const language of ["en", "ja"] as const) {
     const code = await applied.locator(".demo-configuration-player code").allTextContents();
     expect(code[0]).toContain("bundles/playerx-core");
     expect(code[0]).toContain("await createPlayer(");
+    expect(code[0]).toContain("source.logLevel = 0;");
+    expect(code[0]).toContain("NoAdaptationPackage");
+    expect(code[0]).toContain('"autoplay": true');
+    expect(code[0]).not.toContain("ViewModeEntry");
     expect(code[1]).toContain("bitmovinplayer-core");
     expect(code[1]).toContain('"key": playerKey');
     expect(code[2]).toContain('"enableWorker": false');

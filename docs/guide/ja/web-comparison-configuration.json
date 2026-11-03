@@ -137,20 +137,32 @@
     },
     {
       "type": "p",
-      "text": "アプリに付属する360p固定のHLS素材では、公開のcoreバンドルと20個の公開パッケージを組み合わせた非同期のcreatePlayer関数を使います。この素材を計測した後、「適用した設定」のPlayer Web Xを開き、公開パッケージのimport文とViewModeの確認処理を含むcreatePlayer関数一式をコピーしてください。以下はその関数へ渡す実際のPlayerConfigとSource APIの呼び出しです。playerKey、mediaUrl、video、containerは組み込み先で用意します。"
+      "text": "アプリに付属する360p固定のHLS素材では、公開のcoreバンドルと18個の公開パッケージを組み合わせた非同期のcreatePlayer関数を使います。この素材を計測した後、「適用した設定」のPlayer Web Xを開き、公開パッケージのimport文とcreatePlayer関数一式をコピーしてください。以下はその関数へ渡す実際のPlayerConfigとSource APIの呼び出しです。playerKey、mediaUrl、video、containerは組み込み先で用意します。"
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/webx-clear-fmp4.ts",
+          "url": "https://github.com/kazuhide/player-lab/blob/4ca18ec86da1e7fd31435909183aea540dc79ee9/apps/web/src/startup/adapters/webx-clear-fmp4.ts",
           "label": "公開パッケージを組み合わせる関数の全体"
+        },
+        {
+          "url": "https://developer.bitmovin.com/playback/docs/sourceapi-playbackapi",
+          "label": "公開Source APIのlogLevel"
+        },
+        {
+          "url": "https://html.spec.whatwg.org/multipage/media.html#dom-media-pause",
+          "label": "HTMLメディアの一時停止とリソース選択の手順"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/@bitmovin/player-web-x@10.3.1/types/packages/adaptation/NoAdaptation.package.d.ts",
+          "label": "公開のNoAdaptationPackageの型定義（10.3.1）"
         }
       ]
     },
     {
       "type": "code",
-      "text": "// Copy the public imports, ViewMode validation helpers and createPlayer factory from Applied configuration.\nconst player = await createPlayer({\n  key: playerKey,\n  defaultContainer: container,\n  defaultVideoElement: video,\n  playback: { muted: true, autoplay: false, preventSeeking: false },\n  defaultLogLevel: 0,\n});\nconst source = player.sources.add({\n  resources: [{ url: mediaUrl, type: \"hls\" }],\n  contentType: \"content\",\n}, { attach: false, loadControl: 0 });\nsource.currentTime = 0;\nsource.playbackRate = 1;\n// Register source observers before starting data loading.\nplayer.sources.attachVideo(source, { video, container });\nvideo.controls = false;\nsource.loadControl = 2;\nawait source.play();"
+      "text": "// Copy the public imports and createPlayer factory from Applied configuration.\nconst player = await createPlayer({\n  key: playerKey,\n  defaultContainer: container,\n  defaultVideoElement: video,\n  playback: { muted: true, autoplay: true, preventSeeking: false },\n  defaultLogLevel: 0,\n});\nconst source = player.sources.add({\n  resources: [{ url: mediaUrl, type: \"hls\" }],\n  contentType: \"content\",\n}, { attach: false, loadControl: 0 });\nsource.logLevel = 0;\nsource.currentTime = 0;\nsource.playbackRate = 1;\n// Register source observers before starting data loading.\nplayer.sources.attachVideo(source, { video, container });\nvideo.controls = false;\nsource.loadControl = 2;\nawait source.play();"
     },
     {
       "type": "table",
@@ -162,8 +174,8 @@
       "rows": [
         [
           "パッケージの選択（アプリ側の条件）",
-          "playerx-core-clear-fmp4・20個のパッケージを追加",
-          "共通の暗号化されていないfMP4のHLS素材だけに、記録された公開パッケージの構成を使います。その他のソースは形式に対応する既成のバンドルを使います。PlayerConfigの項目ではありません。"
+          "playerx-core-clear-fmp4・18個のパッケージを追加",
+          "NoAdaptationPackageを含む公開パッケージの構成は、固定の単一画質で暗号化されていないfMP4のHLS素材だけに使います。任意のソースや複数画質のHLSには、形式別のバンドルと通常の画質選択を使います。PlayerConfigの項目ではありません。"
         ],
         [
           "key",
@@ -187,8 +199,8 @@
         ],
         [
           "playback.autoplay",
-          "false",
-          "監視を登録してから明示的に再生を要求します。このバンドルの初期値もfalseです。"
+          "起動向け設定はtrue、defaultプロファイルはfalse",
+          "Playerを生成するときに、再生する設定をSDKへ渡します。Sourceはattach:false・loadControl=0で準備し、監視を登録してから接続とデータ取得を始め、Source.play()も明示的に呼び出します。バンドルの既定値はfalseです。共通のHTMLプロパティvideo.autoplay=falseとは別の設定です。"
         ],
         [
           "playback.preventSeeking",
@@ -198,7 +210,7 @@
         [
           "defaultLogLevel",
           "0 (Off)",
-          "計測中のコンソール出力を無効にします。公開の型には既定値の説明がなく、10.3.1のロガーの初期値はVerbose（5）です。この指定単独の速度改善は実証していません。"
+          "起動向け設定でPlayerのログをOffにします。Sourceのログはsource.logLevelで別に設定します。公開の型には既定値の説明がなく、10.3.1のロガーの初期値はVerbose（5）です。この指定単独の速度改善は実証していません。"
         ],
         [
           "resources[0].url",
@@ -224,6 +236,11 @@
           "sources.add: loadControl",
           "0 (Nothing)",
           "マニフェストやセグメントを取得せずに準備します。文書に記載された既定値はData（2）です。この準備処理も計測区間に含めます。"
+        ],
+        [
+          "source.logLevel",
+          "0 (Off)",
+          "sources.addの直後、接続・データ取得・再生の前にSourceのログをOffにします。PlayerのdefaultLogLevelとは別の公開プロパティです。defaultプロファイルでは指定せず、SDKの既定動作に任せます。この指定単独の速度改善は実証していません。"
         ],
         [
           "source.currentTime",
@@ -254,7 +271,7 @@
     },
     {
       "type": "p",
-      "text": "この構成を選ぶのは、アプリに付属するcomparison-360p.m3u8のHLS素材だけです。音声と映像の再生、画質の自動選択、Sourceの操作、ViewModeは維持します。CorePlayerがCore、EventBus、PlayerApiを用意し、createPlayer関数が記録された順序で20個のパッケージを追加します。この素材では不要なTSの解析・変換、AES復号、字幕、UI、Analytics、広告のパッケージは追加しません。この素材に必要な機能へ絞った構成であり、速度の優位性や最適な設定を示すものではありません。"
+      "text": "この構成を選ぶのは、アプリに付属するcomparison-360p.m3u8のHLS素材だけです。この素材は640×360の映像1画質と英語音声1トラックを持ちます。公開のAdaptationPackageをSDKが提供するNoAdaptationPackageへ置き換えます。このパッケージは先頭の映像と音声を選び、画質の自動切り替え処理を動かしません。この素材では同じ640×360の映像と英語音声を選びます。CorePlayerがCore、EventBus、PlayerApiを用意し、createPlayer関数がDataとNetworkを含む18個のパッケージを記録された順序で追加します。この比較ではインライン再生を使い、全画面表示とピクチャーインピクチャーを要求しないため、ViewModeとPlatformDetectionを外しています。この素材では不要なTSの解析・変換、AES復号、字幕、UI、Analytics、広告のパッケージも引き続き追加しません。この素材に必要な機能へ絞った構成であり、速度の優位性や最適な設定を示すものではありません。"
     },
     {
       "type": "p",
@@ -262,11 +279,15 @@
     },
     {
       "type": "p",
-      "text": "CorePlayerを生成する前に、公開のViewModeパッケージを確認します。onAddが関数であり、依存先がcore-effects、source-state-atom、source-api-managerの3つであることが条件です。パッケージ自体、またはdefaultプロパティの1階層内にあるパッケージを受け取り、同じオブジェクトを使います。さらに深い階層や条件に合わない形式では、Playerを生成せずに失敗します。生成後のパッケージ追加に失敗した場合は、非同期関数がplayer.dispose()の完了を待ってから例外を投げ直します。constructorEndは、パッケージの登録まで含むcreatePlayer関数が正常に完了した後に記録します。SDKの読み込みは計測開始後に行い、通常のライセンス処理も維持します。"
+      "text": "CorePlayerの生成後にパッケージの追加に失敗した場合は、非同期関数がplayer.dispose()の完了を待ってから例外を投げ直します。constructorEndは、パッケージの登録まで含むcreatePlayer関数が正常に完了した後に記録します。SDKの読み込みは計測開始後に行い、通常のライセンス処理も維持します。"
     },
     {
       "type": "p",
-      "text": "10.3.1の標準のPlayerConfigには、このアダプターで指定できる開始ビットレート、バッファー開始しきい値、ワーカー切り替え、同時要求数の項目はありません。インストールされた公開のStreaming実装では、先読みと再生済みデータの保持の初期値は12秒と6秒です。このアダプターでは初期値を上書きせず、画質選択にはWISHの既定動作を使います。これらは特定のバージョンの実装で確認した動作であり、PlayerConfigで追加指定できる項目や、実測で選んだ最適値ではありません。v8のTweaksConfigの項目は、Web Xの標準APIへ流用できません。"
+      "text": "このSDKバージョンではautoplay=trueでSourceの再生目標の初期値をPlayingにします。これにより、SDKの再生目標が一時停止で始まり、最初にネイティブのpause処理を呼ぶことを避けます。HTMLのpause手順では、新しいメディア要素の状態がNETWORK_EMPTYのときにpause()を呼ぶと、リソースの選択が始まります。Sourceの準備中はマニフェストやセグメントを取得せず、明示的に呼び出すSource.play()のPromiseもPlayingで完了します。これは設定の理由であり、autoplayやログ設定それぞれの速度改善を実証するものではありません。"
+    },
+    {
+      "type": "p",
+      "text": "10.3.1の標準のPlayerConfigには、このアダプターで指定できる開始ビットレート、バッファー開始しきい値、ワーカー切り替え、同時要求数の項目はありません。インストールされた公開のStreaming実装では、先読みと再生済みデータの保持の初期値は12秒と6秒です。このアダプターでは初期値を上書きしません。固定の単一画質素材にはNoAdaptationPackageを使い、任意のソースや複数画質の素材には、形式別のバンドルとSDK標準の画質選択を使います。これらは特定のバージョンの実装で確認した動作であり、PlayerConfigで追加指定できる項目や、実測で選んだ最適値ではありません。v8のTweaksConfigの項目は、Web Xの標準APIへ流用できません。"
     },
     {
       "type": "h2",

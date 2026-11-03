@@ -5,6 +5,10 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 
 ## Unreleased
 
+- Reduce fixed-source Web X startup work with the public NoAdaptation package,
+  explicit Source logging and playback intent, and fewer unused packages.
+  Publish paired startup and seek results for both HTTP cache policies; the
+  browser-managed results do not establish a consistent startup improvement.
 - Add modular Bitmovin Player 8.283.0 to the retained playback comparison,
   alongside Player Web X, hls.js and Shaka Player. Show the applied SDK/source
   configuration as code and explain each property and relevant SDK defaults.

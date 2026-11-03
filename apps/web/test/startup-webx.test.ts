@@ -50,6 +50,7 @@ function fixture(profile: StartupProfile = "default", tuning?: StartupTuning) {
     id: "test-source",
     events: sourceEvents,
     play: vi.fn(() => playback.promise),
+    logLevel: 5,
     loadControl: 0,
     currentTime: 4,
     playbackRate: 2,
@@ -167,11 +168,45 @@ describe("native Web X startup adapter", () => {
     await starting.catch(() => {});
   });
 
+  it.each(["startup", "default"] as const)("applies source logging policy before attachment, loading, and playback for %s", async (profile) => {
+    const f = fixture(profile);
+    const observed: Array<{ operation: string; logLevel: number }> = [];
+    let loadControl = f.source.loadControl;
+    Object.defineProperty(f.source, "loadControl", {
+      get: () => loadControl,
+      set: (value: number) => {
+        observed.push({ operation: "load", logLevel: f.source.logLevel });
+        loadControl = value;
+      },
+    });
+    f.player.sources.attachVideo.mockImplementation(() => {
+      observed.push({ operation: "attach", logLevel: f.source.logLevel });
+    });
+    f.source.play.mockImplementation(() => {
+      observed.push({ operation: "play", logLevel: f.source.logLevel });
+      return f.playback.promise;
+    });
+    const session = await createAdapter(f.context);
+    const stagedLogLevel = f.source.logLevel;
+    const starting = session.start();
+    f.playback.resolve();
+    await starting;
+    await session.dispose();
+
+    const expected = profile === "startup" ? 0 : 5;
+    expect(stagedLogLevel).toBe(expected);
+    expect(observed).toEqual(["attach", "load", "play"].map((operation) => ({ operation, logLevel: expected })));
+    expect(loadControl).toBe(2);
+    expect(session.metadata.configuration.sourceLogLevel).toBe(profile === "startup" ? 0 : null);
+  });
+
   it.each([0, 1, 2] as const)("records startup loadControl %s without inventing a load-completion event", async (loadControl) => {
     const f = fixture("startup", { webXLoadControl: loadControl });
     const session = await createAdapter(f.context);
     const start = session.start();
     expect(sdk.construct.mock.calls[0]?.[0]).toHaveProperty("defaultLogLevel", 0);
+    expect(sdk.construct.mock.calls[0]?.[0]).toHaveProperty("playback", { muted: true, autoplay: true, preventSeeking: false });
+    expect(session.metadata.configuration.autoplay).toBe(true);
     expect(f.source.loadControl).toBe(loadControl);
     expect(session.metadata.configuration.startLoadControl).toBe(loadControl);
     if (loadControl === 0) {
@@ -197,6 +232,7 @@ describe("native Web X startup adapter", () => {
     const start = session.start();
     expect(f.source.loadControl).toBe(2);
     expect(sdk.construct.mock.calls[0]?.[0]).not.toHaveProperty("defaultLogLevel");
+    expect(session.metadata.configuration.autoplay).toBe(false);
     f.playback.resolve();
     await start;
     await session.dispose();

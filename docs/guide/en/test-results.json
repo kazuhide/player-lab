@@ -5,12 +5,156 @@
   "blocks": [
     {
       "type": "h2",
+      "id": "webx-startup-2026-11-03",
+      "text": "Web X startup configuration comparison, 2026-11-03"
+    },
+    {
+      "type": "p",
+      "text": "Measured on Apple M5 (10 logical CPUs), 32 GiB, macOS arm64 and Headless Chromium 156.0.8078.4 with a 1280×900 CSS px viewport. The same Mac served the production files over uncompressed local HTTP. All players used the same 60-second clear fMP4 HLS, 640×360 video and English audio, muted at normal speed."
+    },
+    {
+      "type": "p",
+      "text": "Each player and HTTP cache policy had 12 matched pairs, with one earlier and one current configuration trial per pair. All startup and seek trials in this Chromium batch succeeded. The Web X change combines an 18-package composition with NoAdaptationPackage, startup autoplay=true and explicit Source logging Off. The other players are unchanged; the individual effects of the Web X settings were not isolated."
+    },
+    {
+      "type": "p",
+      "text": "Startup runs from per-player acceptance before a fresh playback document is created to the first observed moving video frame, including SDK import and initialization. Seek runs from the request to advancing playback near 40 seconds; every target was outside the buffered range. Values are milliseconds, rounded to two decimals. Paired differences are current minus earlier, summarized as median [minimum–maximum]."
+    },
+    {
+      "type": "h3",
+      "text": "Player Web X: earlier and current settings"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "HTTP cache policy",
+        "Metric",
+        "Earlier median (ms)",
+        "Current median (ms)",
+        "Paired difference: median [min–max] (ms)"
+      ],
+      "rows": [
+        [
+          "Disabled",
+          "SDK import",
+          "32.35",
+          "22.40",
+          "-9.95 [-14.40–-7.10]"
+        ],
+        [
+          "Disabled",
+          "Startup",
+          "176.85",
+          "160.95",
+          "-14.25 [-27.70–0.50]"
+        ],
+        [
+          "Disabled",
+          "Seek",
+          "98.00",
+          "98.55",
+          "1.50 [-32.90–19.90]"
+        ],
+        [
+          "Browser-managed",
+          "SDK import",
+          "11.40",
+          "9.35",
+          "-2.90 [-15.80–0.80]"
+        ],
+        [
+          "Browser-managed",
+          "Startup",
+          "145.25",
+          "129.10",
+          "-0.50 [-36.10–1.30]"
+        ],
+        [
+          "Browser-managed",
+          "Seek",
+          "96.60",
+          "96.50",
+          "-0.65 [-18.80–15.90]"
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "With HTTP caching disabled, the paired startup difference was −14.25 ms. With browser-managed caching it was −0.50 ms, so a startup improvement was not established for that policy despite the lower separate group median. Browser-managed caching does not establish a warm HTTP cache."
+    },
+    {
+      "type": "h3",
+      "text": "Current settings: all four players"
+    },
+    {
+      "type": "p",
+      "text": "Median startup and seek times, with n=12 per player and cache policy. These results describe this fixture and local transport."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Player / version",
+        "Cache disabled: startup (ms)",
+        "Cache disabled: seek (ms)",
+        "Browser-managed: startup (ms)",
+        "Browser-managed: seek (ms)"
+      ],
+      "rows": [
+        [
+          "Player Web X 10.3.1",
+          "160.95",
+          "98.55",
+          "129.10",
+          "96.50"
+        ],
+        [
+          "Bitmovin Player 8.283.0",
+          "165.10",
+          "131.40",
+          "123.35",
+          "389.80"
+        ],
+        [
+          "hls.js 1.7.4",
+          "124.15",
+          "98.60",
+          "111.45",
+          "98.20"
+        ],
+        [
+          "Shaka Player 5.3.3",
+          "158.65",
+          "98.45",
+          "114.30",
+          "97.95"
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "During a parallel-preview check in Headless WebKit, video time stopped advancing; the same behavior reproduced with the earlier configuration. Separate individual startup and seek checks passed in Chromium and WebKit. This occurred outside the Chromium timing batch."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://raw.githubusercontent.com/kazuhide/player-lab/d6be8bead99532affcbcea6d687b68743883f2ad/docs/web-startup-results-2026-11-03.json",
+          "label": "Paired measurements, all outcomes and provenance (JSON)"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-comparison-configuration/",
+          "label": "Applied settings, selection reasons and defaults"
+        }
+      ]
+    },
+    {
+      "type": "h2",
       "id": "web-comparison-2026-11-03",
       "text": "Four-player playback checks, 2026-11-03"
     },
     {
       "type": "p",
-      "text": "Exploratory observations from the current comparison, with two startup and seek trials per player. Chromium 156.0.8078.4 ran on macOS arm64, Apple M5 and 32 GiB. The same Mac served the 60-second clear fMP4 HLS fixture over HTTP. Every player rendered 640×360 with English audio, muted at normal speed. Browser HTTP caching was disabled and each cohort used a fresh context."
+      "text": "Exploratory observations from an earlier comparison, with two startup and seek trials per player. Chromium 156.0.8078.4 ran on macOS arm64, Apple M5 and 32 GiB. The same Mac served the 60-second clear fMP4 HLS fixture over HTTP. Every player rendered 640×360 with English audio, muted at normal speed. Browser HTTP caching was disabled and each cohort used a fresh context."
     },
     {
       "type": "p",

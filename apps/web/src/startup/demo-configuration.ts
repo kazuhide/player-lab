@@ -137,7 +137,7 @@ await player.play();`;
 }
 
 const WEBX_CLEAR_PACKAGES = [
-  ["AdaptationPackage", "playerx-adaptation.package"],
+  ["NoAdaptationPackage", "playerx-no-adaptation.package"],
   ["CapabilitiesPackage", "playerx-capabilities.package"],
   ["ContainerMp4Package", "playerx-container-mp4.package"],
   ["DataPackage", "playerx-data.package"],
@@ -146,7 +146,6 @@ const WEBX_CLEAR_PACKAGES = [
   ["MsePlaybackPackage", "playerx-mse-playback.package"],
   ["NativePlaybackPackage", "playerx-native-playback.package"],
   ["NetworkPackage", "playerx-network.package"],
-  ["PlatformDetectionPackage", "playerx-platform-detection.package"],
   ["PlaybackApiPackage", "playerx-playback-api.package"],
   ["PlaybackPackage", "playerx-playback.package"],
   ["PlaybackTechnologyPackage", "playerx-playback-technology.package"],
@@ -156,7 +155,6 @@ const WEBX_CLEAR_PACKAGES = [
   ["StreamDataStructurePackage", "playerx-stream-data-structure.package"],
   ["StreamingPackage", "playerx-streaming.package"],
   ["VideoElementControllerPackage", "playerx-video-element-controller.package"],
-  ["viewMode", "playerx-view-mode.package"],
 ] as const;
 
 function clearFmp4Factory(raw: unknown): string {
@@ -166,32 +164,13 @@ function clearFmp4Factory(raw: unknown): string {
     const entry = Object.getOwnPropertyDescriptor(packages, String(index));
     if (!entry || !("value" in entry) || entry.value !== id) return invalid();
   }
-  const imports = WEBX_CLEAR_PACKAGES.map(([name, id]) => name === "viewMode"
-    ? `import * as ViewModeEntry from "@bitmovin/player-web-x/packages/${id}";`
-    : `import { ${name} } from "@bitmovin/player-web-x/packages/${id}";`);
+  const imports = WEBX_CLEAR_PACKAGES.map(([name, id]) => `import { ${name} } from "@bitmovin/player-web-x/packages/${id}";`);
   const additions = WEBX_CLEAR_PACKAGES.map(([name]) => `    player.packages.add(${name});`).join("\n");
   return `import { Player as CorePlayer } from "@bitmovin/player-web-x/bundles/playerx-core";
 ${imports.join("\n")}
 
 // Clear fMP4 HLS only; TS, AES, UI, Analytics, advertising and subtitle packages are omitted.
-function isPublicViewModePackage(value) {
-  if (!value || typeof value !== "object") return false;
-  const dependencies = Reflect.get(value, "dependencies");
-  const onAdd = Reflect.get(value, "onAdd");
-  return typeof onAdd === "function" && Array.isArray(dependencies)
-    && dependencies.length === 3
-    && ["core-effects", "source-state-atom", "source-api-manager"].every(name => dependencies.includes(name));
-}
-
-function resolvePublicViewModePackage(value) {
-  if (isPublicViewModePackage(value)) return value;
-  const nested = value && typeof value === "object" ? Reflect.get(value, "default") : undefined;
-  if (isPublicViewModePackage(nested)) return nested;
-  throw new Error("Public ViewMode package export is incompatible");
-}
-
 async function createPlayer(config) {
-  const viewMode = resolvePublicViewModePackage(Reflect.get(ViewModeEntry, "default"));
   const player = CorePlayer(config);
   try {
 ${additions}
@@ -213,6 +192,9 @@ function webx(raw: unknown): string {
   const video = fields(raw, { playsInline: boolean, controls: boolean });
   const start = number(own(raw, "startTimeSeconds")); const rate = number(own(raw, "playbackRate"));
   const defaultLogLevel = choice(0, 1, 2, 3, 4, null)(own(raw, "defaultLogLevel"));
+  // Older snapshots omit source logging; do not infer an override.
+  const observedSourceLogLevel = own(raw, "sourceLogLevel");
+  const sourceLogLevel = observedSourceLogLevel === undefined ? null : choice(0, null)(observedSourceLogLevel);
   const player: Fields = { playback: configuration };
   if (defaultLogLevel !== null) player.defaultLogLevel = defaultLogLevel;
   const options = { attach: boolean(own(raw, "stagingAttach")), loadControl: choice(0, 1, 2)(own(raw, "stagingLoadControl")) };
@@ -221,6 +203,7 @@ function webx(raw: unknown): string {
   const content = choice("content")(own(raw, "contentType"));
   const attach = "player.sources.attachVideo(source, { video, container });\nvideo.controls = false;";
   const loading = `source.loadControl = ${load};`;
+  const sourceLogging = sourceLogLevel === 0 ? "source.logLevel = 0;\n" : "";
   return `${factory}
 
 video.muted = ${configuration.muted};
@@ -230,7 +213,7 @@ video.controls = ${video.controls};
 video.playbackRate = ${rate};
 const player = ${compact ? "await createPlayer" : "Player"}(${literal(player, { key: "playerKey", defaultContainer: "container", defaultVideoElement: "video" })});
 const source = player.sources.add({ resources: [{ url: mediaUrl, type: "${format}" }], contentType: "${content}" }, ${literal(options)});
-source.currentTime = ${start};
+${sourceLogging}source.currentTime = ${start};
 source.playbackRate = ${rate};
 ${sequence === "load-before-attach" ? `${loading}\n${attach}` : `${attach}\n${loading}`}
 await source.play();`;

@@ -9,7 +9,7 @@ function fixtures(): Record<DemoEngineId, { engine: DemoEngineId; version: strin
     "web-x": { engine: "web-x", version: "10.3.1", configuration: {
       profile: "startup", bundle: "playerx-hls", sourceType: "hls", contentType: "content",
       muted: true, autoplay: false, preventSeeking: false, playsInline: true, controls: false,
-      startTimeSeconds: 0, playbackRate: 1, defaultLogLevel: 0, stagingAttach: false,
+      startTimeSeconds: 0, playbackRate: 1, defaultLogLevel: 0, sourceLogLevel: 0, stagingAttach: false,
       stagingLoadControl: 0, startLoadControl: 2, startSequence: "attach-before-load",
     } },
     "bitmovin-8": { engine: "bitmovin-8", version: "8.283.0", configuration: {
@@ -36,9 +36,9 @@ function fixtures(): Record<DemoEngineId, { engine: DemoEngineId; version: strin
   };
 }
 const clearFmp4Packages = [
-  "adaptation", "capabilities", "container-mp4", "data", "hls-manifest", "media-state", "mse-playback",
-  "native-playback", "network", "platform-detection", "playback-api", "playback", "playback-technology",
-  "segment-processing", "source", "sources-api", "stream-data-structure", "streaming", "video-element-controller", "view-mode",
+  "no-adaptation", "capabilities", "container-mp4", "data", "hls-manifest", "media-state", "mse-playback",
+  "native-playback", "network", "playback-api", "playback", "playback-technology",
+  "segment-processing", "source", "sources-api", "stream-data-structure", "streaming", "video-element-controller",
 ].map((name) => `playerx-${name}.package`);
 function compactFixture() {
   const metadata = fixtures()["web-x"];
@@ -66,19 +66,63 @@ describe("applied SDK configuration code", () => {
     expect(candidate.indexOf("source.loadControl = 2")).toBeLessThan(candidate.indexOf("player.sources.attachVideo"));
     expect(candidate).toContain("await source.play()");
   });
+  it.each(["playerx-hls", "playerx-dash", "playerx-core-clear-fmp4"] as const)(
+    "renders recorded source logging before source initialization and playback for %s", (bundle) => {
+      const metadata = bundle === "playerx-core-clear-fmp4" ? compactFixture() : fixtures()["web-x"];
+      Object.assign(metadata.configuration, { bundle, sourceType: bundle === "playerx-dash" ? "dash" : "hls" });
+      const code = appliedConfiguration(metadata, "web-x")!.code;
+      const added = code.indexOf("const source = player.sources.add(");
+      const logging = code.indexOf("source.logLevel = 0;");
+      expect(added).toBeGreaterThan(0);
+      expect(logging).toBeGreaterThan(added);
+      expect(code.match(/source\.logLevel\s*=/g)).toHaveLength(1);
+      for (const next of ["source.currentTime", "source.playbackRate", "player.sources.attachVideo", "source.loadControl", "await source.play"]) {
+        expect(logging).toBeLessThan(code.indexOf(next));
+      }
+    },
+  );
+  it("keeps the recorded default source logging policy without assigning a log level", () => {
+    const metadata = fixtures()["web-x"];
+    Object.assign(metadata.configuration, { profile: "default", defaultLogLevel: null, sourceLogLevel: null });
+    const code = appliedConfiguration(metadata, "web-x")!.code;
+    expect(code).not.toContain("source.logLevel");
+    expect(code).not.toContain('"defaultLogLevel"');
+    expect(code).toContain("await source.play()");
+  });
+  it.each(["missing", "undefined"] as const)("does not infer source logging from an older %s snapshot", (state) => {
+    const metadata = fixtures()["web-x"];
+    if (state === "missing") delete metadata.configuration.sourceLogLevel;
+    else metadata.configuration.sourceLogLevel = undefined;
+    const code = appliedConfiguration(metadata, "web-x")!.code;
+    expect(code).toContain('"defaultLogLevel": 0');
+    expect(code).not.toContain("source.logLevel");
+    expect(code).toContain("await source.play()");
+  });
+  it.each([-1, 1, 2, 3, 4, 5, NaN, Infinity, "0", "private-key", false, true, {}, []].map((value) => ({ value })))(
+    "rejects an unsupported recorded source log level $value", ({ value }) => {
+      const metadata = fixtures()["web-x"];
+      metadata.configuration.sourceLogLevel = value;
+      expect(appliedConfiguration(metadata, "web-x")).toBeNull();
+    },
+  );
+  it("rejects source logging accessors and objects without executing their hooks", () => {
+    const metadata = fixtures()["web-x"];
+    const hook = vi.fn(() => 0);
+    metadata.configuration.sourceLogLevel = { toJSON: hook, valueOf: hook };
+    expect(appliedConfiguration(metadata, "web-x")).toBeNull();
+    expect(hook).not.toHaveBeenCalled();
+    Object.defineProperty(metadata.configuration, "sourceLogLevel", { get: hook });
+    expect(appliedConfiguration(metadata, "web-x")).toBeNull();
+    expect(hook).not.toHaveBeenCalled();
+  });
   it("renders the complete observed clear-fMP4 public composition and awaited partial cleanup", () => {
     const code = appliedConfiguration(compactFixture(), "web-x")!.code;
     expect(code).toContain('Player as CorePlayer');
     expect(code).toContain('bundles/playerx-core');
     for (const name of clearFmp4Packages) expect(code).toContain(`@bitmovin/player-web-x/packages/${name}`);
-    expect(code.match(/player\.packages\.add\(/g)).toHaveLength(20);
-    expect(code).toContain('import * as ViewModeEntry');
-    expect(code).toContain('Reflect.get(ViewModeEntry, "default")');
-    expect(code).toContain('typeof onAdd === "function"');
-    expect(code).toContain('dependencies.length === 3');
-    const validation = code.indexOf('const viewMode = resolvePublicViewModePackage(');
-    expect(validation).toBeGreaterThan(0);
-    expect(validation).toBeLessThan(code.indexOf('CorePlayer(config)'));
+    expect(code.match(/player\.packages\.add\(/g)).toHaveLength(18);
+    expect(code).not.toContain('ViewMode');
+    expect(code).not.toContain('PlatformDetection');
     expect(code).toContain('await player.dispose()');
     expect(code).toContain('const player = await createPlayer(');
     expect(code).toContain('source.currentTime = 0');
@@ -88,28 +132,22 @@ describe("applied SDK configuration code", () => {
     expect(ts.transpileModule(code, { reportDiagnostics: true,
       compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).diagnostics).toEqual([]);
   });
-  it("executes the projected ViewMode resolver with real namespace shapes and preserves the package by reference", async () => {
+  it("executes the projected factory in order and awaits cleanup after partial registration", async () => {
     const code = appliedConfiguration(compactFixture(), "web-x")!.code;
-    const body = code.slice(code.indexOf("function isPublicViewModePackage"), code.indexOf("\nvideo.muted"));
+    const body = code.slice(code.indexOf("async function createPlayer"), code.indexOf("\nvideo.muted"));
     const names = [...code.matchAll(/import \{ (\w+) \} from "@bitmovin\/player-web-x\/packages\//g)].map((match) => match[1]!);
-    const definition = { onAdd() {}, dependencies: ["core-effects", "source-state-atom", "source-api-manager"], extra: {} };
-    const factory = (value: unknown) => {
-      const add = vi.fn(); const core = vi.fn(() => ({ packages: { add }, dispose: vi.fn(async () => {}) }));
-      const create = new Function("ViewModeEntry", "CorePlayer", ...names, `${body}\nreturn createPlayer;`)(
-        { default: value }, core, ...names.map((name) => ({ name })));
-      return { create, add, core };
-    };
-    for (const value of [definition, { version: "10.3.1", default: definition }]) {
-      const f = factory(value); await f.create({});
-      expect(f.core).toHaveBeenCalledOnce(); expect(f.add).toHaveBeenCalledTimes(20);
-      expect(f.add.mock.calls[f.add.mock.calls.length - 1]?.[0]).toBe(definition);
-    }
-    for (const value of [null, { version: "10.3.1" }, { default: { default: definition } },
-      { onAdd() {}, dependencies: ["core-effects", "source-state-atom", "wrong-dependency"] }]) {
-      const f = factory(value);
-      await expect(f.create({})).rejects.toThrow("Public ViewMode package export is incompatible");
-      expect(f.core).not.toHaveBeenCalled(); expect(f.add).not.toHaveBeenCalled();
-    }
+    const packages = names.map((name) => ({ name }));
+    const add = vi.fn(), dispose = vi.fn(async () => {});
+    const core = vi.fn(() => ({ packages: { add }, dispose }));
+    const create = new Function("CorePlayer", ...names, `${body}\nreturn createPlayer;`)(core, ...packages);
+    await create({});
+    expect(core).toHaveBeenCalledOnce();
+    expect(add.mock.calls.map(([pkg]) => pkg)).toEqual(packages);
+    expect(dispose).not.toHaveBeenCalled();
+    add.mockReset().mockImplementationOnce(() => {}).mockImplementationOnce(() => { throw new Error("registration"); });
+    await expect(create({})).rejects.toThrow("registration");
+    expect(add).toHaveBeenCalledTimes(2);
+    expect(dispose).toHaveBeenCalledOnce();
   });
   it("accepts only the exact compact HLS constructor and recorded package order", () => {
     for (const change of ["missing", "unknown", "order", "duplicate", "dash"] as const) {
