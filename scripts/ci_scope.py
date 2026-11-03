@@ -22,6 +22,7 @@ WEB_FILES = frozenset(path.encode() for path in (
     "apps/web/src/api/schema.json", "docs/api-coverage/coverage.json",
     "docs/api-coverage/inventory.json", "docs/api-coverage/summary.json", "docs/api-coverage/gaps.json",
     "encoding/test-streams/local.py", "scripts/test-local-media.py",
+    "scripts/api-coverage/apple/normalize_apple.py",
 ))
 WEB_SDK_PINS = {b"apps/web/package.json": b"dependencies",
                 b"packages/ui-shared/package.json": b"devDependencies",

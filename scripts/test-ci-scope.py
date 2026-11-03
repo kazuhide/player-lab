@@ -199,12 +199,14 @@ jobs:
     def test_generated_web_api_and_local_media_paths_are_exactly_scoped(self):
         for name in ("apps/web/src/api/schema.json", "docs/api-coverage/coverage.json",
                      "docs/api-coverage/inventory.json", "docs/api-coverage/summary.json", "docs/api-coverage/gaps.json",
-                     "encoding/test-streams/local.py", "scripts/test-local-media.py"):
+                     "encoding/test-streams/local.py", "scripts/test-local-media.py",
+                     "scripts/api-coverage/apple/normalize_apple.py"):
             self.write(name)
         self.commit()
         self.assertFalse(self.native_selected())
         base = self.git("rev-parse", "HEAD").decode().strip()
-        for name in ("docs/api-coverage/native.json", "apps/web/src/api/other.json", "encoding/test-streams/other.py"):
+        for name in ("docs/api-coverage/native.json", "apps/web/src/api/other.json", "encoding/test-streams/other.py",
+                     "scripts/api-coverage/apple/other.py"):
             with self.subTest(path=name):
                 self.git("reset", "--hard", base); self.write(name); self.commit()
                 self.assertTrue(self.native_selected(base=base))
