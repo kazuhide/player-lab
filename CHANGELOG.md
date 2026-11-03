@@ -5,6 +5,12 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 
 ## Unreleased
 
+- Add modular Bitmovin Player 8.283.0 to the retained playback comparison,
+  alongside Player Web X, hls.js and Shaka Player. Show the applied SDK/source
+  configuration as code and explain each property and relevant SDK defaults.
+- Correct HLS fixture peak and average bandwidth metadata from actual segment
+  sizes and durations without changing the encoded audio or video.
+
 - Turn Web player comparison into a playback demo with startup and seek graphs,
   single and side-by-side views, and a visible Measure again action. Keep the
   detailed startup benchmark available separately.

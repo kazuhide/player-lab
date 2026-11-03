@@ -1,0 +1,655 @@
+{
+  "id": "web-comparison-configuration",
+  "title": "Comparison configuration",
+  "lead": "Applied SDK configuration, the reason for each property, and relevant defaults for the selected player versions.",
+  "blocks": [
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-comparison/",
+          "label": "Comparison controls and graphs"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-startup-integration/",
+          "label": "Timing and lifecycle implementation"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "configuration",
+      "text": "Read the applied settings"
+    },
+    {
+      "type": "p",
+      "text": "After a trial, Applied configuration shows the SDK configuration and source/play calls reconstructed from that trial’s safe settings snapshot. License keys and source addresses are represented by variables. The examples below describe the default HLS startup profile; choose a player in the app to inspect a DASH trial or a declared tuning override."
+    },
+    {
+      "type": "p",
+      "text": "The reasons below distinguish integration requirements and fixed comparison conditions from measured tuning. A 12-second forward target and 6-second retention are bounded comparison conditions, not proven optimal values or identical memory limits. Web X 10.3.1 does not expose equivalent buffer settings in its native PlayerConfig. Settings left to each SDK can affect the result."
+    },
+    {
+      "type": "p",
+      "text": "Startup and seek fixes the common fixture to one 360p representation with the same English audio, so initial ABR choices do not make one engine decode lower-quality media. Network change keeps the adaptive ladder. Custom URLs retain their own renditions and SDK quality selection; confirm actual resolution before comparing those timings."
+    },
+    {
+      "type": "h2",
+      "id": "evaluated-settings",
+      "text": "Settings evaluated on the fixed fixture"
+    },
+    {
+      "type": "p",
+      "text": "The retained startup benchmark screened worker and prefetch candidates on the same 360p HLS, then ran fresh confirmation trials. Its selector uses native playing, while the table also retains moving-frame timings. These observations use that benchmark clock; they are not mixed with the playback demo results. Small screening groups and confirmation of only the selected setting do not establish a globally optimal configuration."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Candidate",
+        "Screening: native playing / moving frame",
+        "Confirmation and decision"
+      ],
+      "rows": [
+        [
+          "hls.js enableWorker=true",
+          "112.8 / 190.5 ms; n=3",
+          "Keep for arbitrary sources; not selected for the fixed fMP4 fixture."
+        ],
+        [
+          "hls.js enableWorker=false",
+          "12.7 / 90.4 ms; n=3",
+          "Fresh n=6: 13.35 / 85.50 ms. Selected only for the fixed fixture startup profile."
+        ],
+        [
+          "Shaka segmentPrefetchLimit=0 / 1 / 2",
+          "36.8 / 107.15; 22.8 / 93.30; 15.8 / 87.70 ms; n=2 each",
+          "2 confirmed at 17.15 / 85.90 ms (n=6), but no fresh default arm. Retain inherited default 1 because the difference is not conclusive."
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "media-element",
+      "text": "Common video element"
+    },
+    {
+      "type": "code",
+      "text": "const video = document.createElement(\"video\");\nvideo.muted = true;\nvideo.defaultMuted = true;\nvideo.autoplay = false;\nvideo.playsInline = true;\nvideo.controls = false;\nvideo.playbackRate = 1;\nvideo.defaultPlaybackRate = 1;\nvideo.preload = \"none\";\ncontainer.append(video);"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Property",
+        "Applied value",
+        "Reason and SDK default"
+      ],
+      "rows": [
+        [
+          "muted",
+          "true",
+          "Permit muted playback under browser autoplay policies; a fresh element normally starts false."
+        ],
+        [
+          "defaultMuted",
+          "true",
+          "Keep the muted attribute consistent with playback intent; without the attribute the browser default is false."
+        ],
+        [
+          "autoplay",
+          "false",
+          "The runner explicitly requests play inside the timed operation. This is the fresh-element default."
+        ],
+        [
+          "playsInline",
+          "true",
+          "Keep video in its comparison panel where supported. Without the attribute the browser default is false."
+        ],
+        [
+          "controls",
+          "false",
+          "Use the comparison page’s controls. Native control visibility is a presentation condition, not a speed tuning value."
+        ],
+        [
+          "playbackRate",
+          "1",
+          "Use normal playback speed; also the browser default."
+        ],
+        [
+          "defaultPlaybackRate",
+          "1",
+          "Keep the default rate at normal speed; also the browser default."
+        ],
+        [
+          "preload",
+          "\"none\"",
+          "Do not ask the browser to preload through a native source attribute. This hint does not prevent an SDK from fetching MSE media after loading is requested."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Each adapter also sets its source start position to zero. The common fixture is video on demand. On a live source, zero and startOffset=0 can use different timeline references; inspect the actual seekable range instead of interpreting them as a universal live-edge policy."
+    },
+    {
+      "type": "h2",
+      "id": "web-x",
+      "text": "Player Web X 10.3.1"
+    },
+    {
+      "type": "p",
+      "text": "For the app-owned fixed 360p HLS source, Web X uses an async createPlayer factory built from the public core bundle and 20 public packages. After measuring that source, open Applied configuration, expand Player Web X, and copy its public imports and complete createPlayer factory, including the ViewMode validation helpers. The example below uses that factory with the actual PlayerConfig and Source API calls. playerKey, mediaUrl, video and container are supplied by the surrounding application."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://github.com/kazuhide/player-lab/blob/6d45c1c4c50f134f6d6037de6371f41eb127a69a/apps/web/src/startup/adapters/webx-clear-fmp4.ts",
+          "label": "Complete public Web X package factory"
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "text": "// Copy the public imports, ViewMode validation helpers and createPlayer factory from Applied configuration.\nconst player = await createPlayer({\n  key: playerKey,\n  defaultContainer: container,\n  defaultVideoElement: video,\n  playback: { muted: true, autoplay: false, preventSeeking: false },\n  defaultLogLevel: 0,\n});\nconst source = player.sources.add({\n  resources: [{ url: mediaUrl, type: \"hls\" }],\n  contentType: \"content\",\n}, { attach: false, loadControl: 0 });\nsource.currentTime = 0;\nsource.playbackRate = 1;\n// Register source observers before starting data loading.\nplayer.sources.attachVideo(source, { video, container });\nvideo.controls = false;\nsource.loadControl = 2;\nawait source.play();"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Property",
+        "Applied value",
+        "Reason and SDK default"
+      ],
+      "rows": [
+        [
+          "Package selection (app policy)",
+          "playerx-core-clear-fmp4; 20 added packages",
+          "Use the recorded compact public composition only for the fixed clear-fMP4 HLS source; other sources keep the prebuilt format bundle. This is not a PlayerConfig property."
+        ],
+        [
+          "key",
+          "playerKey",
+          "Required license for the allowed origin. It is not a performance setting."
+        ],
+        [
+          "defaultContainer",
+          "container",
+          "Keep attachment inside the runner-owned stage."
+        ],
+        [
+          "defaultVideoElement",
+          "video",
+          "Use the element observed by the common frame callbacks. If omitted, the bundle can create its own element."
+        ],
+        [
+          "playback.muted",
+          "true",
+          "Use muted playback. The installed bundle’s initial value is false."
+        ],
+        [
+          "playback.autoplay",
+          "false",
+          "Request play explicitly after installing observers. The installed bundle’s initial value is false."
+        ],
+        [
+          "playback.preventSeeking",
+          "false",
+          "Allow the seek scenario; the installed bundle’s initial value is false."
+        ],
+        [
+          "defaultLogLevel",
+          "0 (Off)",
+          "Disable console output in measured trials. The public type does not document a default; the installed 10.3.1 logger initializes at Verbose (5). This flag alone has not been established as a speed gain."
+        ],
+        [
+          "resources[0].url",
+          "mediaUrl",
+          "Pass the same selected source as the other players. Required source input."
+        ],
+        [
+          "resources[0].type",
+          "\"hls\" / \"dash\"",
+          "Use the parser for the selected format. Required source input."
+        ],
+        [
+          "contentType",
+          "\"content\"",
+          "Treat the source as ordinary content. The installed bundle also defaults to content."
+        ],
+        [
+          "sources.add: attach",
+          "false",
+          "Stage without attachment until source observers are registered; the installed default is true."
+        ],
+        [
+          "sources.add: loadControl",
+          "0 (Nothing)",
+          "Stage without manifest/segment requests; the documented default is Data (2). Staging is still inside the measured interval."
+        ],
+        [
+          "source.currentTime",
+          "0",
+          "Start the VOD fixture at its beginning; the public type does not define a universal initial timeline value."
+        ],
+        [
+          "source.playbackRate",
+          "1",
+          "Use normal speed; also the installed bundle’s initial value."
+        ],
+        [
+          "attachVideo: video",
+          "video",
+          "Attach the observed element explicitly; omission uses defaultVideoElement in this bundle."
+        ],
+        [
+          "attachVideo: container",
+          "container",
+          "Attach within the owned stage; omission uses defaultContainer in this bundle."
+        ],
+        [
+          "source.loadControl",
+          "2 (Data)",
+          "Request manifests and segments immediately before play. This is the documented default, not an extra Ready-event gate."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The compact composition is selected only for the app-owned comparison-360p.m3u8 HLS source. It retains audio/video playback, automatic adaptation, Source controls and ViewMode. CorePlayer supplies Core, EventBus and PlayerApi; the factory adds the 20 packages in its recorded order. TS parsing/transmuxing, AES decryption, subtitles, UI, Analytics and advertising packages are omitted because this controlled source does not require them. This source-specific packaging choice does not establish a speed advantage or an optimal configuration."
+    },
+    {
+      "type": "p",
+      "text": "Custom HLS URLs and the adaptive source used by Network change keep the complete playerx-hls bundle. DASH uses playerx-dash; DASH support in Web X 10.3.1 is partial. Entering the controlled source address as a custom URL still uses the prebuilt bundle. The app does not infer that an arbitrary HLS URL is safe for the compact composition. Inspect Applied configuration for the bundle and settings actually used by that trial."
+    },
+    {
+      "type": "p",
+      "text": "Before constructing CorePlayer, the factory checks the public ViewMode package: onAdd must be a function and its dependencies must be exactly core-effects, source-state-atom and source-api-manager. It accepts the package directly or inside one default namespace wrapper, preserving the package object. Deeper or incompatible wrappers fail before construction. If adding a package fails after construction, the async factory awaits player.dispose() before rethrowing; constructorEnd is recorded only after successful factory resolution, including package registration. SDK import starts after the measurement clock; normal licensing behavior is retained."
+    },
+    {
+      "type": "p",
+      "text": "Native PlayerConfig in 10.3.1 exposes no startup bitrate, buffer threshold, worker toggle or request-concurrency setting used by this adapter. The installed public Streaming implementation initializes forward/backward buffer targets to 12/6 seconds; this adapter does not override those initial targets and retains default WISH adaptation. These are version-specific implementation observations, not additional PlayerConfig controls or measured optima. v8 TweaksConfig names cannot be copied into the native Web X API."
+    },
+    {
+      "type": "h2",
+      "id": "bitmovin-8",
+      "text": "Bitmovin Player 8.283.0"
+    },
+    {
+      "type": "code",
+      "text": "import { Player, LogLevel } from \"bitmovin-player/modules/bitmovinplayer-core\";\n// Register EngineBitmovin, RendererMSE, HLS, ABR, MP4 and TS modules first.\nconst player = new Player(container, {\n  key: playerKey,\n  playback: {\n    muted: true, autoplay: false, audioLanguage: \"en\",\n    preferredTech: [{ player: \"html5\", streaming: \"hls\" }],\n  },\n  ui: false, analytics: false,\n  storage: { disableStorageApi: true },\n  buffer: {\n    audio: { forwardduration: 12, backwardduration: 6 },\n    video: { forwardduration: 12, backwardduration: 6 },\n  },\n  logs: { level: LogLevel.OFF, bitmovin: false },\n});\nplayer.setVideoElement(video);\nawait player.load({ hls: mediaUrl, options: { startOffset: 0 } }, \"html5.hls\");\nawait player.play();"
+    },
+    {
+      "type": "p",
+      "text": "Register the modules before constructing the player. In 8.283.0, the first addModule initializes the module registry, so getModules cannot be used to guard that first registration. Some bundlers wrap a CommonJS module definition in a default namespace. The app unwraps that public definition and passes the original object to addModule; the full code is available in Applied configuration."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Property",
+        "Applied value",
+        "Reason and SDK default"
+      ],
+      "rows": [
+        [
+          "key",
+          "playerKey",
+          "Required license for the allowed origin; no default."
+        ],
+        [
+          "playback.muted",
+          "true",
+          "Use muted playback; SDK default false."
+        ],
+        [
+          "playback.autoplay",
+          "false",
+          "Explicit play follows the load promise; SDK default false."
+        ],
+        [
+          "playback.audioLanguage",
+          "\"en\"",
+          "Request the fixture’s English audio; no specific default language is published."
+        ],
+        [
+          "playback.preferredTech[0].player",
+          "\"html5\"",
+          "Select the JavaScript MediaSource backend instead of silent native fallback."
+        ],
+        [
+          "playback.preferredTech[0].streaming",
+          "\"hls\" / \"dash\"",
+          "Use the selected source format; the SDK otherwise chooses a supported technology."
+        ],
+        [
+          "ui",
+          "false",
+          "Exclude SDK UI; availability otherwise depends on the registered UI module."
+        ],
+        [
+          "analytics",
+          "false",
+          "Exclude collection from playback-engine timing; availability otherwise depends on the Analytics module."
+        ],
+        [
+          "storage.disableStorageApi",
+          "true",
+          "Avoid saved SDK state between trials; default false. This does not clear or disable HTTP caching."
+        ],
+        [
+          "buffer.audio.forwardduration",
+          "12 s",
+          "Common read-ahead condition; SDK default 40 s. Not an empirically selected optimum."
+        ],
+        [
+          "buffer.audio.backwardduration",
+          "6 s",
+          "Common retention condition; SDK default 20 s."
+        ],
+        [
+          "buffer.video.forwardduration",
+          "12 s",
+          "Common read-ahead condition; SDK default 40 s."
+        ],
+        [
+          "buffer.video.backwardduration",
+          "6 s",
+          "Common retention condition; SDK default 20 s."
+        ],
+        [
+          "logs.level",
+          "LogLevel.OFF",
+          "Disable console output; SDK default WARN."
+        ],
+        [
+          "logs.bitmovin",
+          "false",
+          "Disable console credits; SDK default true."
+        ],
+        [
+          "SourceConfig.hls / dash",
+          "mediaUrl",
+          "Required selected source, shared with the other players."
+        ],
+        [
+          "SourceConfig.options.startOffset",
+          "0",
+          "Start VOD at its beginning. Its default timeline reference is Start for VOD and End for live."
+        ],
+        [
+          "load: forceTechnology",
+          "\"html5.hls\" / \"html5.dash\"",
+          "Require the chosen MSE format; omission allows SDK technology selection."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The HLS wrapper registers core, EngineBitmovin, RendererMSE, HLS, ABR, MP4 and TS; DASH replaces HLS/TS with XML/DASH. No UI, Analytics or ad module is registered. Startup bitrate stays automatic. The default adaptation logic is DOWNLOAD_PREDICTION (v3), and preload is true for VOD / false for live. The inherited startup_threshold and restart_threshold remain 0.9 seconds: setting forwardduration=12 does not change either threshold. hls_parse_manifest_in_worker remains false. Audio/video codec priorities and platform-specific max_startup_buffer remain at SDK defaults."
+    },
+    {
+      "type": "h2",
+      "id": "hls",
+      "text": "hls.js 1.7.4"
+    },
+    {
+      "type": "code",
+      "text": "import Hls from \"hls.js\";\nimport workerURL from \"hls.js/dist/hls.worker.js?url\";\n\nconst hls = new Hls({\n  debug: false, autoStartLoad: true, startPosition: 0,\n  audioPreference: { lang: \"en\" }, preferManagedMediaSource: false,\n  enableWorker: false, workerPath: workerURL,\n  lowLatencyMode: false, enableInterstitialPlayback: false,\n  maxBufferLength: 12, maxMaxBufferLength: 12,\n  backBufferLength: 6, frontBufferFlushThreshold: 12,\n});\nhls.attachMedia(video);\nhls.loadSource(mediaUrl);\nawait video.play();"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Property",
+        "Applied value",
+        "Reason and SDK default"
+      ],
+      "rows": [
+        [
+          "debug",
+          "false",
+          "Disable debug logs; also the SDK default."
+        ],
+        [
+          "autoStartLoad",
+          "true",
+          "Load after loadSource without another startLoad gate; also the default."
+        ],
+        [
+          "startPosition",
+          "0",
+          "Start the VOD fixture at zero; default -1 lets the SDK choose."
+        ],
+        [
+          "audioPreference.lang",
+          "\"en\"",
+          "Choose the fixture’s English track; no preference object is set by default."
+        ],
+        [
+          "preferManagedMediaSource",
+          "false",
+          "Prefer ordinary MediaSource when both are available; also the default. ManagedMediaSource can still be used when ordinary MSE is unavailable."
+        ],
+        [
+          "enableWorker",
+          "false: exact fixed fixture startup profile; true: other sources/profiles",
+          "The fixed clear-fMP4 startup test favored false. Apply it only to the app-owned comparison-360p.m3u8 source in the startup profile; custom/network sources and the default profile retain the SDK default true. An explicit caller override wins. Worker setup and main-thread work are a tradeoff; this is not a universal optimum or proof of worker activity."
+        ],
+        [
+          "workerPath",
+          "workerURL",
+          "Use the installed worker emitted by the bundler. Default null leaves worker resolution to the SDK."
+        ],
+        [
+          "lowLatencyMode",
+          "false",
+          "Use ordinary segment playback for the baseline; SDK default true."
+        ],
+        [
+          "enableInterstitialPlayback",
+          "false",
+          "Exclude interstitial ads from content playback; default true in this full build."
+        ],
+        [
+          "maxBufferLength",
+          "12 s",
+          "Common forward target; SDK default 30 s."
+        ],
+        [
+          "maxMaxBufferLength",
+          "12 s",
+          "Prevent the size-based buffer calculation from increasing the target above 12 s; default 600 s."
+        ],
+        [
+          "backBufferLength",
+          "6 s",
+          "Common retained history; SDK default Infinity."
+        ],
+        [
+          "frontBufferFlushThreshold",
+          "12 s",
+          "Allow eligible data beyond gaps to be flushed at this threshold; default Infinity. It is not a startup playable-buffer threshold."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Initial quality remains automatic: startLevel is not pinned, abrEwmaDefaultEstimate stays at 500,000 bit/s and testBandwidth stays true. No codec is forced. Player-size and frame-drop quality caps remain false. A configured worker may fall back or be unnecessary for a particular container. DASH is unsupported and is recorded as such, rather than timing a different source."
+    },
+    {
+      "type": "h2",
+      "id": "shaka",
+      "text": "Shaka Player 5.3.3"
+    },
+    {
+      "type": "code",
+      "text": "import shaka from \"shaka-player/dist/shaka-player.hls-es2021.js\";\n\nshaka.polyfill.installAll();\nconst player = new shaka.Player();\nif (!player.configure({\n  preferredAudio: [{ language: \"en\", role: \"\", label: \"\", channelCount: 2,\n    codec: \"\", spatialAudio: false }],\n  streaming: {\n    preferNativeHls: false, fallbackToNativeHlsOnMseError: false,\n    useNativeHlsForFairPlay: false, lowLatencyMode: false,\n    bufferingGoal: 12, bufferBehind: 6, rebufferingGoal: 0,\n  },\n  cmcd: { enabled: false }, cmsd: { enabled: false },\n  ads: { disableHLSInterstitial: true, disableDASHInterstitial: true, disableSVTA: true },\n})) throw new Error(\"Configuration rejected\");\nawait player.attach(video);\nconst loading = player.load(mediaUrl, 0, \"application/x-mpegurl\");\nawait Promise.all([loading, video.play()]);"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Property",
+        "Applied value",
+        "Reason and SDK default"
+      ],
+      "rows": [
+        [
+          "preferredAudio[0].language",
+          "\"en\"",
+          "Select the same English track; default empty string."
+        ],
+        [
+          "preferredAudio[0].role",
+          "\"\"",
+          "Do not require an audio role; also the default."
+        ],
+        [
+          "preferredAudio[0].label",
+          "\"\"",
+          "Do not require an audio label; also the default."
+        ],
+        [
+          "preferredAudio[0].channelCount",
+          "2",
+          "Prefer stereo. The installed 5.3.3 default is 2 although its public extern comment says 0."
+        ],
+        [
+          "preferredAudio[0].codec",
+          "\"\"",
+          "Do not force an audio codec; also the default."
+        ],
+        [
+          "preferredAudio[0].spatialAudio",
+          "false",
+          "Request non-spatial audio. Omitting this optional preference is not always equivalent to explicit false."
+        ],
+        [
+          "streaming.preferNativeHls",
+          "false",
+          "Use MediaSource; also the default."
+        ],
+        [
+          "streaming.fallbackToNativeHlsOnMseError",
+          "false",
+          "Keep MSE failures visible instead of switching backend; also the default."
+        ],
+        [
+          "streaming.useNativeHlsForFairPlay",
+          "false",
+          "Keep the clear fixture on MSE; also the default. The fixture does not use FairPlay."
+        ],
+        [
+          "streaming.lowLatencyMode",
+          "false",
+          "Use ordinary segment playback; SDK default true."
+        ],
+        [
+          "streaming.bufferingGoal",
+          "12 s",
+          "Common read-ahead target; SDK default 10 s."
+        ],
+        [
+          "streaming.bufferBehind",
+          "6 s",
+          "Common retained history; SDK default 30 s."
+        ],
+        [
+          "streaming.rebufferingGoal",
+          "0 s",
+          "Retain the 5.3.3 default playable-buffer goal; it is distinct from bufferingGoal."
+        ],
+        [
+          "cmcd.enabled",
+          "false",
+          "Exclude Common Media Client Data request signaling; also the default."
+        ],
+        [
+          "cmsd.enabled",
+          "false",
+          "Do not use Common Media Server Data hints; SDK default true."
+        ],
+        [
+          "ads.disableHLSInterstitial",
+          "true",
+          "Exclude HLS interstitial handling; SDK default false."
+        ],
+        [
+          "ads.disableDASHInterstitial",
+          "true",
+          "Exclude DASH interstitial handling; SDK default false."
+        ],
+        [
+          "ads.disableSVTA",
+          "true",
+          "Exclude Streaming Video Technology Alliance ad handling; SDK default false."
+        ],
+        [
+          "load: url",
+          "mediaUrl",
+          "Pass the same selected source; required input."
+        ],
+        [
+          "load: startTime",
+          "0",
+          "Start the VOD fixture at its beginning."
+        ],
+        [
+          "load: mimeType",
+          "application/x-mpegurl / application/dash+xml",
+          "Select HLS/DASH explicitly, including URLs without a recognizable extension."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "DASH uses shaka-player.dash-es2021.js. segmentPrefetchLimit is left at its 5.3.3 default of 1 unless an explicit tuning trial overrides it. ABR remains enabled; the 1,000,000 bit/s fallback estimate can be replaced by browser Network Information. Quality is not capped to element or screen size. No transmuxWorkerUrl is set, so worker activation is not established. CODECS in the manifest take precedence over HLS fallback codec strings; no codec is forced by this adapter."
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/player-web-x-bundles-packages",
+      "label": "Player Web X bundles and packages"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/load-control",
+      "label": "Web X LoadControl"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/sourceapi-playbackapi",
+      "label": "Web X Source / Playback API"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/@bitmovin/player-web-x@10.3.1/types/bundles/Types.d.ts",
+      "label": "Web X 10.3.1 public configuration types"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/core_config.playerconfig.html",
+      "label": "Bitmovin Player 8 PlayerConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.BufferConfig.html",
+      "label": "Bitmovin Player 8 buffer settings"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.TweaksConfig.html",
+      "label": "Bitmovin Player 8 tweaks and defaults"
+    },
+    {
+      "url": "https://github.com/video-dev/hls.js/blob/v1.7.4/src/config.ts",
+      "label": "hls.js 1.7.4 defaults"
+    },
+    {
+      "url": "https://github.com/shaka-project/shaka-player/blob/v5.3.3/lib/util/player_configuration.js",
+      "label": "Shaka 5.3.3 generated defaults"
+    },
+    {
+      "url": "https://github.com/shaka-project/shaka-player/blob/v5.3.3/externs/shaka/player.js",
+      "label": "Shaka 5.3.3 public configuration documentation"
+    },
+    {
+      "url": "https://html.spec.whatwg.org/multipage/media.html",
+      "label": "HTML media-element behavior"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/bitmovin-player@8.283.0/types/core/PlayerConfigAPI.d.ts",
+      "label": "Bitmovin Player 8.283.0 public configuration types"
+    }
+  ]
+}

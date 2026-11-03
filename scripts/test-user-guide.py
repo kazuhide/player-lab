@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check complete bilingual content, safe rendering, and navigation contracts."""
 import copy
+from datetime import date
 import hashlib
 import json
 from html import escape
@@ -23,6 +24,23 @@ from guide_routes import (CHAPTERS, CHILD_CHAPTERS, COVERAGE_APPS, GUIDE_ASSETS,
 from user_guide import build, load_content, render_block, search_text, section_ids, source_url
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def repository_source_is_pinned(url, chapter):
+    repository = 'https://github.com/kazuhide/player-lab/blob/'
+    if url.startswith(repository + SOURCE_REVISION + '/'):
+        return True
+    if chapter != 'test-results':
+        return False
+    historical = re.fullmatch(re.escape(repository)
+        + r'[0-9a-f]{40}/docs/web-(?:startup|comparison)-results-(\d{4}-\d{2}-\d{2})\.json', url)
+    if historical is None:
+        return False
+    try:
+        date.fromisoformat(historical[1])
+    except ValueError:
+        return False
+    return True
 
 
 def sidebar(page):
@@ -116,7 +134,7 @@ class GuideTests(unittest.TestCase):
 
     def test_all_chapters_and_reference_groups_are_public_in_both_languages(self):
         self.assertEqual(set(self.pages), GUIDE_FILES)
-        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 186)
+        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 188)
         for language in ('en', 'ja'):
             fields = [field for group in self.content[language]['settings']['groups'] for field in group['fields']]
             self.assertEqual(len(fields), 144)
@@ -397,7 +415,8 @@ class GuideTests(unittest.TestCase):
                 self.assertTrue(any(b['type'] == 'code' and 'source' in b for b in document['blocks']))
                 self.assertTrue(any(b['type'] == 'figure' for b in document['blocks']))
             for chapter in ('web-player-config', 'web-ui-customization',
-                            'web-startup-comparison', 'web-startup-integration'):
+                            'web-startup-comparison', 'web-startup-integration',
+                            'web-comparison-configuration'):
                 self.assertIn('<nav class="guide-onpage"', self.pages[route_file(language, chapter)].decode())
 
     def test_implementation_sections_keep_code_images_bookmarks_and_platform_context(self):
@@ -722,6 +741,29 @@ class GuideTests(unittest.TestCase):
             with self.subTest(source=source), self.assertRaises(ValueError):
                 source_url(source)
 
+    def test_historical_report_sources_require_dated_datasets_and_immutable_revisions(self):
+        repository = 'https://github.com/kazuhide/player-lab/blob/'
+        historical = repository + 'a' * 40 + '/docs/'
+        for report in ('web-startup-results-2026-11-01.json', 'web-comparison-results-2026-11-03.json'):
+            with self.subTest(report=report):
+                self.assertTrue(repository_source_is_pinned(historical + report, 'test-results'))
+                self.assertFalse(repository_source_is_pinned(historical + report, 'web-startup-integration'))
+        rejected = [
+            repository + 'main/docs/web-startup-results-2026-11-01.json',
+            repository + 'release/docs/web-comparison-results-2026-11-03.json',
+            repository + 'a' * 7 + '/docs/web-startup-results-2026-11-01.json',
+            historical + 'web-startup-results.json',
+            historical + 'web-startup-results-2026-99-03.json',
+            historical + 'other-results-2026-11-03.json',
+            historical + 'web-startup-results-2026-11-01.json?ref=main',
+            repository + 'a' * 40 + '/apps/web/src/startup/adapters/webx.ts',
+        ]
+        for url in rejected:
+            with self.subTest(url=url):
+                self.assertFalse(repository_source_is_pinned(url, 'test-results'))
+        self.assertTrue(repository_source_is_pinned(
+            repository + SOURCE_REVISION + '/apps/web/src/startup/adapters/webx-shared.ts', 'test-results'))
+
     def test_current_repository_source_urls_use_the_published_revision(self):
         repository = 'https://github.com/kazuhide/player-lab/blob/'
 
@@ -733,7 +775,7 @@ class GuideTests(unittest.TestCase):
                                       for item in block['items'])
                     urls = (source.get('url', '') for source in references)
                     stale = [url for url in urls if url.startswith(repository)
-                             and not url.startswith(repository + SOURCE_REVISION + '/')]
+                             and not repository_source_is_pinned(url, chapter)]
                     self.assertEqual(stale, [], 'Current guide source URLs must use SOURCE_REVISION.')
 
     def test_build_is_reproducible_and_does_not_embed_authoring_metadata(self):

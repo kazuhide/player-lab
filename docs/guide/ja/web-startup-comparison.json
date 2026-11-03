@@ -13,6 +13,14 @@
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-integration/",
           "label": "観測値の測り方と制限"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-comparison-configuration/",
+          "label": "適用した設定と既定動作"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/test-results/#web-comparison-2026-11-03",
+          "label": "今回の動作確認と参考値"
         }
       ]
     },
@@ -23,11 +31,11 @@
     },
     {
       "type": "p",
-      "text": "初期値はPlayer Web X、hls.js、Shaka Playerで共通のBig Buck BunnyのHLSです。任意のHLSまたはDASHのURLを入力し、形式を選ぶこともできます。各プレイヤーには同じソースと条件を使います。"
+      "text": "初期値はPlayer Web X、Bitmovin Player 8、hls.js、Shaka Playerで共通のBig Buck BunnyのHLSです。「起動とシーク」では全プレイヤーで同じ360p映像と英語音声を使います。「回線変化」では同じ動画の複数画質を使います。任意のHLSまたはDASHのURLも入力できますが、初期画質は各SDKが選ぶため異なる場合があります。"
     },
     {
       "type": "p",
-      "text": "Player Web XとShakaは、選択した形式のバンドルを使います。Player Web X 10.3.1のDASH対応は一部に限られ、任意のDASHマニフェストでは再生できない場合があります。hls.jsはHLS用です。DASHでは非対応と表示し、所要時間0の結果にはしません。"
+      "text": "Player Web X 10.3.1のDASH対応は一部に限られ、任意のDASHマニフェストでは再生できない場合があります。hls.jsはHLS用です。DASHでは非対応と表示し、所要時間0の結果にはしません。"
     },
     {
       "type": "p",
@@ -154,7 +162,7 @@
     },
     {
       "type": "p",
-      "text": "Player Web Xは標準のPlayerとSourceのAPIを使い、hls.js、Shaka Playerと比較します。設定やAPIを操作するメインのWeb画面はPlayer v8を使います。その設定画面とv8互換層は、この比較とは別のものです。"
+      "text": "Player Web Xは標準のPlayerとSourceのAPIを使い、Bitmovin Player 8、hls.js、Shaka Playerと比較します。設定やAPIを操作するメインのWeb画面はPlayer v8を使います。その設定画面とv8互換層は、この比較とは別のものです。"
     },
     {
       "type": "h2",

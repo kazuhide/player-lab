@@ -63,7 +63,7 @@
     {
       "type": "code",
       "title": "PlayerとUIを追加する",
-      "text": "npm install bitmovin-player@8.281.0 bitmovin-player-ui@4.23.0"
+      "text": "npm install bitmovin-player@8.283.0 bitmovin-player-ui@4.23.0"
     },
     {
       "type": "code",
@@ -497,6 +497,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/web-startup-integration/",
           "label": "起動比較：各SDKの組み込み・時刻・設定"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-comparison-configuration/",
+          "label": "適用した設定と既定動作"
         }
       ]
     },

@@ -5,6 +5,7 @@ CHAPTERS = {
     'web-screen-controls': 'web', 'web-implementation': 'web',
     'web-player-config': 'web', 'web-ui-customization': 'web',
     'web-startup-comparison': 'web', 'web-startup-integration': 'web',
+    'web-comparison-configuration': 'web',
     'native-apple': 'apple', 'apple-implementation': 'apple',
     'native-android': 'android', 'android-implementation': 'android',
     'native-react-native': 'react-native', 'react-native-implementation': 'react-native',
@@ -39,11 +40,13 @@ IMPLEMENTATION_PAGES = {
 OPERATION_GUIDES = ('web-screen-controls', 'native-apple', 'native-android',
                     'native-react-native', 'native-vega')
 CHILD_CHAPTERS = frozenset(('web-player-config', 'web-ui-customization',
-                            'web-startup-comparison', 'web-startup-integration'))
+                            'web-startup-comparison', 'web-startup-integration',
+                            'web-comparison-configuration'))
 CHAPTER_PARENTS = {
     **IMPLEMENTATION_PAGES,
     'web-player-config': 'web-implementation', 'web-ui-customization': 'web-implementation',
     'web-startup-comparison': 'web-screen-controls', 'web-startup-integration': 'web-implementation',
+    'web-comparison-configuration': 'web-implementation',
     'web-screen-themes': 'web-screen-controls', 'web-sources-tracks': 'web-screen-controls',
     'web-ui-settings': 'web-screen-controls',
 }
@@ -143,8 +146,8 @@ LOCALIZED_FIGURES = {
     'applied-settings': {'en': (1240, 511), 'ja': (1240, 512)},
     'web-startup-controls': {'en': (1240, 418), 'ja': (1240, 423)},
     'web-startup-results': {'en': (1240, 675), 'ja': (1240, 704)},
-    'web-comparison-single': {'en': (1272, 1427), 'ja': (1272, 1448)},
-    'web-comparison-parallel': {'en': (1272, 1523), 'ja': (1272, 1566)},
+    'web-comparison-single': {'en': (1272, 1490), 'ja': (1272, 1519)},
+    'web-comparison-parallel': {'en': (1272, 1551), 'ja': (1272, 1600)},
 }
 FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
 FIGURE_EXTENSIONS.update({name: 'png' for name in ('web-sdk-differences', 'web-startup-controls', 'web-startup-results')})
@@ -175,7 +178,7 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *IMPLEMENTATION_PAGES, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '8c57c70b5c3f6f0cc0068962bc336e7327a37bfe'
+SOURCE_REVISION = '6d45c1c4c50f134f6d6037de6371f41eb127a69a'
 CONTENT_REVIEW = '2026-10-26'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 # Build verifies this digest before emitting the script and its referring HTML.
