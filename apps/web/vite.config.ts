@@ -119,6 +119,7 @@ export default defineConfig(({ mode }) => {
           comparison: fileURLToPath(new URL("./comparison.html", import.meta.url)),
           comparisonRunner: fileURLToPath(new URL("./comparison-runner.html", import.meta.url)),
           demoRunner: fileURLToPath(new URL("./demo-runner.html", import.meta.url)),
+          useCases: fileURLToPath(new URL("./use-cases.html", import.meta.url)),
           startupBenchmark: fileURLToPath(new URL("./startup-benchmark.html", import.meta.url)),
         },
       },

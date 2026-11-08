@@ -152,8 +152,8 @@ importers:
         specifier: 1.7.4
         version: 1.7.4
       shaka-player:
-        specifier: 5.3.3
-        version: 5.3.3
+        specifier: 5.3.4
+        version: 5.3.4
     devDependencies:
       typescript:
         specifier: ^5.9.0
@@ -4344,8 +4344,8 @@ packages:
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
 
-  shaka-player@5.3.3:
-    resolution: {integrity: sha512-Y0i1Vkdv2kdGVfjKWiKENw+/mgavB031tXi9toHunAwRqvs40nkelbkw/hOMnCaLH5rrs7+1w0vhkfqMaIfwZg==}
+  shaka-player@5.3.4:
+    resolution: {integrity: sha512-GT7SCLGCqq34hgTKJtOObSZm4BhvNROe2S09O7EnEsaSbJeIGhLdQuHKt7vMeaOcWgBdrLUF9Zs93FSpLhjELA==}
     engines: {node: '>=18'}
 
   shallow-clone@3.0.1:
@@ -10295,7 +10295,7 @@ snapshots:
 
   setprototypeof@1.2.0: {}
 
-  shaka-player@5.3.3: {}
+  shaka-player@5.3.4: {}
 
   shallow-clone@3.0.1:
     dependencies:

@@ -6,7 +6,7 @@ export type StartupProfile = "default" | "startup";
 export const SDK_VERSIONS: Readonly<Record<EngineId, string>> = {
   "web-x": "10.3.1",
   hls: "1.7.4",
-  shaka: "5.3.3",
+  shaka: "5.3.4",
 };
 
 export const DEMO_SDK_VERSIONS: Readonly<Record<DemoEngineId, string>> = {

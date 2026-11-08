@@ -22,7 +22,7 @@
     "@showcase/ui-shared": "workspace:*",
     "bitmovin-player": "8.283.0",
     "hls.js": "1.7.4",
-    "shaka-player": "5.3.3"
+    "shaka-player": "5.3.4"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

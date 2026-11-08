@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Player Lab source switching</title>
+    <style>
+      :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #10151b; color: #e6edf3; }
+      body { max-width: 1100px; margin: 0 auto; padding: 20px; }
+      h1 { font-size: 22px; margin: 0 0 18px; }
+      .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-bottom: 18px; }
+      label { display: grid; gap: 5px; font-size: 14px; }
+      select, input, button { background: #1b2632; color: inherit; border: 1px solid #425466; border-radius: 5px; padding: 9px; font: inherit; }
+      input { width: 110px; } button { cursor: pointer; }
+      #stage { position: relative; width: min(100%, 960px); aspect-ratio: 16 / 9; background: #000; }
+      pre { font-size: 12px; overflow: auto; max-height: 380px; padding: 12px; background: #17202b; }
+      .product-build { font-size: 12px; margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <h1>Source switching</h1>
+    <div class="controls">
+      <label>Player<select id="engine"><option value="web-x">Player Web X</option><option value="bitmovin-8">Bitmovin Player 8</option><option value="shaka">Shaka Player</option><option value="hls">hls.js</option></select></label>
+      <label>Preparation<select id="policy"><option value="segments">Media segments</option><option value="metadata">Manifest only</option><option value="decoded">Decoded video</option><option value="on-demand">On demand</option></select></label>
+      <label>Preparation window (ms)<input id="warmup" type="number" min="0" max="10000" value="1000" /></label>
+      <label>Sources ahead<select id="lookahead"><option>1</option><option>2</option><option>3</option></select></label>
+      <button id="run" type="button">Run</button><button id="stop" type="button">Stop</button>
+    </div>
+    <div id="stage"></div>
+    <pre id="result" aria-live="polite"></pre>
+    <!-- PLAYER_LAB_BUILD -->
+    <script type="module">
+      import { UseCaseSweep } from "/src/startup/use-cases/runner";
+      const sweep = new UseCaseSweep(document.getElementById("stage"));
+      window.playerLabUseCases = { run: options => sweep.run(options), stop: () => sweep.stop() };
+      document.getElementById("run").onclick = async () => {
+        const run = document.getElementById("run"); run.disabled = true;
+        try {
+          const result = await sweep.run({ engine: document.getElementById("engine").value,
+            policy: document.getElementById("policy").value, warmupMs: Number(document.getElementById("warmup").value),
+            lookahead: Number(document.getElementById("lookahead").value), steps: 2, retain: true });
+          document.getElementById("result").textContent = JSON.stringify(result, null, 2);
+        } finally { run.disabled = false; }
+      };
+      document.getElementById("stop").onclick = () => sweep.stop();
+    </script>
+  </body>
+</html>
