@@ -14,7 +14,7 @@ configFiles:
 packages:
   BitmovinPlayer:
     url: https://github.com/bitmovin/player-ios.git
-    exactVersion: "3.128.0"
+    exactVersion: "3.129.0"
   GoogleCast:
     url: https://github.com/googlecast/google-cast-ios-sdk.git
     exactVersion: "4.8.6"
