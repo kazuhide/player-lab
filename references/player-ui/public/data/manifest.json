@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "synthetic": true,
+  "content": {
+    "id": "bbb-60s",
+    "revision": "bbb-60s-demo-v1",
+    "durationMs": 60000
+  },
+  "profiles": [
+    {
+      "id": "sparse",
+      "title": {
+        "en": "Few playback sessions",
+        "ja": "少数の再生記録"
+      },
+      "snapshot": "sparse.snapshot.json",
+      "samples": "sparse.samples.json"
+    },
+    {
+      "id": "single",
+      "title": {
+        "en": "One playback session",
+        "ja": "1セッションの例"
+      },
+      "snapshot": "single.snapshot.json",
+      "samples": "single.samples.json"
+    },
+    {
+      "id": "broader",
+      "title": {
+        "en": "More playback sessions",
+        "ja": "再生記録を増やした例"
+      },
+      "snapshot": "broader.snapshot.json",
+      "samples": "broader.samples.json"
+    },
+    {
+      "id": "watched",
+      "title": {
+        "en": "Watched without replay",
+        "ja": "再視聴がない例"
+      },
+      "snapshot": "watched.snapshot.json",
+      "samples": "watched.samples.json"
+    },
+    {
+      "id": "empty",
+      "title": {
+        "en": "No observations",
+        "ja": "データなし"
+      },
+      "snapshot": "empty.snapshot.json",
+      "samples": "empty.samples.json"
+    }
+  ]
+}
