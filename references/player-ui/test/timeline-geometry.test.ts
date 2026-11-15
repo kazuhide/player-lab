@@ -64,6 +64,56 @@ test("a constant nonzero distribution does not invent a peak", () => {
   assert.deepEqual(result.peaks, []);
 });
 
+test("coverage normalization preserves absolute rates on a shared zero-to-one scale", () => {
+  const height = 50;
+  for (const rate of [0.4, 0.8]) {
+    const source = snapshot([rate, rate, rate]);
+    const result = createTimelineGeometry(source, "replay", 300, height, "coverage");
+    assert.equal(result.maximum, rate, "the reported maximum remains the measured maximum");
+    for (const point of result.segments[0].points) {
+      const heightFraction = (result.baselineY - point.y) / (height - 3);
+      assert.ok(Math.abs(heightFraction - rate) < 0.000001, `${rate} coverage must occupy ${rate * 100}% of the available height`);
+    }
+    const relative = createTimelineGeometry(source, "replay", 300, height);
+    assert.ok(relative.segments[0].points.every(point => Math.abs(point.y - 2) < 0.000001), "the existing within-video graph still fills its available height");
+  }
+});
+
+test("coverage normalization uses the same vertical scale for reach and replay", () => {
+  const source = snapshot([0.1, 0.6, 0.2, 0.4]);
+  for (const point of source.points) point.reach = point.replay;
+  assert.deepEqual(
+    createTimelineGeometry(source, "reach", 400, 50, "coverage"),
+    createTimelineGeometry(source, "replay", 400, 50, "coverage"),
+  );
+});
+
+test("coverage normalization retains smoothing, missing gaps, raw measurements and logical peaks", () => {
+  const source = snapshot([0, 0.6, null, 0.8, 0], 1);
+  const original = structuredClone(source);
+  const relative = createTimelineGeometry(source, "replay", 500, 50);
+  const absolute = createTimelineGeometry(source, "replay", 500, 50, "coverage");
+  assert.deepEqual(absolute.segments.map(segment => [segment.startX, segment.endX]), [[0, 200], [300, 500]]);
+  const measurements = (points: { x: number; value: number; rawValue: number }[]) =>
+    points.map(({ x, value, rawValue }) => ({ x, value, rawValue }));
+  assert.deepEqual(absolute.segments.map(segment => measurements(segment.points)), relative.segments.map(segment => measurements(segment.points)));
+  assert.deepEqual(measurements(absolute.peaks), measurements(relative.peaks));
+  assert.deepEqual(source, original);
+  const zero = createTimelineGeometry(snapshot([0, 0]), "replay", 200, 50, "coverage");
+  assert.equal(zero.hasValues, true);
+  assert.equal(zero.hasPositiveValues, false);
+  assert.ok(zero.segments[0].points.every(point => point.y === zero.baselineY));
+  assert.deepEqual(createTimelineGeometry(snapshot([null, null]), "replay", 200, 50, "coverage").segments, []);
+});
+
+test("omitting normalization preserves the explicit within-video geometry", () => {
+  const source = snapshot([0.1, 0.5, null, 0.8, 0]);
+  assert.deepEqual(
+    createTimelineGeometry(source, "replay", 500, 50),
+    createTimelineGeometry(source, "replay", 500, 50, "within-video"),
+  );
+});
+
 test("bucket coordinates follow the content duration and actual partial final bucket", () => {
   const source = snapshot([0.2, 0.5, 0.3]);
   source.content.durationMs = 2500;

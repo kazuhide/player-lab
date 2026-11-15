@@ -141,8 +141,10 @@ test("distinguishes watched portions, no records, and a retryable loading failur
   await page.goto("/");
   await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
   await page.locator("#profile").selectOption("watched");
-  await expect(page.locator('input[name="metric"][value="reach"]')).toBeChecked();
-  await expect(page.locator("#metric-note")).toContainText(/No replay|再視聴の記録/);
+  await expect(page.locator('input[name="metric"][value="replay"]')).toBeChecked();
+  await expect(page.locator("#metric-note")).toContainText(/No rewatch|見返しがありません/);
+  await page.locator('input[name="metric"][value="reach"]').check();
+  await expect(page.locator(".pl-engagement-timeline:visible").first()).toHaveAttribute("data-metric", "reach");
   await page.locator("#profile").selectOption("empty");
   await expect(page.locator("#data-status")).toHaveAttribute("data-state", "empty");
   await expect(page.locator("#session-count")).toContainText("0");
@@ -157,6 +159,48 @@ test("distinguishes watched portions, no records, and a retryable loading failur
   await page.locator("#retry-data").click();
   await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
   await expect(page.locator("#session-count")).toContainText("1");
+});
+
+test("shows both distributions and keeps the chosen metric when changing samples", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
+  await expect(page.locator("#preview-reach")).toHaveAttribute("data-state", "populated");
+  await expect(page.locator("#preview-replay")).toHaveAttribute("data-state", "populated");
+  for (const id of ["reach", "replay"]) await expect(page.locator(`#preview-${id}`)).toHaveAttribute("data-scale", "0-1");
+  await page.locator('.metric-choice:has(input[value="reach"])').click();
+  await expect(page.locator('input[value="reach"]')).toBeChecked();
+  await page.locator("#profile").selectOption("broader");
+  await expect(page.locator("#session-count")).toContainText("25");
+  await expect(page.locator('input[value="reach"]')).toBeChecked();
+  await expect(page.locator("#profile-hint")).toContainText(/similar pattern|近い視聴傾向/);
+  await page.locator("#profile").selectOption("single");
+  await expect(page.locator("#session-count")).toContainText(/1 playback record|1件の再生記録/);
+  await expect(page.locator('input[value="reach"]')).toBeChecked();
+  await expect(page.locator("#profile-hint")).toContainText(/One playback record|1件の再生記録/);
+});
+
+test("distinguishes no rewatch, no records and unavailable previews", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
+  await page.locator("#profile").selectOption("watched");
+  await expect(page.locator("#preview-replay")).toHaveAttribute("data-state", "zero");
+  await expect(page.locator("#preview-replay-empty")).toHaveText(/No rewatch|見返しなし/);
+  await expect(page.locator("#preview-reach")).toHaveAttribute("data-state", "populated");
+  await expect(page.locator('input[value="replay"]')).toBeChecked();
+  await page.locator("#profile").selectOption("empty");
+  for (const id of ["reach", "replay"]) {
+    await expect(page.locator(`#preview-${id}`)).toHaveAttribute("data-state", "empty");
+    await expect(page.locator(`#preview-${id}-empty`)).toHaveText(/No records|記録なし/);
+    await expect(page.locator(`input[value="${id}"]`)).toBeDisabled();
+  }
+  await page.route("**/single.snapshot.json", route => route.fulfill({ status: 503 }));
+  await page.locator("#profile").selectOption("single");
+  await expect(page.locator("#data-status")).toHaveAttribute("data-state", "error");
+  for (const id of ["reach", "replay"]) {
+    await expect(page.locator(`#preview-${id}`)).toHaveAttribute("data-state", "unknown");
+    await expect(page.locator(`#preview-${id}-empty`)).toHaveText("—");
+  }
+  await expect(page.locator("#profile-hint")).toBeEmpty();
 });
 
 test("rejects a snapshot from a different content revision", async ({ page }) => {

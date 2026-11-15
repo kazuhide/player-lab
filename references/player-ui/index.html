@@ -24,11 +24,34 @@
         <aside class="controls-panel" aria-labelledby="data-heading">
           <h2 id="data-heading" data-i18n="viewingData">Viewing data</h2>
           <label for="profile" data-i18n="scenario">Sample</label>
-          <select id="profile" disabled></select>
+          <select id="profile" disabled aria-describedby="profile-hint"></select>
           <div class="sample-meta"><span id="session-count">—</span><span id="data-status" role="status" data-state="loading"></span></div>
+          <p id="profile-hint" class="sample-hint" aria-live="polite"></p>
           <button id="retry-data" type="button" hidden data-i18n="retry">Retry</button>
 
-          <fieldset class="metric-options"><legend data-i18n="metric">Graph</legend><label><input type="radio" name="metric" value="replay" checked /><span data-i18n="replayed">Replayed portions</span></label><label><input type="radio" name="metric" value="reach" /><span data-i18n="watched">Watched portions</span></label></fieldset>
+          <fieldset class="metric-options"><legend data-i18n="metric">Graph on the video</legend>
+            <div class="metric-choices">
+              <label class="metric-choice">
+                <input type="radio" name="metric" value="reach" />
+                <span class="metric-name" data-i18n="watched">Watched sections</span>
+                <span class="metric-definition" data-i18n="watchDefinition">At least once</span>
+                <span class="metric-preview-frame">
+                  <svg id="preview-reach" class="metric-preview" viewBox="0 0 240 36" preserveAspectRatio="none" aria-hidden="true"></svg>
+                  <span id="preview-reach-empty" class="metric-preview-empty"></span>
+                </span>
+              </label>
+              <label class="metric-choice">
+                <input type="radio" name="metric" value="replay" checked />
+                <span class="metric-name" data-i18n="replayed">Rewatched sections</span>
+                <span class="metric-definition" data-i18n="replayDefinition">Twice or more in one record</span>
+                <span class="metric-preview-frame">
+                  <svg id="preview-replay" class="metric-preview" viewBox="0 0 240 36" preserveAspectRatio="none" aria-hidden="true"></svg>
+                  <span id="preview-replay-empty" class="metric-preview-empty"></span>
+                </span>
+              </label>
+            </div>
+            <p class="preview-scale" data-i18n="previewScale">Previews use the same 0–100% scale.</p>
+          </fieldset>
           <label class="switch-row"><input id="show-graph" type="checkbox" checked /><span data-i18n="showGraph">Show on the timeline</span></label>
           <label for="accent" data-i18n="appearance">Accent</label>
           <select id="accent"><option value="white" data-i18n="white">White</option><option value="blue" data-i18n="blue">Blue</option></select>

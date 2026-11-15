@@ -56,10 +56,10 @@ underlying values and missing intervals are preserved.
 
 | Dataset | What it demonstrates |
 | --- | --- |
-| `sparse` | Repeated viewing in a small set of playback sessions |
-| `single` | A graph based on one playback session |
-| `broader` | The same metric with more playback sessions |
-| `watched` | Watched portions without repeated viewing |
+| `sparse` | Rewatching in five playback records |
+| `single` | Rewatching in one playback record |
+| `broader` | A similar viewing pattern to `sparse`, based on 25 records |
+| `watched` | Five playback records with no rewatching |
 | `empty` | No recorded playback |
 
 All supplied records are synthetic. They contain no account exports or actual
@@ -67,11 +67,20 @@ viewer histories, and this demo does not send playback data to Analytics.
 Changing datasets shows a different prepared history; it does not record the
 current viewing session.
 
-The graph uses replay coverage when repeated playback exists. A dataset with
-playback but no repeats uses an explicitly labelled watched-portions view.
-Missing observations remain gaps. A loading error is not an empty dataset.
+The cards compare two distributions: **Watched sections** includes portions
+played at least once, while **Rewatched sections** includes only portions played
+at least twice within the same playback record. Rewatched portions are also
+included in Watched sections. A record is a playback session, not a distinct person.
 
-Heights are relative to the selected video's values. They do not express a
+Both card previews use the same 0–100% scale, so their heights can be compared.
+Choose a card to show that distribution over the video. Changing the sample
+keeps the selected metric; it does not reload or interrupt playback. The
+`watched` sample shows a populated Watched sections preview and an explicit
+No rewatch state. Missing observations remain gaps. A loading error is not an
+empty dataset.
+
+The video overlay scales heights relative to the selected distribution's maximum.
+These heights do not express a
 probability that a scene is exciting or confidence in a large audience.
 Inspect the supporting session counts when comparing peaks. Smoothing changes
 the drawn curve without adding observations to its underlying counts.

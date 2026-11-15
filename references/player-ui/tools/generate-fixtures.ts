@@ -6,11 +6,11 @@ import type { AnalyticsSample, DemoExport, DemoManifest, EngagementSnapshot } fr
 const CONTENT = { id: "bbb-60s", revision: "bbb-60s-demo-v1", durationMs: 60_000 };
 const PERIOD = { start: "2026-01-01T00:00:00.000Z", end: "2026-01-02T00:00:00.000Z" };
 const PROFILES = [
-  { id: "sparse", en: "Few playback sessions", ja: "少数の再生記録", sessions: 5, repeat: true },
-  { id: "single", en: "One playback session", ja: "1セッションの例", sessions: 1, repeat: true },
-  { id: "broader", en: "More playback sessions", ja: "再生記録を増やした例", sessions: 25, repeat: true },
-  { id: "watched", en: "Watched without replay", ja: "再視聴がない例", sessions: 5, repeat: false },
-  { id: "empty", en: "No observations", ja: "データなし", sessions: 0, repeat: false },
+  { id: "sparse", en: "Rewatching (5 records)", ja: "見返しあり（5件）", sessions: 5, repeat: true },
+  { id: "single", en: "One playback record", ja: "1件だけの再生記録", sessions: 1, repeat: true },
+  { id: "broader", en: "Rewatching (25 records)", ja: "見返しあり（25件）", sessions: 25, repeat: true },
+  { id: "watched", en: "No rewatch (5 records)", ja: "見返しなし（5件）", sessions: 5, repeat: false },
+  { id: "empty", en: "No records", ja: "記録なし", sessions: 0, repeat: false },
 ];
 
 /** All identities, clocks and behavior below are authored examples, not exported viewer data. */
