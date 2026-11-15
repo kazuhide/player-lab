@@ -92,17 +92,49 @@ test("plays the real source and keeps it running through data and language chang
   await page.locator("#accent").selectOption("white");
   await expect(page.locator(".player-frame")).toHaveAttribute("data-accent", "white");
   await page.locator("#accent").selectOption("blue");
+  await page.locator("#accent").selectOption("white");
   if (process.env.REFERENCE_CAPTURE_DIR && testInfo.project.name === "desktop-en") {
     await mkdir(process.env.REFERENCE_CAPTURE_DIR, { recursive: true });
     for (const language of ["en", "ja"]) {
       if (await page.locator("html").getAttribute("lang") !== language) await page.locator("#language").click();
-      await page.locator(".player-frame").hover();
+      await seekBar.hover();
       await expect(page.locator(".pl-engagement-timeline:visible").first()).toBeVisible();
       await page.screenshot({ path: path.join(process.env.REFERENCE_CAPTURE_DIR, `player-ui-${language}.png`), fullPage: true });
     }
   }
   expect(analytics).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test("keeps a smooth neutral silhouette aligned with the real seek track during pointer and keyboard use", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", "ready", { timeout: 20_000 });
+  await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
+  await expect(page.locator("#accent")).toHaveValue("white");
+  const seek = page.getByRole("slider", { name: /^(Video timeline|再生位置)$/ }).first();
+  const track = seek.locator(".bmpui-seekbar");
+  const graph = page.locator(".pl-engagement-timeline:visible").first();
+  const fill = graph.locator(".pl-engagement-fill").first();
+  await expect(graph).toBeVisible();
+  await expect(graph.locator("circle, .pl-engagement-line")).toHaveCount(0);
+  const graphBounds = (await graph.boundingBox())!;
+  const trackBounds = (await track.boundingBox())!;
+  expect(Math.abs(graphBounds.x - trackBounds.x)).toBeLessThan(.25);
+  expect(Math.abs(graphBounds.width - trackBounds.width)).toBeLessThan(.25);
+  expect(Math.abs(graphBounds.y + graphBounds.height - 1 - trackBounds.y)).toBeLessThan(.25);
+  expect(graphBounds.height).toBeLessThanOrEqual(28);
+  expect(await fill.evaluate(element => getComputedStyle(element).fill)).toBe("rgb(255, 255, 255)");
+  await page.locator("#profile").hover();
+  await expect.poll(() => fill.evaluate(element => Number(getComputedStyle(element).fillOpacity))).toBeLessThan(.3);
+  const path = await fill.getAttribute("d");
+  await seek.hover();
+  await expect.poll(() => fill.evaluate(element => Number(getComputedStyle(element).fillOpacity))).toBeGreaterThan(.4);
+  expect(await fill.getAttribute("d")).toBe(path);
+  await page.locator("#profile").hover();
+  await seek.focus();
+  await expect.poll(() => fill.evaluate(element => Number(getComputedStyle(element).fillOpacity))).toBeGreaterThan(.4);
+  await seek.press("ArrowRight");
+  await expect.poll(() => page.locator("video").evaluate(element => (element as HTMLVideoElement).currentTime)).toBeGreaterThan(.1);
 });
 
 test("distinguishes watched portions, no records, and a retryable loading failure", async ({ page }) => {

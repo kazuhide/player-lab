@@ -50,6 +50,10 @@ Choose a dataset and use the official seek bar to move through the video. The
 standard settings menu exposes the options available for the loaded source.
 The graph does not replace the seek bar's mouse, touch or keyboard controls.
 
+The timeline uses a compact translucent silhouette. It becomes clearer when you
+hover or focus the seek bar. The smooth curve changes only the drawing; the
+underlying values and missing intervals are preserved.
+
 | Dataset | What it demonstrates |
 | --- | --- |
 | `sparse` | Repeated viewing in a small set of playback sessions |
