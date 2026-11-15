@@ -1,0 +1,11 @@
+{
+  "name": "Player Lab viewing graph: example-video-v1",
+  "licenseKey": "YOUR_ANALYTICS_LICENSE_KEY",
+  "startTime": "2026-11-01T00:00:00.000Z",
+  "endTime": "2026-11-02T00:00:00.000Z",
+  "fileFormat": "PARQUET",
+  "output": {
+    "outputId": "YOUR_ANALYTICS_OUTPUT_ID",
+    "outputPath": "engagement/example-video-v1/"
+  }
+}

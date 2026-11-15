@@ -1,0 +1,15 @@
+{
+  "licenseKey": "YOUR_ANALYTICS_LICENSE_KEY",
+  "start": "2026-11-01T00:00:00.000Z",
+  "end": "2026-11-02T00:00:00.000Z",
+  "dimension": "IMPRESSION_ID",
+  "filters": [
+    { "name": "VIDEO_ID", "operator": "EQ", "value": "example-video-v1" },
+    { "name": "PLAYED", "operator": "GT", "value": 0 },
+    { "name": "AD", "operator": "EQ", "value": 0 },
+    { "name": "VIDEOTIME_START", "operator": "LT", "value": 22000 },
+    { "name": "VIDEOTIME_END", "operator": "GT", "value": 20000 }
+  ],
+  "limit": 200,
+  "offset": 0
+}
