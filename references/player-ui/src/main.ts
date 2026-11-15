@@ -2,10 +2,11 @@ import "bitmovin-player-ui/dist/css/bitmovinplayer-ui.css";
 import "./style.css";
 import packageInfo from "../package.json";
 import { readManifest, readSnapshot } from "./data.ts";
-import { applyLocale, text, timeLabel, type Locale } from "./i18n.ts";
+import { applyLocale, recordCount, text, timeLabel, type Locale } from "./i18n.ts";
 import { renderIntegration, renderValues, setSampleSource } from "./inspector.ts";
 import { createPlayback, type Playback, type PlaybackState } from "./playback.ts";
 import { createTimelineGeometry } from "./timeline-geometry.ts";
+import { renderSamplePreviews } from "./sample-preview.ts";
 import type { DemoManifest, EngagementSnapshot, MetricMode } from "./types.ts";
 
 const query = new URLSearchParams(location.search);
@@ -51,14 +52,16 @@ function renderData(): void {
   status.dataset.state = dataState;
   status.textContent = text(locale, dataState === "error" ? "error" : dataState);
   retryData.hidden = dataState !== "error";
-  document.querySelector<HTMLElement>("#session-count")!.textContent = snapshot ? `${snapshot.sessionCount} ${text(locale, "sessionCount")}` : "—";
+  document.querySelector<HTMLElement>("#session-count")!.textContent = snapshot ? recordCount(locale, snapshot.sessionCount) : "—";
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="metric"]')) {
     input.checked = input.value === mode;
     input.disabled = !snapshot?.sessionCount;
   }
   const note = document.querySelector<HTMLElement>("#metric-note")!;
+  const noReplay = snapshot && !snapshot.points.some(point => (point.replay ?? 0) > 0);
   note.textContent = !snapshot ? "" : snapshot.sessionCount === 0 ? text(locale, "empty") :
-    text(locale, mode === "replay" ? "replayNote" : snapshot.suggestedMode === "reach" ? "reachNote" : "watchedNote");
+    text(locale, mode === "replay" && noReplay ? "noRewatchNote" : "relativeNote");
+  renderSamplePreviews(snapshot, profile.value, locale);
   renderValues(snapshot, locale);
   renderGraph();
   const peakBox = document.querySelector<HTMLElement>("#peaks")!;
@@ -110,7 +113,6 @@ async function chooseProfile(id: string): Promise<void> {
     const next = await readSnapshot(new URL(selected.snapshot, manifestURL), manifest.content, controller.signal);
     if (request !== generation) return;
     snapshot = next;
-    mode = next.suggestedMode === "empty" ? "replay" : next.suggestedMode;
     dataState = next.sessionCount === 0 ? "empty" : "ready";
     setSampleSource(selected, manifestURL, locale);
   } catch {

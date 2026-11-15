@@ -10,8 +10,8 @@
     {
       "id": "sparse",
       "title": {
-        "en": "Few playback sessions",
-        "ja": "少数の再生記録"
+        "en": "Rewatching (5 records)",
+        "ja": "見返しあり（5件）"
       },
       "snapshot": "sparse.snapshot.json",
       "samples": "sparse.samples.json"
@@ -19,8 +19,8 @@
     {
       "id": "single",
       "title": {
-        "en": "One playback session",
-        "ja": "1セッションの例"
+        "en": "One playback record",
+        "ja": "1件だけの再生記録"
       },
       "snapshot": "single.snapshot.json",
       "samples": "single.samples.json"
@@ -28,8 +28,8 @@
     {
       "id": "broader",
       "title": {
-        "en": "More playback sessions",
-        "ja": "再生記録を増やした例"
+        "en": "Rewatching (25 records)",
+        "ja": "見返しあり（25件）"
       },
       "snapshot": "broader.snapshot.json",
       "samples": "broader.samples.json"
@@ -37,8 +37,8 @@
     {
       "id": "watched",
       "title": {
-        "en": "Watched without replay",
-        "ja": "再視聴がない例"
+        "en": "No rewatch (5 records)",
+        "ja": "見返しなし（5件）"
       },
       "snapshot": "watched.snapshot.json",
       "samples": "watched.samples.json"
@@ -46,8 +46,8 @@
     {
       "id": "empty",
       "title": {
-        "en": "No observations",
-        "ja": "データなし"
+        "en": "No records",
+        "ja": "記録なし"
       },
       "snapshot": "empty.snapshot.json",
       "samples": "empty.samples.json"

@@ -60,6 +60,7 @@ export function createTimelineGeometry(
   mode: MetricMode,
   width: number,
   height: number,
+  normalization: "within-video" | "coverage" = "within-video",
 ): TimelineGeometry {
   const empty: TimelineGeometry = {
     segments: [], peaks: [], baselineY: Math.max(0, height - 1),
@@ -108,7 +109,8 @@ export function createTimelineGeometry(
 
   const baselineY = empty.baselineY;
   const x = (time: number) => time / duration * width;
-  const y = (value: number) => displayMaximum > 0 ? baselineY - value / displayMaximum * (height - 3) : baselineY;
+  const scaleMaximum = normalization === "coverage" ? 1 : displayMaximum;
+  const y = (value: number) => scaleMaximum > 0 ? baselineY - value / scaleMaximum * (height - 3) : baselineY;
   const coordinate = (value: number) => Number(value.toFixed(3));
   const peaks: TimelinePosition[] = [];
   const segments = runs.map((points): TimelineSegment => {
