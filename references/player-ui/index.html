@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7fa" />
+    <title>Player UI · Player Lab</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div class="app-title"><a href="https://kazuhide.github.io/player-lab/">Player Lab</a><span aria-hidden="true">/</span><h1>Player UI</h1></div>
+        <button id="language" type="button" lang="ja">日本語</button>
+      </header>
+
+      <div class="demo-heading"><span class="data-badge" data-i18n="synthetic">Synthetic data</span><span id="versions"></span></div>
+
+      <div class="demo-layout">
+        <section class="playback-section" aria-label="Video">
+          <div class="player-frame" data-accent="blue"><div id="player"></div></div>
+          <div class="playback-footer"><div><strong>Big Buck Bunny</strong><span data-i18n="sourceCaption">60-second HLS</span></div><span id="player-status" role="status" data-state="loading"></span><button id="retry-video" type="button" hidden data-i18n="retry">Retry</button></div>
+        </section>
+
+        <aside class="controls-panel" aria-labelledby="data-heading">
+          <h2 id="data-heading" data-i18n="viewingData">Viewing data</h2>
+          <label for="profile" data-i18n="scenario">Sample</label>
+          <select id="profile" disabled></select>
+          <div class="sample-meta"><span id="session-count">—</span><span id="data-status" role="status" data-state="loading"></span></div>
+          <button id="retry-data" type="button" hidden data-i18n="retry">Retry</button>
+
+          <fieldset class="metric-options"><legend data-i18n="metric">Graph</legend><label><input type="radio" name="metric" value="replay" checked /><span data-i18n="replayed">Replayed portions</span></label><label><input type="radio" name="metric" value="reach" /><span data-i18n="watched">Watched portions</span></label></fieldset>
+          <label class="switch-row"><input id="show-graph" type="checkbox" checked /><span data-i18n="showGraph">Show on the timeline</span></label>
+          <label for="accent" data-i18n="appearance">Accent</label>
+          <select id="accent"><option value="blue" data-i18n="blue">Blue</option><option value="white" data-i18n="white">White</option></select>
+
+          <div class="peak-section"><h3 data-i18n="jumpTo">Jump to a section</h3><div id="peaks" class="peak-buttons"></div></div>
+          <p class="small-note" id="metric-note"></p>
+          <div class="data-links"><a id="snapshot-link" download data-i18n="snapshotFile">Snapshot JSON</a><a id="samples-link" download data-i18n="samplesFile">Sample JSON</a></div>
+        </aside>
+      </div>
+
+      <section class="inspection" aria-label="Integration">
+        <details id="configuration"><summary data-i18n="integrationCode">Integration code</summary><div class="code-toolbar"><span data-i18n="codeCaption">Player configuration and the added UI component</span><button id="copy-code" type="button" data-i18n="copy">Copy</button></div><pre><code id="configuration-code"></code></pre></details>
+        <details id="values"><summary data-i18n="measuredValues">Underlying values</summary><div class="table-scroll"><table><thead><tr><th data-i18n="interval">Interval</th><th data-i18n="replayCoverage">Replay coverage</th><th data-i18n="watchCoverage">Watched coverage</th><th data-i18n="sessions">Sessions</th></tr></thead><tbody id="values-body"></tbody></table></div></details>
+        <details id="samples"><summary data-i18n="sampleRecords">Analytics-style sample records</summary><p class="detail-note" data-i18n="sampleCaption">Synthetic records use the public Analytics sample fields. This wrapper is specific to this reference.</p><pre><code id="samples-code"></code></pre></details>
+      </section>
+
+      <footer class="app-footer"><span data-i18n="footerNote">Synthetic data. No Analytics account or API key is used.</span><a href="https://github.com/kazuhide/player-lab/tree/main/references/player-ui" data-i18n="guide">Guide and source</a></footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

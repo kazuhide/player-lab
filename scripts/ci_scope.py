@@ -23,6 +23,7 @@ WEB_FILES = frozenset(path.encode() for path in (
     "docs/api-coverage/inventory.json", "docs/api-coverage/summary.json", "docs/api-coverage/gaps.json",
     "encoding/test-streams/local.py", "scripts/test-local-media.py",
     "scripts/api-coverage/apple/normalize_apple.py",
+    ".github/workflows/reference-player-ui.yml",
 ))
 WEB_SDK_PINS = {b"apps/web/package.json": b"dependencies",
                 b"packages/ui-shared/package.json": b"devDependencies",
@@ -34,8 +35,10 @@ WEB_PATH = re.compile(rb"(?:docs/guide/(?:en|ja)/[a-z0-9-]+\.json|"
                       rb"apps/web/test/[A-Za-z0-9-]+\.test\.ts|"
                       rb"site/assets/guide/web-[a-z0-9-]+\.(?:png|jpg)|"
                       rb"tests/e2e/(?:specs/[a-z0-9-]+\.spec\.ts|"
-                      rb"src/[a-z0-9-]+\.ts|[A-Za-z0-9_-]+\.test\.ts))")
+                      rb"src/[a-z0-9-]+\.ts|[A-Za-z0-9_-]+\.test\.ts)|"
+                      rb"references/player-ui/[A-Za-z0-9_./-]+)")
 WORKFLOW = b".github/workflows/ci.yml"
+REFERENCE_WORKFLOWS = frozenset({b".github/workflows/reference-player-ui.yml"})
 NATIVE_GUARD = b"needs.publication.outputs.native_required != 'false'"
 NATIVE_STEPS = {
     b"ios": {
@@ -94,7 +97,15 @@ def changed_paths(event, base, head, *, root):
 
 def references_only(event, base, head, *, root=Path(".")):
     paths = changed_paths(event, base, head, root=root)
-    return paths is not None and all(path.startswith(b"references/") for path in paths)
+    if (paths is None or not any(path.startswith(b"references/") for path in paths)
+            or not all(path.startswith(b"references/") or path in REFERENCE_WORKFLOWS for path in paths)):
+        return False
+    for workflow in REFERENCE_WORKFLOWS.intersection(paths):
+        try:
+            git(root, "cat-file", "-e", head + ":" + workflow.decode())
+        except (OSError, subprocess.SubprocessError):
+            return False
+    return True
 
 
 def replace_one(data, pattern, replacement):

@@ -377,6 +377,49 @@ jobs:
                 self.write("site/guide.js"); self.commit()
                 self.assertTrue(self.native_selected(base=workflow_base))
 
+    def test_player_ui_reference_and_its_workflow_skip_unrelated_checks(self):
+        self.write("references/player-ui/src/main.ts")
+        self.write("references/player-ui/README.ja.md")
+        self.write(".github/workflows/reference-player-ui.yml")
+        self.commit()
+        for event in ("push", "pull_request"):
+            self.assertTrue(self.selected(event))
+            self.assertFalse(self.native_selected(event))
+
+    def test_player_ui_scope_bootstrap_keeps_native_checks_light(self):
+        for name in ("references/player-ui/src/main.ts", ".github/workflows/reference-player-ui.yml",
+                     "scripts/ci_scope.py", "scripts/test-ci-scope.py"):
+            self.write(name)
+        self.commit()
+        self.assertFalse(self.selected())
+        self.assertFalse(self.native_selected())
+
+    def test_player_ui_reference_workflow_exception_is_exact(self):
+        for name in (".github/workflows/reference-player-ui-other.yml", "README.md",
+                     "references/player-ui-other/src/main.ts", "apps/android/app/build.gradle"):
+            with self.subTest(path=name):
+                self.git("reset", "--hard", self.base)
+                self.write("references/player-ui/src/main.ts")
+                self.write(name)
+                self.commit()
+                self.assertTrue(self.native_selected())
+                self.assertEqual(self.selected(), name.startswith("references/"))
+
+    def test_player_ui_workflow_alone_does_not_bypass_root_checks(self):
+        self.write(".github/workflows/reference-player-ui.yml")
+        self.commit()
+        self.assertFalse(self.selected())
+        self.assertFalse(self.native_selected())
+
+    def test_deleting_player_ui_workflow_cannot_skip_root_checks(self):
+        name = ".github/workflows/reference-player-ui.yml"
+        self.write(name)
+        base = self.commit()
+        (self.root / name).unlink()
+        self.write("references/player-ui/README.md")
+        self.commit()
+        self.assertFalse(self.selected(base=base))
+
     def test_reference_changes_for_both_apps_can_skip_root_checks(self):
         self.write("references/elearning/README.md", "Updated learning example\n")
         self.reference_commit()
