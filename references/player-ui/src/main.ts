@@ -2,18 +2,21 @@ import "bitmovin-player-ui/dist/css/bitmovinplayer-ui.css";
 import "./style.css";
 import packageInfo from "../package.json";
 import { readManifest, readSnapshot } from "./data.ts";
+import { validatePrivateQueryData } from "./query-incidence.ts";
 import { applyLocale, recordCount, text, timeLabel, type Locale } from "./i18n.ts";
-import { renderIntegration, renderValues, setSampleSource } from "./inspector.ts";
+import { renderIntegration, renderValues, setPrivateQuerySource, setSampleSource } from "./inspector.ts";
 import { createPlayback, type Playback, type PlaybackState } from "./playback.ts";
 import { createTimelineGeometry } from "./timeline-geometry.ts";
 import { renderSamplePreviews } from "./sample-preview.ts";
-import type { DemoManifest, EngagementSnapshot, MetricMode } from "./types.ts";
+import type { DemoManifest, MetricMode, TimelineSnapshot } from "./types.ts";
 
 const query = new URLSearchParams(location.search);
+const privateMode = query.get("data") === "private";
 let locale: Locale = query.get("lang") === "ja" || (!query.has("lang") && navigator.language.startsWith("ja")) ? "ja" : "en";
 let manifest: DemoManifest | undefined;
-let snapshot: EngagementSnapshot | null = null;
-let mode: MetricMode = "replay";
+let snapshot: TimelineSnapshot | null = null;
+let mode: MetricMode = privateMode ? "reach" : "replay";
+let privateSource: { hls: string } | undefined;
 let playback: Playback | undefined;
 let playbackState: PlaybackState = "loading";
 let dataState: "loading" | "ready" | "empty" | "error" = "loading";
@@ -31,12 +34,13 @@ const retryVideo = document.querySelector<HTMLButtonElement>("#retry-video")!;
 function updateAddress(): void {
   const url = new URL(location.href);
   url.searchParams.set("lang", locale);
-  if (profile.value) url.searchParams.set("sample", profile.value);
+  if (privateMode) url.searchParams.delete("sample");
+  else if (profile.value) url.searchParams.set("sample", profile.value);
   history.replaceState(null, "", url);
 }
 
 function renderGraph(): void {
-  const compatible = playbackState !== "error" && playbackState !== "mismatch";
+  const compatible = privateMode ? ["ready", "playing", "paused"].includes(playbackState) : playbackState !== "error" && playbackState !== "mismatch";
   playback?.ui.setGraphData(compatible ? snapshot : null, mode, locale, showGraph.checked && compatible);
 }
 
@@ -55,13 +59,13 @@ function renderData(): void {
   document.querySelector<HTMLElement>("#session-count")!.textContent = snapshot ? recordCount(locale, snapshot.sessionCount) : "—";
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="metric"]')) {
     input.checked = input.value === mode;
-    input.disabled = !snapshot?.sessionCount;
+    input.disabled = !snapshot?.sessionCount || (privateMode && input.value === "replay");
   }
   const note = document.querySelector<HTMLElement>("#metric-note")!;
   const noReplay = snapshot && !snapshot.points.some(point => (point.replay ?? 0) > 0);
-  note.textContent = !snapshot ? "" : snapshot.sessionCount === 0 ? text(locale, "empty") :
+  note.textContent = privateMode ? text(locale, "privateMetricNote") : !snapshot ? "" : snapshot.sessionCount === 0 ? text(locale, "empty") :
     text(locale, mode === "replay" && noReplay ? "noRewatchNote" : "relativeNote");
-  renderSamplePreviews(snapshot, profile.value, locale);
+  renderSamplePreviews(snapshot, profile.value, locale, privateMode);
   renderValues(snapshot, locale);
   renderGraph();
   const peakBox = document.querySelector<HTMLElement>("#peaks")!;
@@ -84,18 +88,62 @@ function renderData(): void {
     empty.textContent = snapshot ? text(locale, snapshot.sessionCount ? "noPeaks" : "empty") : "—";
     peakBox.append(empty);
   }
-  renderIntegration(manifest?.profiles.find(item => item.id === profile.value), mode, showGraph.checked, accent.value, locale);
+  renderIntegration(manifest?.profiles.find(item => item.id === profile.value), mode, showGraph.checked, accent.value, locale, privateMode);
 }
 
 function renderLocale(): void {
   applyLocale(locale);
   const value = profile.value;
   profile.replaceChildren();
-  for (const item of manifest?.profiles ?? []) profile.add(new Option(item.title[locale], item.id));
-  if (value) profile.value = value;
-  setSampleSource(manifest?.profiles.find(item => item.id === profile.value), manifestURL, locale);
+  if (privateMode) {
+    profile.add(new Option(text(locale, "privateProfile"), "private"));
+    profile.disabled = true;
+    const replacements = {
+      synthetic: "queryData", sourceCaption: "privateSourceCaption", scenario: "privateScenario",
+      watched: "privateWatched", watchDefinition: "privateWatchDefinition", replayDefinition: "privateReplayDefinition",
+      previewScale: "privatePreviewScale", watchCoverage: "privateWatched", footerNote: "privateFooter", snapshotFile: "privateQueryFile",
+    } as const;
+    for (const [original, replacement] of Object.entries(replacements)) {
+      document.querySelector<HTMLElement>(`[data-i18n="${original}"]`)!.textContent = text(locale, replacement);
+    }
+    document.querySelector<HTMLElement>("#source-title")!.textContent = text(locale, "privateVideo");
+    document.querySelector<HTMLAnchorElement>("#calculation-link")!.href =
+      `https://github.com/kazuhide/player-lab/blob/main/references/player-ui/docs/private-query-data${locale === "ja" ? ".ja" : ""}.md`;
+    setPrivateQuerySource(locale);
+  } else {
+    for (const item of manifest?.profiles ?? []) profile.add(new Option(item.title[locale], item.id));
+    if (value) profile.value = value;
+    setSampleSource(manifest?.profiles.find(item => item.id === profile.value), manifestURL, locale);
+  }
   renderData();
   renderPlayback();
+}
+
+async function initializePrivateData(): Promise<void> {
+  const request = ++generation;
+  controller?.abort();
+  controller = new AbortController();
+  dataState = "loading";
+  snapshot = null;
+  renderData();
+  try {
+    // The loopback-only server caps this response at 512 KiB before delivery.
+    const response = await fetch("/__private/query-data", { cache: "no-store", credentials: "omit", signal: controller.signal });
+    if (!response.ok) throw new Error("Private data request failed");
+    const next = validatePrivateQueryData(await response.json());
+    if (request !== generation) return;
+    snapshot = next.snapshot;
+    privateSource = next.source;
+    mode = "reach";
+    dataState = snapshot.sessionCount === 0 ? "empty" : "ready";
+    renderData();
+    initializePlayer();
+    updateAddress();
+  } catch {
+    if (request !== generation) return;
+    dataState = "error";
+    renderData();
+  }
 }
 
 async function chooseProfile(id: string): Promise<void> {
@@ -135,18 +183,20 @@ async function initializeData(): Promise<void> {
 }
 
 function initializePlayer(): void {
+  if (privateMode && (!privateSource || !snapshot)) return;
   try {
-    playback = createPlayback(state => { playbackState = state; renderPlayback(); }, locale);
+    const options = privateMode ? { source: { hls: privateSource!.hls, title: "" }, expectedDurationMs: snapshot!.content.durationMs } : undefined;
+    playback = createPlayback(state => { playbackState = state; renderPlayback(); }, locale, options);
     renderGraph();
     void playback.load();
   } catch { playbackState = "error"; renderPlayback(); }
 }
 
 profile.addEventListener("change", () => void chooseProfile(profile.value));
-retryData.addEventListener("click", () => void (manifest ? chooseProfile(profile.value) : initializeData()));
+retryData.addEventListener("click", () => void (privateMode ? initializePrivateData() : manifest ? chooseProfile(profile.value) : initializeData()));
 retryVideo.addEventListener("click", () => { if (playback) void playback.load(); else initializePlayer(); });
 for (const input of document.querySelectorAll<HTMLInputElement>('input[name="metric"]')) input.addEventListener("change", () => {
-  if (input.checked) { mode = input.value as MetricMode; renderData(); }
+  if (input.checked && (!privateMode || input.value === "reach")) { mode = input.value as MetricMode; renderData(); }
 });
 showGraph.addEventListener("change", renderData);
 accent.addEventListener("change", () => {
@@ -165,5 +215,5 @@ window.addEventListener("pagehide", event => {
 });
 document.querySelector<HTMLElement>("#versions")!.textContent = `UI ${packageInfo.dependencies["bitmovin-player-ui"]} · Player ${packageInfo.dependencies["bitmovin-player"]}`;
 renderLocale();
-initializePlayer();
-void initializeData();
+if (privateMode) void initializePrivateData();
+else { initializePlayer(); void initializeData(); }

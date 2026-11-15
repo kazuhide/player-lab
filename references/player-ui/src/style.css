@@ -58,7 +58,7 @@ legend { font-size: .85rem; padding: 0 .4rem 0 0; }
 .metric-choice input { align-self: start; margin-top: .15rem !important; }
 .metric-name { font-size: .8rem; font-weight: 600; line-height: 1.3; min-height: 2.1rem; }
 .metric-definition { grid-column: 1 / -1; min-height: 2rem; font-size: .72rem; line-height: 1.4; color: var(--muted); }
-.metric-preview-frame { display: block; position: relative; grid-column: 1 / -1; height: 36px; border-bottom: 1px solid #bdcbd9; }
+.metric-preview-frame { display: block; position: relative; grid-column: 1 / -1; align-self: end; height: 36px; border-bottom: 1px solid #bdcbd9; }
 .metric-preview { display: block; width: 100%; height: 100%; fill: #6c8298; fill-opacity: .45; pointer-events: none; }
 .metric-preview-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .7rem; pointer-events: none; }
 .preview-scale { margin: .45rem 0 0; font-size: .7rem; line-height: 1.4; color: var(--muted); }

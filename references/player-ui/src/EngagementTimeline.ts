@@ -1,7 +1,7 @@
 import type { PlayerAPI } from "bitmovin-player";
 import { Component, type ComponentConfig, type SeekBar, type UIInstanceManager } from "bitmovin-player-ui";
 import { createTimelineGeometry } from "./timeline-geometry.ts";
-import type { EngagementSnapshot, MetricMode } from "./types.ts";
+import type { MetricMode, TimelineSnapshot } from "./types.ts";
 
 export interface EngagementTimelineConfig extends ComponentConfig {
   /** The official seek component remains the only interactive timeline. */
@@ -12,7 +12,7 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 /** A noninteractive aggregate-data layer composed with the official Player UI. */
 export class EngagementTimeline extends Component<EngagementTimelineConfig> {
-  private snapshot: EngagementSnapshot | null = null;
+  private snapshot: TimelineSnapshot | null = null;
   private mode: MetricMode = "replay";
   private graphEnabled = true;
   private svg: SVGSVGElement | null = null;
@@ -42,7 +42,7 @@ export class EngagementTimeline extends Component<EngagementTimelineConfig> {
     this.scheduleRender();
   }
 
-  setData(snapshot: EngagementSnapshot | null, mode: MetricMode, locale: "en" | "ja"): void {
+  setData(snapshot: TimelineSnapshot | null, mode: MetricMode, locale: "en" | "ja"): void {
     this.snapshot = snapshot;
     this.mode = mode;
     const host = this.getDomElement().get(0) as HTMLElement;

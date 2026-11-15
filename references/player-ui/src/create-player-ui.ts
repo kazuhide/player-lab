@@ -5,13 +5,13 @@ import {
 } from "bitmovin-player-ui";
 import { EngagementTimeline } from "./EngagementTimeline.ts";
 import { UI_JA } from "./ui-ja.ts";
-import type { EngagementSnapshot, MetricMode } from "./types.ts";
+import type { MetricMode, TimelineSnapshot } from "./types.ts";
 
 /** Keeps official layouts and seek behavior; only the aggregate graph is application-owned. */
 export function createPlayerUi(player: PlayerAPI, locale: "en" | "ja" = "en"): {
   manager: UIManager;
   timelines: EngagementTimeline[];
-  setGraphData(snapshot: EngagementSnapshot | null, mode: MetricMode, locale: "en" | "ja", enabled: boolean): void;
+  setGraphData(snapshot: TimelineSnapshot | null, mode: MetricMode, locale: "en" | "ja", enabled: boolean): void;
   setLocale(locale: "en" | "ja"): void;
 } {
   const localization = {
@@ -23,7 +23,7 @@ export function createPlayerUi(player: PlayerAPI, locale: "en" | "ja" = "en"): {
   UIManager.setLocalizationConfig(localization);
   const timelines: EngagementTimeline[] = [];
   let graphState: {
-    snapshot: EngagementSnapshot | null;
+    snapshot: TimelineSnapshot | null;
     mode: MetricMode;
     locale: "en" | "ja";
     enabled: boolean;

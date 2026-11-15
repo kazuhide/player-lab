@@ -26,6 +26,14 @@ const en = {
   noRewatchNote: "No rewatch in this sample. Select Watched sections to see what was watched.",
   mismatch: "The video does not match the timeline data", copyError: "Select and copy the code",
   sourceError: "Could not load the sample records", dataPending: "Loading a new sample",
+  queryData: "Query API", privateProfile: "Private query data", privateScenario: "Data", privateQueryFile: "Query JSON",
+  privateVideo: "Private video", privateSourceCaption: "HLS",
+  privateHint: "Saved Query API results.",
+  privateWatched: "Playback records reaching this section", privateWatchDefinition: "Share of playback records",
+  privateReplayDefinition: "Not measured in this batch", unavailable: "Not available",
+  privatePreviewScale: "Playback-record share (0–100%).",
+  privateMetricNote: "Counts records per interval, not length-weighted coverage. The overlay scales its highest value to full height.",
+  privateFooter: "Private Query API batch. Playback does not query Analytics.",
 } as const;
 
 const ja: Record<keyof typeof en, string> = {
@@ -54,6 +62,14 @@ const ja: Record<keyof typeof en, string> = {
   noRewatchNote: "この例には見返しがありません。「見られた区間」で視聴範囲を確認できます。",
   mismatch: "動画とタイムラインのデータが一致しません", copyError: "コードを選択してコピーしてください",
   sourceError: "サンプル記録を読み込めません", dataPending: "サンプルを読み込み中",
+  queryData: "Query API", privateProfile: "非公開の集計データ", privateScenario: "データ", privateQueryFile: "Query集計JSON",
+  privateVideo: "非公開動画", privateSourceCaption: "HLS",
+  privateHint: "保存済みのQuery API集計です。",
+  privateWatched: "区間を見た再生記録", privateWatchDefinition: "再生記録全体に対する割合",
+  privateReplayDefinition: "この集計では取得していません", unavailable: "取得なし",
+  privatePreviewScale: "再生記録の割合（0–100%）です。",
+  privateMetricNote: "区間ごとの再生記録数を集計しています。視聴した長さで重み付けする割合とは異なります。映像上では最大値に合わせて高さを拡大します。",
+  privateFooter: "非公開のQuery API集計を使用。再生のたびにAnalyticsへ問い合わせることはありません。",
 };
 
 export type TextKey = keyof typeof en;
