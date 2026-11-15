@@ -30,6 +30,30 @@ interface ObservedPoint {
   value: number;
 }
 
+/** Shared tangents make a smooth silhouette; bounded controls cannot invent extrema. */
+function smoothPath(points: { x: number; y: number }[]): string {
+  const slopes = points.slice(1).map((point, index) => (point.y - points[index].y) / (point.x - points[index].x));
+  const tangents = points.map(() => 0);
+  for (let index = 1; index < points.length - 1; index++) {
+    const left = slopes[index - 1];
+    const right = slopes[index];
+    if (left * right <= 0) continue;
+    const before = points[index].x - points[index - 1].x;
+    const after = points[index + 1].x - points[index].x;
+    const firstWeight = 2 * after + before;
+    const secondWeight = after + 2 * before;
+    const tangent = (firstWeight + secondWeight) / (firstWeight / left + secondWeight / right);
+    tangents[index] = Math.sign(tangent) * Math.min(Math.abs(tangent), 3 * Math.min(Math.abs(left), Math.abs(right)));
+  }
+  const coordinate = (value: number) => Number(value.toFixed(3));
+  const pair = (x: number, y: number) => `${coordinate(x)} ${coordinate(y)}`;
+  return `M${pair(points[0].x, points[0].y)} ${points.slice(1).map((point, index) => {
+    const previous = points[index];
+    const third = (point.x - previous.x) / 3;
+    return `C${pair(previous.x + third, previous.y + tangents[index] * third)} ${pair(point.x - third, point.y - tangents[index + 1] * third)} ${pair(point.x, point.y)}`;
+  }).join(" ")}`;
+}
+
 /** Creates display geometry only. The snapshot's measurements and support are never changed. */
 export function createTimelineGeometry(
   snapshot: EngagementSnapshot | null,
@@ -86,7 +110,6 @@ export function createTimelineGeometry(
   const x = (time: number) => time / duration * width;
   const y = (value: number) => displayMaximum > 0 ? baselineY - value / displayMaximum * (height - 3) : baselineY;
   const coordinate = (value: number) => Number(value.toFixed(3));
-  const command = (point: { x: number; y: number }) => `${coordinate(point.x)} ${coordinate(point.y)}`;
   const peaks: TimelinePosition[] = [];
   const segments = runs.map((points): TimelineSegment => {
     const projected = points.map(point => ({
@@ -97,7 +120,7 @@ export function createTimelineGeometry(
     const endX = x(points[points.length - 1].source.endMs);
     const first = { x: startX, y: projected[0].y };
     const last = { x: endX, y: projected[projected.length - 1].y };
-    const linePath = `M${command(first)} ${projected.map(point => `L${command(point)}`).join(" ")} L${command(last)}`;
+    const linePath = smoothPath([first, ...projected, last]);
 
     // Mark only maxima present in the original data; flat distributions have no invented peak.
     for (let index = 0; index < points.length;) {

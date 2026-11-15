@@ -63,7 +63,7 @@ export class EngagementTimeline extends Component<EngagementTimelineConfig> {
     host.classList.add("pl-engagement-timeline");
     host.setAttribute("aria-hidden", "true");
     host.style.position = "absolute";
-    host.style.height = "var(--engagement-height, 44px)";
+    host.style.height = "var(--engagement-height, 28px)";
     host.style.pointerEvents = "none";
     host.style.visibility = "hidden";
     const svg = document.createElementNS(SVG_NAMESPACE, "svg");
@@ -98,13 +98,15 @@ export class EngagementTimeline extends Component<EngagementTimelineConfig> {
     }
 
     const seekElement = this.config.seekBar?.getDomElement().get(0) as HTMLElement | undefined;
-    const targetRect = (seekElement ?? host.parentElement)?.getBoundingClientRect();
+    // The visible track is narrower than the official component's accessible hit area.
+    const track = seekElement?.querySelector<HTMLElement>(".bmpui-seekbar") ?? seekElement;
+    const targetRect = (track ?? host.parentElement)?.getBoundingClientRect();
     const parentRect = (host.offsetParent ?? host.parentElement)?.getBoundingClientRect();
-    const height = host.getBoundingClientRect().height || 44;
+    const height = host.getBoundingClientRect().height || 28;
     const width = targetRect?.width ?? 0;
     if (targetRect && parentRect) {
       host.style.left = `${targetRect.left - parentRect.left}px`;
-      host.style.top = `${targetRect.top - parentRect.top + targetRect.height / 2 - height}px`;
+      host.style.top = `${targetRect.top - parentRect.top - height + 1}px`;
       host.style.width = `${width}px`;
     }
     const geometry = createTimelineGeometry(this.snapshot, this.mode, width, height);
@@ -117,26 +119,7 @@ export class EngagementTimeline extends Component<EngagementTimelineConfig> {
       const fill = document.createElementNS(SVG_NAMESPACE, "path");
       fill.classList.add("pl-engagement-fill");
       fill.setAttribute("d", segment.fillPath);
-      fill.setAttribute("fill", "#70b7ff");
-      fill.setAttribute("fill-opacity", "0.2");
-      const line = document.createElementNS(SVG_NAMESPACE, "path");
-      line.classList.add("pl-engagement-line");
-      line.setAttribute("d", segment.linePath);
-      line.setAttribute("fill", "none");
-      line.setAttribute("stroke", "#95caff");
-      line.setAttribute("stroke-opacity", "0.65");
-      line.setAttribute("stroke-width", "1.4");
-      line.setAttribute("vector-effect", "non-scaling-stroke");
-      elements.push(fill, line);
-    }
-    for (const peak of geometry.peaks) {
-      const marker = document.createElementNS(SVG_NAMESPACE, "circle");
-      marker.classList.add("pl-engagement-peak");
-      marker.setAttribute("cx", String(peak.x));
-      marker.setAttribute("cy", String(peak.y));
-      marker.setAttribute("r", "2.5");
-      marker.setAttribute("fill", "#b4dcff");
-      elements.push(marker);
+      elements.push(fill);
     }
     this.svg.replaceChildren(...elements);
   }

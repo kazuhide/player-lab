@@ -84,3 +84,31 @@ test("missing snapshots, invalid viewport sizes and invalid values produce no in
   assert.equal(createTimelineGeometry(snapshot([0.5]), "replay", 0, 50).segments.length, 0);
   assert.equal(createTimelineGeometry(snapshot([Number.NaN, -0.1, 1.2]), "replay", 300, 50).segments.length, 0);
 });
+
+test("the drawn curve has continuous slopes and cannot overshoot adjacent values", () => {
+  const source = snapshot([0, 0.1, 0.9, 0.3, 0, 0.6, 0.2, 0]);
+  const original = structuredClone(source);
+  const result = createTimelineGeometry(source, "replay", 800, 30);
+  const tokens = result.segments[0].linePath.match(/[A-Za-z]|-?\d+(?:\.\d+)?/g)!;
+  assert.equal(tokens.shift(), "M");
+  let start = [Number(tokens.shift()), Number(tokens.shift())];
+  let previousSlope: number | undefined;
+  let count = 0;
+  while (tokens.length) {
+    assert.equal(tokens.shift(), "C", "the silhouette must be a smooth curve rather than a polygon");
+    const controls = Array.from({ length: 3 }, () => [Number(tokens.shift()), Number(tokens.shift())]);
+    const [first, second, end] = controls;
+    const incoming = (first[1] - start[1]) / (first[0] - start[0]);
+    if (previousSlope !== undefined) assert.ok(Math.abs(incoming - previousSlope) < 0.001, "joins must not introduce visible corners");
+    previousSlope = (end[1] - second[1]) / (end[0] - second[0]);
+    for (let step = 0; step <= 20; step++) {
+      const t = step / 20;
+      const y = (1 - t) ** 3 * start[1] + 3 * (1 - t) ** 2 * t * first[1] + 3 * (1 - t) * t ** 2 * second[1] + t ** 3 * end[1];
+      assert.ok(y >= Math.min(start[1], end[1]) - 0.000001 && y <= Math.max(start[1], end[1]) + 0.000001, "smoothing must not invent peaks or negative coverage");
+    }
+    start = end;
+    count++;
+  }
+  assert.ok(count >= source.points.length);
+  assert.deepEqual(source, original);
+});
