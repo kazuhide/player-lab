@@ -13,6 +13,7 @@ const en = {
   sampleEmpty: "This sample contains no playback records.",
   appearance: "Accent", blue: "Blue", white: "White", jumpTo: "Jump to a section",
   snapshotFile: "Snapshot JSON", samplesFile: "Sample JSON", integrationCode: "Integration code",
+  calculationGuide: "Calculation and data sources",
   codeCaption: "Player configuration and the added UI component", copy: "Copy", copied: "Copied",
   measuredValues: "Underlying values", interval: "Interval", replayCoverage: "Replay coverage",
   watchCoverage: "Watched coverage", sessions: "Playback records", sampleRecords: "Analytics-style sample records",
@@ -40,6 +41,7 @@ const ja: Record<keyof typeof en, string> = {
   sampleEmpty: "再生記録がない例です。",
   appearance: "アクセント", blue: "青", white: "白", jumpTo: "区間へ移動",
   snapshotFile: "集計済みJSON", samplesFile: "サンプルJSON", integrationCode: "組み込みコード",
+  calculationGuide: "計算とデータの取得",
   codeCaption: "Playerの設定と追加するUIコンポーネント", copy: "コピー", copied: "コピーしました",
   measuredValues: "集計値", interval: "区間", replayCoverage: "見返された割合",
   watchCoverage: "見られた割合", sessions: "再生記録", sampleRecords: "Analytics形式のサンプル記録",
@@ -69,6 +71,8 @@ export function applyLocale(locale: Locale): void {
   button.textContent = locale === "ja" ? "English" : "日本語";
   button.lang = locale === "ja" ? "en" : "ja";
   button.setAttribute("aria-label", text(locale, "changeLanguage"));
+  document.querySelector<HTMLAnchorElement>("#calculation-link")!.href =
+    `https://github.com/kazuhide/player-lab/blob/main/references/player-ui/docs/analytics-data${locale === "ja" ? ".ja" : ""}.md`;
 }
 
 export function timeLabel(milliseconds: number): string {

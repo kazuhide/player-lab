@@ -85,38 +85,15 @@ probability that a scene is exciting or confidence in a large audience.
 Inspect the supporting session counts when comparing peaks. Smoothing changes
 the drawn curve without adding observations to its underlying counts.
 
-## How the values are calculated
+## Calculation and Analytics data
 
-The synthetic samples use fields from the public
-[Analytics impression-sample model](https://bitmovin.github.io/bitmovin-api-sdk-php/classes/BitmovinApiSdk_Models_AnalyticsImpressionSample.html),
-including `impressionId`, `sequenceNumber`, `videotimeStart`, `videotimeEnd`,
-`played`, `state` and `ad`. Video positions and durations are in milliseconds.
-The `DemoExport` wrapper is a Player Lab fixture format, not an Analytics Export
-API response or an implementation of a production export adapter.
+See [Calculation and Analytics data](docs/analytics-data.md) for the formulas,
+a partial-viewing example and request templates for Export, aggregate Query and
+Query plus Impression Details. The guide explains which methods can calculate
+the same metrics and which produce a different watched-distribution measure.
 
-The processor reconstructs ordered playback passes for the same content.
-Quality changes and overlapping samples within one pass are merged. Advertisements,
-paused or seeking samples and skipped gaps are not watched intervals. A backward
-move followed by playback can form another pass through previously watched
-content.
-
-For each bucket, the replay metric is:
-
-```text
-Sum of the portion covered by at least two passes in each session
- / (bucket duration × total eligible playback sessions)
-```
-
-A session contributes at most one bucket's duration, even if it repeats that
-portion many times. Content-relative lengths also avoid increasing the value
-merely because playback was slower. Partial overlaps contribute only their
-actual length. The denominator is the same eligible-session population for all
-buckets, rather than only the sessions that reached a particular bucket.
-
-The reach metric uses the portion covered by at least one pass instead.
-`support` counts sessions with observed playback in the bucket. It is a session
-count, not a count of distinct people. Buckets without observations keep `null`
-values rather than an invented zero score.
+The current processor accepts only synthetic fixtures. Real Export or API data
+needs a separate validated adapter; do not relabel account data as synthetic.
 
 ## Prepare data before playback
 
