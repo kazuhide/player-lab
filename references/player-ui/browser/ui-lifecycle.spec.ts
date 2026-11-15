@@ -31,6 +31,25 @@ test("constructs only the selected content layout", async ({ page }) => {
   expect(initial.layouts).toEqual({ main: compact ? 0 : 1, smallScreen: compact ? 1 : 0, tv: 0 });
 });
 
+test("updates visible official settings labels from English to Japanese and back", async ({ page }) => {
+  await page.goto("/?lang=en");
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", "ready", { timeout: 20_000 });
+  await page.locator(".bmpui-ui-uicontainer:visible .bmpui-ui-settingstogglebutton").click();
+  const settings = page.locator(".bmpui-ui-settings-panel:visible").first();
+  await expect(settings.getByText("Video Quality", { exact: true })).toBeVisible();
+  await expect(settings.getByText("Speed", { exact: true })).toBeVisible();
+
+  await page.locator("#language").click();
+  await expect(settings.getByText("画質", { exact: true })).toBeVisible();
+  await expect(settings.getByText("再生速度", { exact: true })).toBeVisible();
+  await expect(settings.getByText("Video Quality", { exact: true })).toHaveCount(0);
+
+  await page.locator("#language").click();
+  await expect(settings.getByText("Video Quality", { exact: true })).toBeVisible();
+  await expect(settings.getByText("Speed", { exact: true })).toBeVisible();
+  await expect(settings.getByText("画質", { exact: true })).toHaveCount(0);
+});
+
 test("keeps localization listeners bounded and gives later layouts the current graph state", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#player-status")).toHaveAttribute("data-state", "ready", { timeout: 20_000 });

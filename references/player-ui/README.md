@@ -139,6 +139,11 @@ for the exact loaded content and choose `replay` or `reach` as its metric.
 See [the official UI composition](src/create-player-ui.ts) for adding the graph
 to official containers while keeping the official seek bar responsible for seeking.
 
+The `createPlayerUi` wrapper returns `setGraphData(snapshot, mode, locale, enabled)`
+to update the graph and retain the latest data and visibility for layouts created
+after a resize. Its `setLocale(next)` updates visible text and accessible labels
+while keeping the same Player and UIManager instances.
+
 The snapshot includes the content identity and duration, reporting period,
 generation time, session count, bucket width and points containing replay,
 reach and support values. No viewer identifier is needed by the component.

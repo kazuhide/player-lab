@@ -1,6 +1,6 @@
 import type { PlayerAPI } from "bitmovin-player";
 import {
-  Button, Container, PlaybackToggleOverlay, SeekBar, ToggleButton, VolumeSlider, UIFactory, UIManager, UIVariantIdentifier,
+  Button, Container, i18n, PlaybackToggleOverlay, SeekBar, ToggleButton, VolumeSlider, UIFactory, UIManager, UIVariantIdentifier,
   type Component, type ComponentConfig, type UIContainer,
 } from "bitmovin-player-ui";
 import { EngagementTimeline } from "./EngagementTimeline.ts";
@@ -49,19 +49,10 @@ export function createPlayerUi(player: PlayerAPI, locale: "en" | "ja" = "en"): {
   };
 
   const releaseUnconfiguredTree = (component: Component<ComponentConfig>): void => {
-    const owned = new Set<Component<ComponentConfig>>();
-    const collect = (child: Component<ComponentConfig>): void => {
-      if (owned.has(child)) return;
-      owned.add(child);
-      const element = child.getDomElement().get(0);
-      // DOM's public component association also covers icons owned by buttons.
-      for (const node of [element, ...element.querySelectorAll<typeof element>("*")]) {
-        if (node.component) owned.add(node.component);
-      }
-      if (child instanceof Container) for (const descendant of child.getComponents()) collect(descendant);
-    };
-    collect(component);
-    for (const child of [...owned].reverse()) child.release();
+    if (component instanceof Container) {
+      for (const child of component.getComponents()) releaseUnconfiguredTree(child);
+    }
+    component.release();
   };
   const createCompactLayout = (): UIContainer => {
     const container = UIFactory.defaultLayouts.smallScreen();
@@ -151,7 +142,8 @@ export function createPlayerUi(player: PlayerAPI, locale: "en" | "ja" = "en"): {
     setLocale(next) {
       localization.language = next;
       graphState.locale = next;
-      UIManager.setLocalizationConfig(localization);
+      // Unlike setLocalizationConfig, setLanguage notifies existing UI components.
+      i18n.setLanguage(next);
       // UI 4.23.1 updates localized text live but leaves some button ARIA labels
       // at their initial language. Refresh through public APIs without toggling state.
       refreshActiveLabels();
