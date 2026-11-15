@@ -20,7 +20,7 @@ export function playerConfiguration(): PlayerConfig {
 
 export function createPlayback(onState: (state: PlaybackState) => void, locale: Locale) {
   const player: PlayerAPI = new Player(document.querySelector<HTMLElement>("#player")!, playerConfiguration());
-  let ui = createPlayerUi(player, locale);
+  const ui = createPlayerUi(player, locale);
   let ready = false;
   let validTimeline = false;
   const checkTimeline = () => {
@@ -50,8 +50,7 @@ export function createPlayback(onState: (state: PlaybackState) => void, locale: 
     get canSeek() { return ready && validTimeline; },
     load,
     setLocale(next: Locale) {
-      ui.manager.release();
-      ui = createPlayerUi(player, next);
+      ui.setLocale(next);
     },
     seek(milliseconds: number) {
       if (ready && validTimeline && Number.isFinite(milliseconds)) player.seek(Math.max(0, Math.min(59.9, milliseconds / 1000)));

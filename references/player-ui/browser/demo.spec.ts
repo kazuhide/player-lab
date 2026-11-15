@@ -2,6 +2,31 @@ import { expect, test } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
+test("keeps playback usable across persisted page transitions and browser back navigation", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", "ready", { timeout: 20_000 });
+  await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
+  await page.locator("#profile").selectOption("single");
+  await expect(page.locator("#session-count")).toContainText("1");
+  // Exercise the browser's persisted lifecycle contract independently of cache eligibility.
+  await page.evaluate(() => {
+    dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true }));
+    dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+  });
+  await expect(page.locator("#profile")).toHaveValue("single");
+  await expect(page.locator(".bmpui-ui-controlbar:visible")).toHaveCount(1);
+  await page.locator(".bmpui-ui-controlbar:visible").getByRole("button", { name: /^(Play|再生)$/ }).click();
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", "playing");
+  await page.goto("about:blank");
+  await page.goBack();
+  await expect(page.locator("#profile")).toHaveValue("single");
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", /^(ready|paused|playing)$/, { timeout: 20_000 });
+  await expect(page.locator("video")).toHaveCount(1);
+  if (await page.locator("#player-status").getAttribute("data-state") !== "playing") await page.locator(".bmpui-ui-controlbar:visible").getByRole("button", { name: /^(Play|再生)$/ }).click();
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", "playing");
+  await expect.poll(() => page.locator("video").evaluate(element => (element as HTMLVideoElement).currentTime)).toBeGreaterThan(.1);
+});
+
 test("loads a sparse synthetic snapshot without fetching raw session records", async ({ page }) => {
   const records: string[] = [];
   page.on("request", request => records.push(request.url()));
@@ -26,20 +51,20 @@ test("plays the real source and keeps it running through data and language chang
   await page.evaluate(() => { (window as unknown as { originalVideo: HTMLVideoElement | null }).originalVideo = document.querySelector("video"); });
   await page.locator(".bmpui-ui-controlbar:visible").getByRole("button", { name: /^(Play|再生)$/ }).click();
   await expect(page.locator("#player-status")).toHaveAttribute("data-state", "playing");
-  await expect.poll(() => video.evaluate(element => element.currentTime)).toBeGreaterThan(0.1);
+  await expect.poll(() => video.evaluate(element => (element as HTMLVideoElement).currentTime)).toBeGreaterThan(0.1);
   await expect(page.locator("#peaks button").first()).toBeEnabled();
   await page.locator("#peaks button").first().click();
-  await expect.poll(() => video.evaluate(element => element.currentTime)).toBeGreaterThan(10);
-  const at = await video.evaluate(element => element.currentTime);
+  await expect.poll(() => video.evaluate(element => (element as HTMLVideoElement).currentTime)).toBeGreaterThan(10);
+  const at = await video.evaluate(element => (element as HTMLVideoElement).currentTime);
   await page.locator("#profile").selectOption("single");
   await expect(page.locator("#session-count")).toContainText("1");
   await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
   expect(await page.evaluate(() => (window as unknown as { originalVideo: HTMLVideoElement | null }).originalVideo === document.querySelector("video"))).toBe(true);
-  expect(await video.evaluate(element => element.currentTime)).toBeGreaterThanOrEqual(at);
+  expect(await video.evaluate(element => (element as HTMLVideoElement).currentTime)).toBeGreaterThanOrEqual(at);
   await page.locator("#language").click();
   await expect(page.locator("#player-status")).toHaveAttribute("data-state", "playing");
   expect(await page.evaluate(() => (window as unknown as { originalVideo: HTMLVideoElement | null }).originalVideo === document.querySelector("video"))).toBe(true);
-  expect(await video.evaluate(element => element.currentTime)).toBeGreaterThanOrEqual(at);
+  expect(await video.evaluate(element => (element as HTMLVideoElement).currentTime)).toBeGreaterThanOrEqual(at);
   await page.locator("#language").click();
   await page.locator("#profile").selectOption("sparse");
   await expect(page.locator("#session-count")).toContainText("5");
@@ -58,8 +83,8 @@ test("plays the real source and keeps it running through data and language chang
   const seekBar = page.getByRole("slider", { name: /^(Video timeline|再生位置)$/ }).first();
   const bounds = (await seekBar.boundingBox())!;
   await seekBar.click({ position: { x: bounds.width * .8, y: bounds.height / 2 } });
-  await expect.poll(() => video.evaluate(element => element.currentTime)).toBeGreaterThan(45);
-  await expect.poll(() => video.evaluate(element => element.seeking)).toBe(false);
+  await expect.poll(() => video.evaluate(element => (element as HTMLVideoElement).currentTime)).toBeGreaterThan(45);
+  await expect.poll(() => video.evaluate(element => (element as HTMLVideoElement).seeking)).toBe(false);
   await page.locator("#show-graph").uncheck();
   await expect(page.locator(".pl-engagement-timeline:visible")).toHaveCount(0);
   await page.locator("#show-graph").check();
@@ -67,10 +92,6 @@ test("plays the real source and keeps it running through data and language chang
   await page.locator("#accent").selectOption("white");
   await expect(page.locator(".player-frame")).toHaveAttribute("data-accent", "white");
   await page.locator("#accent").selectOption("blue");
-  if (process.env.REFERENCE_CAPTURE_DIR && testInfo.project.name === "mobile-ja") {
-    await mkdir(process.env.REFERENCE_CAPTURE_DIR, { recursive: true });
-    await page.screenshot({ path: path.join(process.env.REFERENCE_CAPTURE_DIR, "player-ui-mobile-ja.png"), fullPage: true });
-  }
   if (process.env.REFERENCE_CAPTURE_DIR && testInfo.project.name === "desktop-en") {
     await mkdir(process.env.REFERENCE_CAPTURE_DIR, { recursive: true });
     for (const language of ["en", "ja"]) {

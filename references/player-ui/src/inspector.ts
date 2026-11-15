@@ -27,14 +27,11 @@ const player = new Player(document.querySelector("#player"), {
   analytics: false,
   playback: { autoplay: false, muted: true },
 });
-const { manager, timelines } = createPlayerUi(player, ${JSON.stringify(locale)});
+const { manager, setGraphData } = createPlayerUi(player, ${JSON.stringify(locale)});
 const response = await fetch(${JSON.stringify(snapshotPath)});
 if (!response.ok) throw new Error("Could not load the snapshot");
 const snapshot = validateSnapshot(await response.json());
-for (const graph of timelines) {
-  graph.setData(snapshot, ${JSON.stringify(mode)}, ${JSON.stringify(locale)});
-  graph.setEnabled(${enabled});
-}
+setGraphData(snapshot, ${JSON.stringify(mode)}, ${JSON.stringify(locale)}, ${enabled});
 // Accent applies only to the added graph.
 document.querySelector(".player-frame").dataset.accent = ${JSON.stringify(accent)};
 await player.load(${JSON.stringify(SOURCE, null, 2)});

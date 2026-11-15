@@ -36,10 +36,7 @@ function updateAddress(): void {
 
 function renderGraph(): void {
   const compatible = playbackState !== "error" && playbackState !== "mismatch";
-  for (const graph of playback?.ui.timelines ?? []) {
-    graph.setData(compatible ? snapshot : null, mode, locale);
-    graph.setEnabled(showGraph.checked && compatible);
-  }
+  playback?.ui.setGraphData(compatible ? snapshot : null, mode, locale, showGraph.checked && compatible);
 }
 
 function renderPlayback(): void {
@@ -160,7 +157,10 @@ document.querySelector<HTMLButtonElement>("#language")!.addEventListener("click"
   renderLocale();
   updateAddress();
 });
-window.addEventListener("pagehide", () => { controller?.abort(); playback?.destroy(); }, { once: true });
+// A persisted page is frozen for browser back navigation and keeps its Player.
+window.addEventListener("pagehide", event => {
+  if (!event.persisted) { controller?.abort(); playback?.destroy(); }
+});
 document.querySelector<HTMLElement>("#versions")!.textContent = `UI ${packageInfo.dependencies["bitmovin-player-ui"]} · Player ${packageInfo.dependencies["bitmovin-player"]}`;
 renderLocale();
 initializePlayer();
