@@ -31,6 +31,7 @@ test("keeps the ordinary synthetic demo free of private-data requests", async ({
   await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
   await expect(page.locator(".data-badge")).toHaveText(/Synthetic data|合成データ/);
   await expect(page.locator("#profile")).toBeEnabled();
+  await expect(page.locator("#scenario-method")).toBeHidden();
   expect(privateRequests).toEqual([]);
 });
 
@@ -55,6 +56,7 @@ test("validates private data before starting playback and preserves missing repl
   await expect(page.locator("#data-status")).toHaveAttribute("data-state", "ready");
   await expect(page.locator("#player-status")).toHaveAttribute("data-state", "ready", { timeout: 20_000 });
   await expect(page.locator(".data-badge")).toHaveText("Query API");
+  await expect(page.locator("#scenario-method")).toBeHidden();
   await expect(page.locator("#profile")).toBeDisabled();
   await expect(page.locator("#profile option")).toHaveCount(1);
   await expect(page.locator("#session-count")).toContainText("10");

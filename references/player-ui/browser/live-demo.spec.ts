@@ -42,6 +42,8 @@ for (const observed of [false, true]) {
     await expect(page.locator("#player-status")).toHaveAttribute("data-state", "ready", { timeout: 20_000 });
     await expect(page.locator(".data-badge")).toHaveText(await page.locator("html").getAttribute("lang") === "ja" ? labels.ja : labels.en);
     await expect(page.locator("#profile")).toBeEnabled();
+    await expect(page.locator("#scenario-method")).toBeVisible();
+    await page.locator("#scenario-method summary").click();
     await expect(page.locator('input[value="replay"]')).toBeEnabled();
     await expect(page.locator('input[value="replay"]')).toBeChecked();
     await expect(page.locator("#preview-replay")).toHaveAttribute("data-state", "populated");
@@ -71,6 +73,7 @@ for (const observed of [false, true]) {
       if (await page.locator("html").getAttribute("lang") !== language) await page.locator("#language").click();
       await expect(page.locator(".data-badge")).toHaveText(labels[language as "ja" | "en"]);
       await expect(page.locator("#profile")).toHaveValue("later");
+      await expect(page.locator("#scenario-method-guide")).toHaveAttribute("href", new RegExp(`live-demo-data${language === "ja" ? "\\.ja" : ""}\\.md$`));
       await expect(page.locator('input[value="replay"]')).toBeEnabled();
       await expect(page.locator(".controls-panel")).not.toContainText(/非公開|未公開|Private query/);
       if (observed) {

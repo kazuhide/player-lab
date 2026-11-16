@@ -87,6 +87,7 @@ function renderData(): void {
   renderValues(snapshot, locale);
   const observedProfile = privateData?.kind === "observability-replay-demo" ? privateData.profiles.find(item => item.id === privateProfileId) : undefined;
   renderApiEvidence(observedProfile?.evidence, observedProfile?.snapshot, locale);
+  document.querySelector<HTMLElement>("#scenario-method")!.hidden = !hasProfiles(privateData);
   renderGraph();
   const peakBox = document.querySelector<HTMLElement>("#peaks")!;
   peakBox.replaceChildren();
@@ -141,6 +142,7 @@ function renderLocale(): void {
     document.querySelector<HTMLElement>("#source-title")!.textContent = text(locale, "privateVideo");
     document.querySelector<HTMLAnchorElement>("#calculation-link")!.href =
       `https://github.com/kazuhide/player-lab/blob/main/references/player-ui/docs/${profiled ? "live-demo-data" : "private-query-data"}${locale === "ja" ? ".ja" : ""}.md`;
+    document.querySelector<HTMLAnchorElement>("#scenario-method-guide")!.href = document.querySelector<HTMLAnchorElement>("#calculation-link")!.href;
     setPrivateQuerySource(locale);
   } else {
     for (const item of manifest?.profiles ?? []) profile.add(new Option(item.title[locale], item.id));
