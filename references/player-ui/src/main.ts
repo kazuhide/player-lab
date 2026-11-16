@@ -9,6 +9,7 @@ import { createPlayback, type Playback, type PlaybackState } from "./playback.ts
 import { createTimelineGeometry } from "./timeline-geometry.ts";
 import { renderSamplePreviews } from "./sample-preview.ts";
 import { renderApiEvidence } from "./api-evidence-view.ts";
+import { createViewerExperienceView } from "./viewer-experience-view.ts";
 import type { DemoManifest, MetricMode, TimelineSnapshot } from "./types.ts";
 
 const query = new URLSearchParams(location.search);
@@ -33,6 +34,11 @@ const status = document.querySelector<HTMLElement>("#data-status")!;
 const videoStatus = document.querySelector<HTMLElement>("#player-status")!;
 const retryData = document.querySelector<HTMLButtonElement>("#retry-data")!;
 const retryVideo = document.querySelector<HTMLButtonElement>("#retry-video")!;
+const viewerExperiences = createViewerExperienceView();
+
+function renderViewerExperiences(): void {
+  viewerExperiences.render({ playback, snapshot, content: manifest?.content, demoSource: !privateMode, locale });
+}
 
 function isQueryData(): boolean {
   return privateMode && (!privateData || privateData.kind === "query");
@@ -61,6 +67,7 @@ function renderPlayback(): void {
   retryVideo.hidden = playbackState !== "error";
   for (const button of document.querySelectorAll<HTMLButtonElement>("#peaks button")) button.disabled = !playback?.canSeek;
   renderGraph();
+  renderViewerExperiences();
 }
 
 function renderData(): void {
@@ -103,6 +110,7 @@ function renderData(): void {
   }
   const privateProfileIndex = hasProfiles(privateData) ? privateData.profiles.findIndex(item => item.id === privateProfileId) : 0;
   renderIntegration(manifest?.profiles.find(item => item.id === profile.value), mode, showGraph.checked, accent.value, locale, privateMode, Math.max(0, privateProfileIndex));
+  renderViewerExperiences();
 }
 
 function renderLocale(): void {

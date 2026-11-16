@@ -67,6 +67,19 @@ const en = {
   apiSequenceMeaning: "Sequence from 0", apiClockMeaning: "Client timestamp", apiStateMeaning: "Playback state", apiAdMeaning: "Content = 0",
   apiPlayedMeaning: "Playback time", apiSeekedMeaning: "Seek latency", apiStartMeaning: "Content start position", apiEndMeaning: "Content end position",
   apiDurationMeaning: "Declared duration", apiVideoMeaning: "Video identity", apiSourceMeaning: "HLS source",
+  viewerTools: "Viewer tools", viewerHighlights: "Highlights", viewerHistory: "Viewing history", viewerPreferences: "Captions & audio",
+  viewerBudget: "Time limit", viewerTotal: "Total", viewerSeconds: "s", viewerStart: "Play highlights", viewerReturn: "Return to full video",
+  viewerNoHighlights: "No observed rewatching in the available sections.", viewerUnavailable: "These tools are available for the standard demo video.",
+  viewerExample: "Saved history example", viewerChooseExample: "Select a history example", viewerUseHistory: "Use saved history", viewerClear: "Clear",
+  viewerResume: "Continue watching", viewerUnwatched: "Go to an unrecorded section",
+  viewerHistoryEmpty: "No saved playback", viewerHistorySaved: "Saved viewing history", viewerHistoryPartial: "Partial history; missing sections are unknown",
+  viewerHistoryCompleted: "All sections recorded", viewerHistoryUnavailable: "History unavailable", viewerHistoryDisabled: "Saved history is off", viewerHistoryCleared: "Saved history cleared",
+  viewerChapterWatched: "Recorded", viewerChapterPartial: "Partly recorded", viewerChapterUnwatched: "No record", viewerChapterUnknown: "Unknown",
+  viewerSubtitles: "Previous captions", viewerAudio: "Previous audio", viewerOff: "Off", viewerNotRecorded: "Not recorded", viewerTrackUnavailable: "Not in this source",
+  viewerApply: "Apply available settings", viewerUndo: "Undo", viewerData: "Data and calculation",
+  viewerDataNote: "Synthetic saved history and editor-defined sections. Current playback does not update this history.",
+  viewerSeeking: "Seeking", viewerHighlightPlaying: "Playing highlights", viewerHighlightComplete: "Highlights finished", viewerCancelled: "Full video",
+  viewerActionError: "Could not complete the action", viewerPreferencesRestored: "Available settings applied", viewerPreferencesUndone: "Previous settings restored",
 } as const;
 
 const ja: Record<keyof typeof en, string> = {
@@ -136,6 +149,19 @@ const ja: Record<keyof typeof en, string> = {
   apiSequenceMeaning: "0から始まる連番", apiClockMeaning: "クライアントの時刻", apiStateMeaning: "再生状態", apiAdMeaning: "コンテンツは0",
   apiPlayedMeaning: "再生した時間", apiSeekedMeaning: "シークにかかった時間", apiStartMeaning: "コンテンツ内の開始位置", apiEndMeaning: "コンテンツ内の終了位置",
   apiDurationMeaning: "宣言された長さ", apiVideoMeaning: "動画ID", apiSourceMeaning: "HLSソース",
+  viewerTools: "視聴の補助", viewerHighlights: "見どころ", viewerHistory: "視聴履歴", viewerPreferences: "字幕・音声",
+  viewerBudget: "再生時間の上限", viewerTotal: "合計", viewerSeconds: "秒", viewerStart: "見どころを再生", viewerReturn: "通常再生に戻る",
+  viewerNoHighlights: "対象区間に見返しの記録がありません。", viewerUnavailable: "標準デモの動画で利用できます。",
+  viewerExample: "保存済み履歴の例", viewerChooseExample: "履歴の例を選択", viewerUseHistory: "保存済み履歴を使う", viewerClear: "削除",
+  viewerResume: "続きから再生", viewerUnwatched: "記録のない区間へ",
+  viewerHistoryEmpty: "再生記録なし", viewerHistorySaved: "保存済みの視聴履歴", viewerHistoryPartial: "一部の履歴のみ。記録のない区間は不明です。",
+  viewerHistoryCompleted: "全区間の記録あり", viewerHistoryUnavailable: "履歴を取得できません", viewerHistoryDisabled: "履歴を使わない設定です", viewerHistoryCleared: "保存済み履歴を削除しました",
+  viewerChapterWatched: "記録あり", viewerChapterPartial: "一部記録あり", viewerChapterUnwatched: "記録なし", viewerChapterUnknown: "不明",
+  viewerSubtitles: "前回の字幕", viewerAudio: "前回の音声", viewerOff: "オフ", viewerNotRecorded: "記録なし", viewerTrackUnavailable: "このソースにはありません",
+  viewerApply: "利用できる設定を適用", viewerUndo: "元に戻す", viewerData: "データと計算",
+  viewerDataNote: "保存済み履歴は合成データ、区間は編集者の指定です。現在の再生で履歴は更新されません。",
+  viewerSeeking: "移動中", viewerHighlightPlaying: "見どころを再生中", viewerHighlightComplete: "見どころの再生が終了しました", viewerCancelled: "通常再生",
+  viewerActionError: "操作を完了できませんでした", viewerPreferencesRestored: "利用できる設定を適用しました", viewerPreferencesUndone: "元の設定に戻しました",
 };
 
 export type TextKey = keyof typeof en;

@@ -19,6 +19,32 @@
         <section class="playback-section" aria-label="Video">
           <div class="player-frame" data-accent="white"><div id="player"></div></div>
           <div class="playback-footer"><div><strong id="source-title">Big Buck Bunny</strong><span data-i18n="sourceCaption">60-second HLS</span></div><span id="player-status" role="status" data-state="loading"></span><button id="retry-video" type="button" hidden data-i18n="retry">Retry</button></div>
+          <section id="viewer-experiences" class="viewer-experiences" data-available="false" data-mode="full" aria-label="Viewer tools">
+            <div class="viewer-tabs" role="tablist" aria-label="Viewer tools">
+              <button id="viewer-tab-highlights" type="button" role="tab" aria-selected="true" aria-controls="viewer-panel-highlights" data-i18n="viewerHighlights">Highlights</button>
+              <button id="viewer-tab-history" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="viewer-panel-history" data-i18n="viewerHistory">Viewing history</button>
+              <button id="viewer-tab-preferences" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="viewer-panel-preferences" data-i18n="viewerPreferences">Captions &amp; audio</button>
+            </div>
+            <p id="viewer-availability" class="viewer-note" hidden></p>
+            <div id="viewer-panel-highlights" class="viewer-panel" role="tabpanel" aria-labelledby="viewer-tab-highlights" tabindex="0">
+              <div class="viewer-toolbar"><label for="viewer-highlight-budget" data-i18n="viewerBudget">Time limit</label><select id="viewer-highlight-budget"><option value="10000">10s</option><option value="20000" selected>20s</option></select><span id="viewer-highlight-total"></span></div>
+              <ol id="viewer-highlight-list" class="viewer-sections"></ol>
+              <p id="viewer-highlight-empty" class="viewer-note" hidden></p>
+              <div class="viewer-actions"><button id="viewer-highlight-start" class="viewer-primary" type="button" disabled data-i18n="viewerStart">Play highlights</button><button id="viewer-highlight-return" type="button" disabled data-i18n="viewerReturn">Return to full video</button></div>
+            </div>
+            <div id="viewer-panel-history" class="viewer-panel" role="tabpanel" aria-labelledby="viewer-tab-history" tabindex="0" hidden>
+              <div class="viewer-history-tools"><div><label for="viewer-history-example" data-i18n="viewerExample">Saved history example</label><select id="viewer-history-example"></select></div><label class="viewer-consent"><input id="viewer-use-history" type="checkbox" checked /><span data-i18n="viewerUseHistory">Use saved history</span></label><button id="viewer-history-clear" type="button" data-i18n="viewerClear">Clear</button></div>
+              <div class="viewer-actions"><button id="viewer-history-resume" class="viewer-primary" type="button" disabled data-i18n="viewerResume">Continue watching</button><button id="viewer-history-unwatched" type="button" disabled data-i18n="viewerUnwatched">Go to an unrecorded section</button></div>
+              <p id="viewer-history-state" class="viewer-note"></p>
+              <ul id="viewer-chapters" class="viewer-sections"></ul>
+            </div>
+            <div id="viewer-panel-preferences" class="viewer-panel" role="tabpanel" aria-labelledby="viewer-tab-preferences" tabindex="0" hidden>
+              <dl class="viewer-preferences"><div id="viewer-preference-subtitles"><dt data-i18n="viewerSubtitles">Previous captions</dt><dd></dd></div><div id="viewer-preference-audio"><dt data-i18n="viewerAudio">Previous audio</dt><dd></dd></div></dl>
+              <div class="viewer-actions"><button id="viewer-preferences-apply" class="viewer-primary" type="button" disabled data-i18n="viewerApply">Apply available settings</button><button id="viewer-preferences-undo" type="button" disabled data-i18n="viewerUndo">Undo</button></div>
+            </div>
+            <p id="viewer-action-status" class="viewer-action-status" role="status" aria-live="polite"></p>
+            <details id="viewer-data-details"><summary data-i18n="viewerData">Data and calculation</summary><p class="viewer-note" data-i18n="viewerDataNote">Synthetic saved history and editor-defined sections. Current playback does not update this history.</p><pre><code id="viewer-data-json"></code></pre></details>
+          </section>
         </section>
 
         <aside class="controls-panel" aria-labelledby="data-heading">
