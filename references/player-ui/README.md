@@ -3,8 +3,9 @@
 [English](README.md) · [日本語](README.ja.md)
 
 An independent Web example that adds a viewing-pattern graph to the official
-Bitmovin Player UI v4. Play a short Big Buck Bunny source, change the synthetic
-viewing data, and inspect the precomputed values used by the timeline.
+Bitmovin Player UI v4. The default demo plays a short Big Buck Bunny source with
+synthetic viewing data. Change the dataset and inspect the timeline's precomputed
+values, or load an optional Observability-derived demo pack.
 
 The example uses Player **8.284.0** and UI **4.23.1**. Standard playback controls
 come from the unmodified official UI package. The graph is a separate Player Lab
@@ -92,8 +93,13 @@ a partial-viewing example and request templates for Export, aggregate Query and
 Query plus Impression Details. The guide explains which methods can calculate
 the same metrics and which produce a different watched-distribution measure.
 
-The current processor accepts only synthetic fixtures. Real Export or API data
-needs a separate validated adapter; do not relabel account data as synthetic.
+The default fixtures use the synthetic-data processor. The optional
+[Observability replay adapter](src/observed-replay.ts) accepts validated playback
+intervals retrieved through Impression Details and produces an
+`ObservedReplaySnapshot` with `synthetic: false`. See
+[the Observability demo guide](docs/live-demo-data.md) for collection, Query
+discovery, field mapping and loading the precomputed pack. An arbitrary Export
+still needs an adapter for its format; do not relabel account data as synthetic.
 For aggregate Query counts, the optional [private local view](docs/private-query-data.md)
 accepts a validated batch and its matching HLS source. It displays interval
 incidence, with replay explicitly unavailable, and makes no account API requests.
@@ -128,9 +134,10 @@ Start with [the snapshot types](src/types.ts),
 [snapshot validation](src/snapshot.ts),
 [the timeline component](src/EngagementTimeline.ts) and
 [the calculation](src/engagement.ts). Supply a validated `EngagementSnapshot`
-for the exact loaded content and choose `replay` or `reach` as its metric.
+or `ObservedReplaySnapshot` for the exact loaded content and choose `replay` or
+`reach` as its metric.
 A separately validated `QueryIncidenceSnapshot` supports `reach` only. Its
-`replay` values are unavailable; the renderer accepts both through `TimelineSnapshot`.
+`replay` values are unavailable; the renderer accepts these types through `TimelineSnapshot`.
 See [the official UI composition](src/create-player-ui.ts) for adding the graph
 to official containers while keeping the official seek bar responsible for seeking.
 

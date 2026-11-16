@@ -3,8 +3,9 @@
 [English](README.md) · [日本語](README.ja.md)
 
 公式のBitmovin Player UI v4に視聴傾向グラフを追加する、独立したWebサンプルです。
-短いBig Buck Bunnyの映像を再生し、合成した視聴データを切り替えて、
-タイムラインに使う集計値を確認できます。
+標準のデモでは短いBig Buck Bunnyの映像と合成した視聴データを使い、
+データを切り替えてタイムラインの集計値を確認できます。
+Observabilityで取得した再生記録の集計結果も別途読み込めます。
 
 Player **8.284.0**とUI **4.23.1**を使用しています。再生操作には変更を加えていない
 公式UIパッケージの部品を使います。グラフはPlayer Labの追加コンポーネントです。
@@ -88,8 +89,12 @@ Playerキーを使ってください。この変数にAnalyticsライセンス�
 Export・集約Query・QueryとImpression Detailsのリクエスト例をまとめています。
 現在と同じ値を計算できる方法と、異なる視聴分布を示す方法の違いも説明しています。
 
-現在の集計処理は合成データ専用です。実際のExportやAPIデータには別の検証・変換処理が必要です。
-実データを合成データとして扱わないでください。
+標準のサンプルには合成データ用の集計処理を使います。
+[Observabilityの再生区間を扱う処理](src/observed-replay.ts)では、Impression Detailsから
+取得した再生区間を検証し、`synthetic: false`の`ObservedReplaySnapshot`を作ります。
+収集、Queryでの再生IDの取得、項目の変換、集計結果の読み込みは
+[Observabilityのデモガイド](docs/live-demo-data.ja.md)を参照してください。
+それ以外のExportには形式に応じた変換処理が必要です。実データを合成データとして扱わないでください。
 集約Queryの件数は[非公開データ用のローカル画面](docs/private-query-data.ja.md)で
 検証済みの集計結果と対応するHLSソースを読み込めます。
 区間を見た再生記録の割合を表示し、再視聴は取得なしと明示します。アカウントAPIへの問い合わせは行いません。
@@ -122,10 +127,10 @@ CMSへ組み込む場合は、サーバーやバッチ処理で次の処理を�
 [集計データの型](src/types.ts)、[データの検証](src/snapshot.ts)、
 [タイムラインコンポーネント](src/EngagementTimeline.ts)、
 [集計処理](src/engagement.ts)を参照してください。
-再生するコンテンツと一致する`EngagementSnapshot`を検証して渡し、
+再生するコンテンツと一致する`EngagementSnapshot`または`ObservedReplaySnapshot`を検証して渡し、
 指標に`replay`または`reach`を選びます。
 別に検証した`QueryIncidenceSnapshot`では`reach`だけを使用し、`replay`は取得なしとして扱います。
-描画処理は`TimelineSnapshot`として両方の形式を受け付けます。
+描画処理は`TimelineSnapshot`としてこれらの形式を受け付けます。
 [公式UIへの組み込み例](src/create-player-ui.ts)では公式のコンテナーにグラフを追加し、
 再生位置の操作は公式のシークバーに任せています。
 

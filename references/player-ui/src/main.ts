@@ -34,7 +34,11 @@ const retryData = document.querySelector<HTMLButtonElement>("#retry-data")!;
 const retryVideo = document.querySelector<HTMLButtonElement>("#retry-video")!;
 
 function isQueryData(): boolean {
-  return privateMode && privateData?.kind !== "synthetic-live-demo";
+  return privateMode && (!privateData || privateData.kind === "query");
+}
+
+function hasProfiles(data: PrivateData | undefined): data is Exclude<PrivateData, { kind: "query" }> {
+  return !!data && data.kind !== "query";
 }
 
 function updateAddress(): void {
@@ -71,7 +75,7 @@ function renderData(): void {
   const noReplay = snapshot && !snapshot.points.some(point => (point.replay ?? 0) > 0);
   note.textContent = isQueryData() ? text(locale, "privateMetricNote") : !snapshot ? "" : snapshot.sessionCount === 0 ? text(locale, "empty") :
     text(locale, mode === "replay" && noReplay ? "noRewatchNote" : "relativeNote");
-  renderSamplePreviews(snapshot, profile.value, locale, isQueryData(), privateData?.kind === "synthetic-live-demo");
+  renderSamplePreviews(snapshot, profile.value, locale, isQueryData(), privateData?.kind);
   renderValues(snapshot, locale);
   renderGraph();
   const peakBox = document.querySelector<HTMLElement>("#peaks")!;
@@ -94,7 +98,7 @@ function renderData(): void {
     empty.textContent = snapshot ? text(locale, snapshot.sessionCount ? "noPeaks" : "empty") : "—";
     peakBox.append(empty);
   }
-  const privateProfileIndex = privateData?.kind === "synthetic-live-demo" ? privateData.profiles.findIndex(item => item.id === privateProfileId) : 0;
+  const privateProfileIndex = hasProfiles(privateData) ? privateData.profiles.findIndex(item => item.id === privateProfileId) : 0;
   renderIntegration(manifest?.profiles.find(item => item.id === profile.value), mode, showGraph.checked, accent.value, locale, privateMode, Math.max(0, privateProfileIndex));
 }
 
@@ -103,17 +107,18 @@ function renderLocale(): void {
   const value = profile.value;
   profile.replaceChildren();
   if (privateMode) {
-    const liveDemo = privateData?.kind === "synthetic-live-demo";
-    if (privateData?.kind === "synthetic-live-demo") {
+    const profiled = hasProfiles(privateData);
+    const observed = privateData?.kind === "observability-replay-demo";
+    if (hasProfiles(privateData)) {
       for (const item of privateData.profiles) profile.add(new Option(item.title[locale], item.id));
       profile.value = privateProfileId;
     } else profile.add(new Option(text(locale, "privateProfile"), "private"));
-    profile.disabled = !liveDemo;
-    profile.hidden = !liveDemo;
-    document.querySelector<HTMLLabelElement>('label[for="profile"]')!.hidden = !liveDemo;
-    const replacements = liveDemo ? {
-      synthetic: "liveDemoData", sourceCaption: "liveDemoSourceCaption", scenario: "liveDemoScenario",
-      footerNote: "liveDemoFooter", snapshotFile: "liveDemoSnapshot",
+    profile.disabled = !profiled;
+    profile.hidden = !profiled;
+    document.querySelector<HTMLLabelElement>('label[for="profile"]')!.hidden = !profiled;
+    const replacements = profiled ? {
+      synthetic: observed ? "observedDemoData" : "liveDemoData", sourceCaption: "liveDemoSourceCaption", scenario: "liveDemoScenario",
+      footerNote: observed ? "observedDemoFooter" : "liveDemoFooter", snapshotFile: "liveDemoSnapshot",
     } as const : {
       synthetic: "queryData", sourceCaption: "privateSourceCaption", scenario: "privateScenario",
       watched: "privateWatched", watchDefinition: "privateWatchDefinition", replayDefinition: "privateReplayDefinition",
@@ -124,7 +129,7 @@ function renderLocale(): void {
     }
     document.querySelector<HTMLElement>("#source-title")!.textContent = text(locale, "privateVideo");
     document.querySelector<HTMLAnchorElement>("#calculation-link")!.href =
-      `https://github.com/kazuhide/player-lab/blob/main/references/player-ui/docs/${liveDemo ? "live-demo-data" : "private-query-data"}${locale === "ja" ? ".ja" : ""}.md`;
+      `https://github.com/kazuhide/player-lab/blob/main/references/player-ui/docs/${profiled ? "live-demo-data" : "private-query-data"}${locale === "ja" ? ".ja" : ""}.md`;
     setPrivateQuerySource(locale);
   } else {
     for (const item of manifest?.profiles ?? []) profile.add(new Option(item.title[locale], item.id));
@@ -150,7 +155,7 @@ async function initializePrivateData(): Promise<void> {
     if (request !== generation) return;
     privateData = next;
     privateSource = next.source;
-    if (next.kind === "synthetic-live-demo") {
+    if (hasProfiles(next)) {
       const requested = query.get("sample") ?? privateProfileId;
       const selected = next.profiles.find(item => item.id === requested) ?? next.profiles[0];
       privateProfileId = selected.id;
@@ -172,7 +177,7 @@ async function initializePrivateData(): Promise<void> {
 }
 
 async function chooseProfile(id: string): Promise<void> {
-  if (privateData?.kind === "synthetic-live-demo") {
+  if (hasProfiles(privateData)) {
     const selected = privateData.profiles.find(item => item.id === id);
     if (!selected) return;
     privateProfileId = id;

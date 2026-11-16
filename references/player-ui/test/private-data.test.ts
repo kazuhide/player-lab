@@ -62,6 +62,29 @@ test("private inputs distinguish authored live scenarios from real Query counts"
   assert.ok(real.snapshot.points.every(point => point.replay === null));
 });
 
+test("Observability demo profiles preserve API-derived replay without becoming authored fixtures", () => {
+  const input = {
+    ...pack(), kind: "observability-replay-demo",
+    profiles: pack().profiles.map(profile => ({
+      ...profile, snapshot: { ...profile.snapshot, metricVersion: "observed-replay-coverage-v1", synthetic: false },
+    })),
+  };
+  const original = structuredClone(input);
+  const result = validatePrivateData(input);
+  assert.equal(result.kind, "observability-replay-demo");
+  if (result.kind !== "observability-replay-demo") assert.fail("API demo lost its origin");
+  assert.equal(result.profiles[0].snapshot.synthetic, false);
+  assert.equal(result.profiles[0].snapshot.points[0].replay, .5);
+  assert.deepEqual(input, original);
+  assert.throws(() => validatePrivateData({ ...input, kind: "synthetic-live-demo" }));
+  assert.throws(() => validatePrivateData({ ...pack(), kind: "observability-replay-demo" }));
+  const mixed = structuredClone(input);
+  mixed.profiles[1].snapshot.content.revision = "other-revision";
+  assert.throws(() => validatePrivateData(mixed));
+  Object.assign(input.profiles[0].snapshot, { apiKey: "not-a-snapshot-field" });
+  assert.throws(() => validatePrivateData(input));
+});
+
 test("private scenarios require explicit versions, bounded unique profiles and translated titles", () => {
   for (const value of [null, undefined, [], 0, "pack"]) assert.throws(() => validatePrivateData(value));
   for (const key of Object.keys(pack())) {

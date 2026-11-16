@@ -38,6 +38,9 @@ const en = {
   liveDemoSourceCaption: "Saved HLS clip",
   liveDemoHint: "A live audience returning to earlier moments in the broadcast.",
   liveDemoFooter: "Fictional viewing records generated for a live-stream scenario.",
+  observedDemoData: "Demo viewing data · Observability API",
+  observedDemoHint: "Aggregated playback records retrieved through the API.",
+  observedDemoFooter: "Playback records collected for this demo. Retrieved through the Observability API and aggregated for this graph.",
 } as const;
 
 const ja: Record<keyof typeof en, string> = {
@@ -78,6 +81,9 @@ const ja: Record<keyof typeof en, string> = {
   liveDemoSourceCaption: "保存済みのHLSクリップ",
   liveDemoHint: "ライブ配信で直前の場面へ戻る視聴を想定しています。",
   liveDemoFooter: "記録はライブ配信を想定して生成したデモデータです。",
+  observedDemoData: "Observability API · デモ視聴データ",
+  observedDemoHint: "APIで取得した再生記録を集計しています。",
+  observedDemoFooter: "デモ用に収集した再生記録をObservability APIで取得して集計しています。",
 };
 
 export type TextKey = keyof typeof en;
