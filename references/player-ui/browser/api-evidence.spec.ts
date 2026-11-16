@@ -108,6 +108,54 @@ test("shows no eligible records without displaying a zero denominator", async ({
   await expect(page.locator("#evidence-reach-formula")).not.toContainText("/");
 });
 
+test("clears record controls when switching to no sessions and restores them without playback errors", async ({ page }) => {
+  const pack = observedPack();
+  const template = pack.profiles[0];
+  const evidence = { ...template.evidence!, sessions: [] };
+  const snapshot = { ...computeObservedReplay({
+    content: template.snapshot.content, period: template.snapshot.period,
+    videoId: evidence.videoId, sourceUrl: evidence.sourceUrl, sessions: [],
+  }, template.snapshot.bucketWidthMs), generatedAt: template.snapshot.generatedAt };
+  pack.profiles.splice(1, 0, { id: "no-sessions", title: { en: "No sessions", ja: "No sessions" }, snapshot, evidence });
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.route("**/__private/query-data", route => route.fulfill({ json: pack }));
+  await page.goto("/?data=private#api-evidence");
+  await expect(page.locator("#api-evidence")).toHaveAttribute("data-state", "ready");
+  await page.locator("#evidence-sequence").selectOption("1");
+  await expect(page.locator("#evidence-sequence option")).toHaveCount(3);
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", "ready", { timeout: 20_000 });
+  await page.locator(".bmpui-ui-controlbar:visible").getByRole("button", { name: /^(Play|再生)$/ }).click();
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", "playing");
+  const video = await page.locator("video").elementHandle();
+
+  await page.locator("#profile").selectOption("no-sessions");
+  await expect(page.locator("#api-evidence")).toHaveAttribute("data-state", "ready");
+  // Queued change events must remain harmless after the selected record disappears.
+  await page.locator("#evidence-sequence").dispatchEvent("change");
+  await page.locator("#evidence-record").dispatchEvent("change");
+  expect(errors).toEqual([]);
+  await expect(page.locator("#evidence-record")).toBeDisabled();
+  await expect(page.locator("#evidence-record option")).toHaveCount(0);
+  await expect(page.locator("#evidence-sequence")).toBeDisabled();
+  await expect(page.locator("#evidence-sequence option")).toHaveCount(0);
+  await expect(page.locator("#evidence-fields tr")).toHaveCount(0);
+  await expect(page.locator("#evidence-json")).toHaveText("");
+  await expect(page.locator("#evidence-replay-formula")).toHaveText(/No eligible playback records|集計対象の再生記録なし/);
+
+  await page.locator("#profile").selectOption("other");
+  await expect(page.locator("#api-evidence")).toHaveAttribute("data-state", "ready");
+  await expect(page.locator("#evidence-record")).toBeEnabled();
+  await expect(page.locator("#evidence-sequence")).toBeEnabled();
+  await expect(page.locator("#evidence-record option")).toHaveCount(2);
+  await expect(page.locator("#evidence-sequence option")).toHaveCount(3);
+  await expect(page.locator("#evidence-sequence")).toHaveValue("2");
+  await expect(page.locator("#evidence-fields tr")).toHaveCount(11);
+  await expect(page.locator("#player-status")).toHaveAttribute("data-state", "playing");
+  expect(await video!.evaluate(element => element === document.querySelector("video"))).toBe(true);
+  expect(errors).toEqual([]);
+});
+
 test("keeps full-length record labels inside their table buttons on narrow screens", async ({ page }) => {
   const pack = observedPack();
   pack.profiles[0].evidence!.sessions.forEach((session, index) => {

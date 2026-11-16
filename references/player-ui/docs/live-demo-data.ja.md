@@ -168,7 +168,7 @@ const snapshot = computeObservedReplay({
   }],
 }, 2_000);
 
-const pack = validatePrivateData({
+const pack = {
   schemaVersion: 1,
   kind: "observability-replay-demo",
   source: { hls: "/__private/media/master.m3u8" },
@@ -177,7 +177,8 @@ const pack = validatePrivateData({
     title: { en: "Concentrated rewatching", ja: "見返しが集中する" },
     snapshot,
   }],
-});
+};
+validatePrivateData(pack);
 ```
 
 長さ、ソース、動画ID、時間帯を収集したクリップに合わせます。

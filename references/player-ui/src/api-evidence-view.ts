@@ -36,11 +36,13 @@ const cells = (row: HTMLTableRowElement, values: string[]) => values.forEach(val
 function selectOptions(select: HTMLSelectElement, options: [string, string][], value: string): void {
   select.replaceChildren(...options.map(([id, label]) => new Option(label, id)));
   select.value = value;
+  select.disabled = options.length === 0;
 }
 
 function renderRecord(): void {
-  const record = inspection!.records.find(item => item.id === recordId)!;
-  const session = evidence!.sessions.find(item => item.id === recordId)!;
+  const record = inspection?.records.find(item => item.id === recordId);
+  const session = evidence?.sessions.find(item => item.id === recordId);
+  if (!record || !session) return;
   if (!record.samples.some(item => item.sequenceNumber === sequence)) sequence = record.samples[0].sequenceNumber;
   selectOptions(sequenceSelect, record.samples.map(item => [String(item.sequenceNumber), `${item.sequenceNumber} · ${text(locale, REASONS[item.reason])}`]), String(sequence));
   const raw = session.response.data.result.find(item => item.sequence_number === sequence)!;
@@ -99,6 +101,7 @@ function preferredSequence(id: string): number {
 }
 
 function chooseRecord(id: string): void {
+  if (!inspection?.records.some(record => record.id === id)) return;
   recordId = id;
   sequence = preferredSequence(id);
   recordSelect.value = id;
@@ -160,6 +163,7 @@ function renderOpenPanel(): void {
     selectOptions(bucketSelect, snapshot.points.map((point, index) => [String(index), `${timeLabel(point.startMs)}–${timeLabel(point.endMs)}`]), String(bucket));
     if (recordId) renderRecord();
     else {
+      selectOptions(sequenceSelect, [], "");
       element("evidence-fields").replaceChildren();
       element("evidence-decisions").replaceChildren();
       element("evidence-passes").replaceChildren();
