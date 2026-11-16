@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { computeObservedReplay, type ObservedSample, type ObservedReplayInput } from "../src/observed-replay.ts";
+import { computeObservedReplay, inspectObservedReplay, type ObservedSample, type ObservedReplayInput } from "../src/observed-replay.ts";
 
 const period = { start: "2026-01-01T00:00:00.000Z", end: "2026-01-01T00:10:00.000Z" };
 const sourceUrl = "https://example.com/demo/master.m3u8";
@@ -170,4 +170,73 @@ test("ambiguous-only records, collection bounds and out-of-period samples are re
   assert.throws(() => computeObservedReplay(manySamples));
   assert.throws(() => computeObservedReplay(input(rewind()), 1));
   assert.throws(() => computeObservedReplay(input([row(0, "playing", 0, 8_000, { clientTime: Date.parse(period.end) + 1 })])));
+});
+
+test("inspection exposes canonical passes and per-record unions that reconcile every graph bucket", () => {
+  const value = input(rewind(), [row(0, "playing", 0, 1_500)], [row(0, "startup", 0, 0)]);
+  const original = structuredClone(value);
+  const inspection = inspectObservedReplay(value, 3_000);
+  assert.deepEqual(inspection.snapshot, computeObservedReplay(value, 3_000));
+  assert.equal(inspection.records.length, 3);
+  assert.equal(inspection.snapshot.sessionCount, 2);
+  assert.deepEqual(inspection.records[0], { id: "record-0", samples: [
+    { sequenceNumber: 0, passIndex: 0, reason: "played", countedRange: [0, 8_000], seekOriginMs: null, seekTargetMs: null },
+    { sequenceNumber: 1, passIndex: 1, reason: "seek-backward", countedRange: null, seekOriginMs: 8_000, seekTargetMs: 4_000 },
+    { sequenceNumber: 2, passIndex: 1, reason: "played", countedRange: [4_000, 8_000], seekOriginMs: null, seekTargetMs: null },
+  ], passes: [[[0, 8_000]], [[4_000, 8_000]]], reach: [[0, 8_000]], replay: [[4_000, 8_000]] });
+  assert.deepEqual(inspection.records[2].reach, []);
+  for (const point of inspection.snapshot.points) {
+    const overlap = (ranges: [number, number][]) => ranges.reduce((sum, [start, end]) => sum + Math.max(0, Math.min(end, point.endMs) - Math.max(start, point.startMs)), 0);
+    const reached = inspection.records.map(record => overlap(record.reach));
+    const replayed = inspection.records.map(record => overlap(record.replay));
+    const support = reached.filter(ms => ms > 0).length;
+    const denominator: number = (point.endMs - point.startMs) * inspection.snapshot.sessionCount;
+    assert.equal(point.support, support);
+    assert.equal(point.reach, support ? reached.reduce((a, b) => a + b, 0) / denominator : null);
+    assert.equal(point.replay, support ? replayed.reduce((a, b) => a + b, 0) / denominator : null);
+  }
+  assert.deepEqual(value, original);
+});
+
+test("inspection explains target carry, interrupted packets and resolved backward seek origins", () => {
+  const value = input([row(0, "playing", 0, 8_000), row(1, "pause", 8_000, 8_000),
+    row(2, "playing", 8_000, 4_000, { played: 300 }), row(3, "qualitychange", 4_000, 4_000),
+    row(4, "seeking", 4_000, 4_010, { seeked: 0 }), row(5, "playing", 4_010, 8_010)]);
+  const result = inspectObservedReplay(value);
+  assert.deepEqual(result.snapshot, computeObservedReplay(value));
+  assert.deepEqual(result.records[0].samples.map(sample => [sample.reason, sample.passIndex]), [
+    ["played", 0], ["not-playing", 0], ["ambiguous-before-seek", 0], ["carried-seek-target", 0], ["seek-backward", 1], ["played", 1],
+  ]);
+  assert.deepEqual(result.records[0].samples[4], { sequenceNumber: 4, passIndex: 1, reason: "seek-backward", countedRange: null, seekOriginMs: 8_000, seekTargetMs: 4_010 });
+  assert.ok(result.records[0].samples.slice(1, 5).every(sample => sample.countedRange === null));
+  assert.deepEqual(result.records[0].passes, [[[0, 8_000]], [[4_010, 8_010]]]);
+});
+
+test("inspection distinguishes forward gaps and notifications without inventing a new pass", () => {
+  const value = input([row(0, "startup", 0, 0), row(1, "playing", 0, 2_000), row(2, "pause", 2_000, 2_000),
+    row(3, "playing", 2_000, 8_000, { played: 300 }), row(4, "seeking", 8_000, 8_010),
+    row(5, "playing", 8_010, 8_010, { played: 1 }), row(6, "playing", 8_010, 10_000)]);
+  const result = inspectObservedReplay(value);
+  assert.deepEqual(result.snapshot, computeObservedReplay(value));
+  assert.deepEqual(result.records[0].samples.map(sample => sample.reason), ["not-playing", "played", "not-playing", "ambiguous-before-seek", "seek-forward", "no-played-range", "played"]);
+  assert.ok(result.records[0].samples.every(sample => sample.passIndex === 0));
+  assert.deepEqual(result.records[0].reach, [[0, 2_000], [8_010, 10_000]]);
+  assert.deepEqual(result.records[0].replay, []);
+});
+
+test("inspection deduplicates retries, preserves clipped raw ends and retains strict validation", () => {
+  const value = input(rewind());
+  const canonical = inspectObservedReplay(value);
+  value.sessions[0].samples = [value.sessions[0].samples[2], value.sessions[0].samples[0], value.sessions[0].samples[1], structuredClone(value.sessions[0].samples[1])];
+  assert.deepEqual(inspectObservedReplay(value), canonical);
+  const terminal = { ...input([row(0, "playing", 0, 10_005)]), mediaDurationMs: 10_005 };
+  const original = structuredClone(terminal);
+  const result = inspectObservedReplay(terminal);
+  assert.deepEqual(result.records[0].samples[0].countedRange, [0, 10_000]);
+  assert.deepEqual(result.records[0].reach, [[0, 10_000]]);
+  assert.deepEqual(terminal, original);
+  const gap = input(rewind()); gap.sessions[0].samples.splice(1, 1);
+  assert.throws(() => inspectObservedReplay(gap));
+  assert.throws(() => inspectObservedReplay(input([row(0, "playing", 0, 10_005)])));
+  assert.deepEqual(inspectObservedReplay(input()).records, []);
 });

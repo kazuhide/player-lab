@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { validatePrivateData } from "../src/private-data.ts";
-import type { EngagementSnapshot } from "../src/types.ts";
+import type { ObservedReplayEvidence } from "../src/observed-evidence.ts";
+import type { EngagementSnapshot, ObservedReplaySnapshot } from "../src/types.ts";
 
 function snapshot(): EngagementSnapshot {
   return {
@@ -44,6 +45,29 @@ function query() {
   };
 }
 
+function observedPack() {
+  const sourceUrl = "https://example.com/demo/master.m3u8";
+  const row = (sequence_number: number, state: string, videotime_start: number, videotime_end: number) => ({
+    sequence_number, client_time: Date.parse("2026-01-01T00:00:00.000Z") + (sequence_number + 1) * 1_000,
+    state, ad: 0, played: state === "playing" ? videotime_end - videotime_start : 0,
+    seeked: state === "seeking" ? 100 : 0, videotime_start, videotime_end,
+    video_duration: 6_000, video_id: "demo-video", m3u8_url: sourceUrl,
+  });
+  const evidence: ObservedReplayEvidence = { schemaVersion: 1, videoId: "demo-video", sourceUrl, sessions: [
+    { id: "record-a", expectedLastSequence: 2, fetchedAt: "2026-01-02T00:01:00.000Z", response: { status: "SUCCESS", data: { result: [
+      row(0, "playing", 0, 4_000), row(1, "seeking", 4_000, 2_000), row(2, "playing", 2_000, 4_000),
+    ] } } },
+    { id: "record-b", expectedLastSequence: 0, fetchedAt: "2026-01-02T00:01:00.000Z", response: { status: "SUCCESS", data: { result: [row(0, "playing", 0, 2_000)] } } },
+  ] };
+  const observed: ObservedReplaySnapshot = { ...snapshot(), metricVersion: "observed-replay-coverage-v1", synthetic: false, sessionCount: 2,
+    points: [
+      { startMs: 0, endMs: 2_000, support: 2, reach: 1, replay: 0 },
+      { startMs: 2_000, endMs: 4_000, support: 1, reach: .5, replay: .5 },
+      { startMs: 4_000, endMs: 6_000, support: 0, reach: null, replay: null },
+    ] };
+  return { ...pack(), kind: "observability-replay-demo", profiles: [{ id: "focused", title: { en: "Focused replay", ja: "集中" }, snapshot: observed, evidence }] };
+}
+
 test("private inputs distinguish authored live scenarios from real Query counts", () => {
   const input = pack();
   const original = structuredClone(input);
@@ -83,6 +107,36 @@ test("Observability demo profiles preserve API-derived replay without becoming a
   assert.throws(() => validatePrivateData(mixed));
   Object.assign(input.profiles[0].snapshot, { apiKey: "not-a-snapshot-field" });
   assert.throws(() => validatePrivateData(input));
+});
+
+test("observed demo profiles may include original API excerpts only when they reproduce their snapshot", () => {
+  const input = observedPack();
+  const original = structuredClone(input);
+  const result = validatePrivateData(input);
+  assert.equal(result.kind, "observability-replay-demo");
+  if (result.kind !== "observability-replay-demo") assert.fail("API demo lost its origin");
+  assert.deepEqual(result.profiles[0].evidence, input.profiles[0].evidence);
+  assert.deepEqual(input, original);
+  const missing = structuredClone(input);
+  delete (missing.profiles[0] as Partial<typeof missing.profiles[0]>).evidence;
+  const old = validatePrivateData(missing);
+  assert.equal(old.kind, "observability-replay-demo");
+  if (old.kind !== "observability-replay-demo") assert.fail("legacy observed profile lost its origin");
+  assert.ok(!Object.hasOwn(old.profiles[0], "evidence"));
+  input.profiles[0].snapshot.points[1].replay = .49;
+  assert.throws(() => validatePrivateData(input));
+});
+
+test("evidence cannot cross the authored, Query-only or top-level private-data boundaries", () => {
+  const evidence = observedPack().profiles[0].evidence;
+  const synthetic = pack();
+  Object.assign(synthetic.profiles[0], { evidence });
+  assert.throws(() => validatePrivateData(synthetic));
+  assert.throws(() => validatePrivateData({ ...query(), evidence }));
+  assert.throws(() => validatePrivateData({ ...observedPack(), evidence }));
+  const invalid = observedPack();
+  Object.assign(invalid.profiles[0].evidence.sessions[0].response.data.result[0], { user_id: "must-not-be-forwarded" });
+  assert.throws(() => validatePrivateData(invalid));
 });
 
 test("private scenarios require explicit versions, bounded unique profiles and translated titles", () => {
