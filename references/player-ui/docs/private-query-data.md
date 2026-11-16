@@ -61,8 +61,8 @@ population because one record can reach several intervals.
 The [validator](../src/query-incidence.ts) rejects missing or extra fields,
 credentials in URL user information, incomplete batches and inconsistent counts.
 The file is limited to 512 KiB and 2,000 intervals. Use an HTTPS HLS URL that the
-browser can play. A signed media URL may expire; reading it from an old Analytics
-record does not extend its validity.
+browser can play, or the fixed local path described below. A signed media URL may
+expire; reading it from an old Analytics record does not extend its validity.
 
 ## Open the private view
 
@@ -93,9 +93,47 @@ This is a local development view. Do not expose its port through a tunnel or
 proxy, or publish its data, downloaded JSON or screenshots. The source URL and
 aggregate values are visible to the local browser by design.
 
+## Play a downloaded HLS package
+
+Save media you are authorized to use in a private directory outside the checkout.
+Include every referenced rendition, audio playlist, initialization segment and
+media file. Name the entry playlist `master.m3u8` and rewrite all playlist URI
+references to flat filenames such as `video-1080.m3u8` and `video-1080.mp4`.
+Preserve segment timing and byte-range attributes; do not change the video edit.
+Every child playlist must use the `.m3u8` extension. Use LF or CRLF line endings.
+Content Steering, which can redirect playback to another delivery host, is not
+supported in this local view.
+
+Local filenames may contain ASCII letters, digits, hyphens and underscores, with
+one of these extensions: `.m3u8`, `.ts`, `.m4s`, `.mp4`, `.aac` or `.vtt`.
+Subdirectories, remote URLs, absolute paths, query parameters and playlist
+variables are rejected. Each media file is limited to 512 MiB; each playlist to
+1 MiB. Media files stream from disk, including byte-range requests.
+
+In a copy of the matching private Query file, change only its source:
+
+```json
+"source": { "hls": "/__private/media/master.m3u8" }
+```
+
+Start the development server with both private paths:
+
+```sh
+chmod 700 /absolute/private/path/media
+chmod 600 /absolute/private/path/media/* /absolute/private/path/query-data-local.json
+PLAYER_UI_PRIVATE_QUERY_FILE=/absolute/private/path/query-data-local.json \
+PLAYER_UI_PRIVATE_MEDIA_DIRECTORY=/absolute/private/path/media npm run dev
+```
+
+Open the same private view. The browser now reads the video from the local
+server. Player license checks still require network access. The directory and
+files must belong to the current user and have no group or other access;
+symlinks are refused. Neither media files nor Query data belong in public history.
+
 ## Build the public demo
 
-Stop the private server and remove `PLAYER_UI_PRIVATE_QUERY_FILE` from the build
-environment. `npm run build` refuses to run while that variable is set. The file
-is never copied into `dist/`, and the private endpoint is absent from the built
-site. A production CMS integration needs its own authorized data delivery.
+Stop the private server and remove `PLAYER_UI_PRIVATE_QUERY_FILE` and
+`PLAYER_UI_PRIVATE_MEDIA_DIRECTORY` from the build environment. `npm run build`
+refuses to run while either variable is set. Private files are never copied into
+`dist/`, and private endpoints are absent from the built site. A production CMS
+integration needs its own authorized data delivery.
