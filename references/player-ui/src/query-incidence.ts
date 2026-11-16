@@ -32,6 +32,7 @@ function generationTime(value: unknown, periodEnd: string): string {
 }
 
 function sourceURL(value: unknown): string {
+  if (value === "/__private/media/master.m3u8") return value;
   if (typeof value !== "string" || value.length === 0 || value.length > MAX_SOURCE_LENGTH) {
     throw new Error("source URL is outside its supported size");
   }

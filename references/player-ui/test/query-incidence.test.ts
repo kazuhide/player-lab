@@ -160,11 +160,16 @@ test("secret fields, request headers and unrelated metadata are rejected at ever
   assert.throws(() => validatePrivateQueryData(input));
 });
 
-test("source URLs require bounded HTTPS addresses without embedded credentials", () => {
+test("source URLs permit only the fixed local HLS entry or bounded HTTPS addresses without credentials", () => {
+  const local = queryData();
+  local.source.hls = "/__private/media/master.m3u8";
+  assert.equal(validatePrivateQueryData(local).source.hls, local.source.hls);
   for (const hls of [
     "http://example.com/master.m3u8", "javascript:alert(1)", "data:text/plain,video", "not a URL",
     "https://user:password@example.com/master.m3u8", "https://user@example.com/master.m3u8",
     `https://example.com/${"a".repeat(8_192)}`,
+    "/other/master.m3u8", "/__private/media/other.m3u8", "/__private/media/master.m3u8?x=1",
+    "http://localhost:5199/__private/media/master.m3u8", "//example.com/master.m3u8",
   ]) {
     const input = queryData();
     input.source.hls = hls;

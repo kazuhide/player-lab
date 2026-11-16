@@ -4,6 +4,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { isAbsolute, relative, sep } from "node:path";
 import type { Plugin } from "vite";
 import { validatePrivateQueryData } from "../src/query-incidence.ts";
+import { privateMediaHandler } from "./private-media.ts";
 
 const ENDPOINT = "/__private/query-data";
 const MAX_BYTES = 524_288;
@@ -22,7 +23,7 @@ function reply(response: ServerResponse, status: number, data: unknown): void {
   response.end(JSON.stringify(data));
 }
 
-async function readPrivateFile(file: string, repository: string): Promise<unknown> {
+async function readPrivateFile(file: string, repository: string, mediaDirectory?: string): Promise<unknown> {
   const [target, root] = await Promise.all([realpath(file), realpath(repository)]);
   const path = relative(root, target);
   if (path === "" || (!isAbsolute(path) && path !== ".." && !path.startsWith(`..${sep}`))) {
@@ -43,7 +44,8 @@ async function readPrivateFile(file: string, repository: string): Promise<unknow
     }
     if (length > MAX_BYTES) throw new Error("Private data exceeds the size limit");
     const data: unknown = JSON.parse(buffer.subarray(0, length).toString("utf8"));
-    validatePrivateQueryData(data);
+    const { source } = validatePrivateQueryData(data);
+    if (source.hls === "/__private/media/master.m3u8" && !mediaDirectory) throw new Error("Private media is not configured");
     return data;
   } finally {
     await handle.close();
@@ -51,7 +53,7 @@ async function readPrivateFile(file: string, repository: string): Promise<unknow
 }
 
 /** Serves one explicitly configured local file; it never forwards account credentials or API requests. */
-export function privateQueryHandler(file: string | undefined, repository: string) {
+export function privateQueryHandler(file: string | undefined, repository: string, mediaDirectory?: string) {
   return (request: IncomingMessage, response: ServerResponse, next: () => void): void => {
     if (request.url?.split("?")[0] !== ENDPOINT) { next(); return; }
     const host = request.headers.host ?? "";
@@ -69,7 +71,7 @@ export function privateQueryHandler(file: string | undefined, repository: string
     }
     if (request.url?.includes("?")) { reply(response, 400, { error: "Query parameters are not supported" }); return; }
     if (!file) { reply(response, 404, { error: "Private Query data is not configured" }); return; }
-    void readPrivateFile(file, repository).then(
+    void readPrivateFile(file, repository, mediaDirectory).then(
       data => reply(response, 200, data),
       () => reply(response, 503, { error: "Private Query data is unavailable or invalid" }),
     );
@@ -77,15 +79,16 @@ export function privateQueryHandler(file: string | undefined, repository: string
 }
 
 /** Dev-server middleware only. Private files are never read by the production build. */
-export function privateQueryPlugin(file: string | undefined, repository: string): Plugin {
+export function privateQueryPlugin(file: string | undefined, repository: string, mediaDirectory?: string): Plugin {
   return {
     name: "player-ui-private-query",
     apply: "serve",
     configureServer(server) {
-      if (file && !["127.0.0.1", "localhost", "::1"].includes(String(server.config.server.host))) {
+      if ((file || mediaDirectory) && !["127.0.0.1", "localhost", "::1"].includes(String(server.config.server.host))) {
         throw new Error("Private Query data requires a loopback dev server");
       }
-      server.middlewares.use(privateQueryHandler(file, repository));
+      server.middlewares.use(privateMediaHandler(file, mediaDirectory, repository));
+      server.middlewares.use(privateQueryHandler(file, repository, mediaDirectory));
     },
   };
 }

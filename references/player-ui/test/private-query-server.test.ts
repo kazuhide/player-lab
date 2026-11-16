@@ -25,11 +25,12 @@ async function setup(t: TestContext, enabled = true) {
   const file = join(directory, "private.json");
   await writeFile(file, JSON.stringify(input()), { mode: 0o600 });
   let configuredFile = enabled ? file : undefined;
+  let mediaDirectory: string | undefined;
   const server = createServer((request, response) => {
     // An upstream middleware may have already set CORS headers.
     response.setHeader("access-control-allow-origin", "http://localhost:5199");
     response.setHeader("access-control-allow-credentials", "true");
-    privateQueryHandler(configuredFile, repository)(request, response, () => {
+    privateQueryHandler(configuredFile, repository, mediaDirectory)(request, response, () => {
       response.statusCode = 404;
       response.end("not found");
     });
@@ -38,8 +39,19 @@ async function setup(t: TestContext, enabled = true) {
   t.after(() => new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
   const address = server.address();
   assert.ok(address && typeof address === "object");
-  return { repository, file, base: `http://127.0.0.1:${address.port}`, setFile: (value: string | undefined) => { configuredFile = value; } };
+  return { repository, file, base: `http://127.0.0.1:${address.port}`, setFile: (value: string | undefined) => { configuredFile = value; },
+    setMediaDirectory: (value: string | undefined) => { mediaDirectory = value; } };
 }
+
+test("a local HLS source requires explicit private media configuration", async t => {
+  const context = await setup(t);
+  const data = input();
+  data.source.hls = "/__private/media/master.m3u8";
+  await writeFile(context.file, JSON.stringify(data));
+  assert.equal((await fetch(context.base + "/__private/query-data")).status, 503);
+  context.setMediaDirectory("/explicit/private/media");
+  assert.equal((await fetch(context.base + "/__private/query-data")).status, 200);
+});
 
 test("private data is opt-in, validated, uncached and restricted to the local origin", async t => {
   const context = await setup(t);
