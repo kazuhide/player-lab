@@ -67,39 +67,39 @@
           <summary data-i18n="apiEvidence">API response and calculation</summary>
           <p id="evidence-state" class="detail-note" role="status"></p>
           <div id="evidence-content" hidden>
-            <p class="detail-note" data-i18n="apiScope">API fields used for this calculation. User, network and license metadata are omitted.</p>
-            <div class="evidence-grid">
-              <section aria-labelledby="evidence-raw-heading">
-                <h3 id="evidence-raw-heading" data-i18n="apiExcerpt">Fields used in the calculation</h3>
-                <div class="evidence-selectors">
-                  <div><label for="evidence-record" data-i18n="apiRecord">Playback record</label><select id="evidence-record"></select></div>
-                  <div><label for="evidence-sequence" data-i18n="apiSample">API sample</label><select id="evidence-sequence"></select></div>
-                </div>
+            <div class="evidence-selectors">
+              <div><label for="evidence-record" data-i18n="apiRecord">Playback record</label><select id="evidence-record"></select></div>
+              <div><label for="evidence-bucket" data-i18n="apiBucket">Graph interval</label><select id="evidence-bucket"></select></div>
+            </div>
+            <section id="evidence-source" aria-labelledby="evidence-source-heading">
+              <h3 id="evidence-source-heading" data-i18n="apiExcerpt">API samples</h3>
+              <p class="detail-note" data-i18n="apiSampleNote">Original API response order. Time fields are milliseconds; seeked is seek latency. Other metadata is omitted.</p>
+              <div class="table-scroll evidence-source-scroll" tabindex="0" role="region" aria-labelledby="evidence-source-heading"><table class="evidence-sample-table"><thead><tr><th><code>sequence_number</code></th><th><code>state</code></th><th><code>videotime_start</code></th><th><code>videotime_end</code></th><th><code>played</code></th><th><code>seeked</code></th><th data-i18n="apiUsePass">Use / pass</th></tr></thead><tbody id="evidence-samples"></tbody></table></div>
+              <p id="evidence-decision" class="evidence-decision"></p>
+              <details id="evidence-json-details" class="evidence-secondary"><summary data-i18n="apiJson">API response for this record (calculation fields)</summary>
                 <p id="evidence-receipt" class="detail-note"></p>
-                <div class="table-scroll evidence-raw-scroll"><table class="evidence-fields"><thead><tr><th data-i18n="apiField">API field</th><th data-i18n="apiValue">Original value</th></tr></thead><tbody id="evidence-fields"></tbody></table></div>
-                <p class="detail-note" data-i18n="apiUnits">Times and positions are milliseconds. seeked is seek latency, not distance.</p>
-                <details class="evidence-json"><summary data-i18n="apiJson">API response for this record (calculation fields)</summary><pre><code id="evidence-json"></code></pre></details>
-              </section>
-              <section aria-labelledby="evidence-decisions-heading">
-                <h3 id="evidence-decisions-heading" data-i18n="apiDecisions">How the samples contribute</h3>
-                <p id="evidence-decision" class="evidence-decision"></p>
-                <div class="table-scroll"><table><thead><tr><th data-i18n="apiSample">API sample</th><th data-i18n="apiPass">Pass</th><th data-i18n="apiRange">Counted range</th><th data-i18n="apiReason">Decision</th></tr></thead><tbody id="evidence-decisions"></tbody></table></div>
-                <h3 data-i18n="apiPasses">Played ranges by pass</h3><div id="evidence-passes" class="evidence-ranges"></div>
+                <pre><code id="evidence-json"></code></pre>
+                <p class="detail-note" data-i18n="apiScope">Original API field names and values retained for this calculation. Other metadata is omitted.</p>
                 <p class="detail-note" data-i18n="apiRangeRule">Candidates have state=playing, played&gt;0 and seeked=0. Ambiguous pre-seek ranges are excluded. Range length comes from content positions; played only establishes that playback occurred.</p>
                 <p class="detail-note" data-i18n="apiMethod">Backward seeks separate passes. Replay is their overlap; each record counts at most once per position.</p>
-                <p class="detail-note" data-i18n="apiAsyncSeek">Automated seeks wait for Seeked and the target position before continuing.</p>
-              </section>
-            </div>
-            <section class="evidence-buckets" aria-labelledby="evidence-buckets-heading">
-              <h3 id="evidence-buckets-heading" data-i18n="apiContributions">Record contributions to the graph</h3>
-              <label for="evidence-bucket" data-i18n="apiBucket">Graph interval</label><select id="evidence-bucket"></select>
+                <p class="detail-note" data-i18n="apiDrawing">Missing observations stay blank; observed sections with no replay are zero. Smoothing and relative height affect only the drawing.</p>
+              </details>
+            </section>
+            <section id="evidence-aggregation" class="evidence-buckets" aria-labelledby="evidence-aggregation-heading">
+              <h3 id="evidence-aggregation-heading" data-i18n="apiAggregation">Aggregation</h3>
+              <h4 class="evidence-flow-heading"><span data-i18n="apiSelectedRecord">Selected record</span><span id="evidence-flow-record"></span></h4>
+              <div id="evidence-flow-samples" class="evidence-flow-samples"></div>
+              <dl class="evidence-flow-results">
+                <div><dt data-i18n="watched">Watched sections</dt><dd><code id="evidence-flow-reach-ranges"></code><strong id="evidence-flow-reach-ms"></strong></dd></div>
+                <div><dt data-i18n="replayed">Rewatched sections</dt><dd><code id="evidence-flow-replay-ranges"></code><strong id="evidence-flow-replay-ms"></strong></dd></div>
+              </dl>
+              <h4 class="evidence-flow-heading" data-i18n="apiAllRecords">All playback records</h4>
               <div class="evidence-formulas">
                 <div><span data-i18n="watched">Watched sections</span><output id="evidence-reach-formula"></output></div>
                 <div><span data-i18n="replayed">Rewatched sections</span><output id="evidence-replay-formula"></output></div>
               </div>
-              <div class="table-scroll"><table><thead><tr><th data-i18n="apiRecord">Playback record</th><th data-i18n="apiWatchedMs">Watched range (ms)</th><th data-i18n="apiReplayMs">Replayed range (ms)</th></tr></thead><tbody id="evidence-contributions"></tbody></table></div>
               <p class="detail-note" data-i18n="apiFormula">Covered content milliseconds / (interval length × eligible playback records).</p>
-              <p class="detail-note" data-i18n="apiDrawing">Missing observations stay blank; observed sections with no replay are zero. Smoothing and relative height affect only the drawing.</p>
+              <details id="evidence-contributions-details" class="evidence-secondary"><summary data-i18n="apiContributions">Contributions by record</summary><div class="table-scroll"><table><thead><tr><th data-i18n="apiRecord">Playback record</th><th data-i18n="apiWatchedMs">Watched range (ms)</th><th data-i18n="apiReplayMs">Replayed range (ms)</th></tr></thead><tbody id="evidence-contributions"></tbody></table></div></details>
             </section>
           </div>
         </details>

@@ -101,8 +101,9 @@ intervals retrieved through Impression Details and produces an
 discovery, field mapping and loading the precomputed pack. An arbitrary Export
 still needs an adapter for its format; do not relabel account data as synthetic.
 An observed pack can also carry the original API field excerpts. The in-app
-**API response and calculation** inspector shows those values, sample decisions,
-counted ranges and each record's contribution to the interval formula.
+**API response and calculation** inspector connects the sample rows to the selected
+interval's watched and rewatched ranges and the overall formula. Expand the details
+for the original JSON or per-record contributions.
 For aggregate Query counts, the optional [private local view](docs/private-query-data.md)
 accepts a validated batch and its matching HLS source. It displays interval
 incidence, with replay explicitly unavailable, and makes no account API requests.
