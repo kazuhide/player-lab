@@ -149,6 +149,42 @@ test("stopping while a seek is pending resolves cancellation and never starts la
   assert.equal(viewer.state.mode, "full");
 });
 
+test("an external pause takes precedence over pending history and highlights seeks", async t => {
+  for (const action of ["history", "highlights"] as const) {
+    const { player, viewer } = setup(t);
+    player.paused = false;
+    player.autoSeek = false;
+    const started = action === "history" ? viewer.playFrom(31_000) : viewer.startHighlights(clips);
+    player.pause("ui");
+    player.advance(player.seekTargets.at(-1)!);
+    player.emit("seeked");
+    assert.equal(await started, false, action);
+    await flush();
+    assert.equal(player.plays, 0, action);
+    assert.equal(player.paused, true, action);
+    assert.equal(viewer.state.mode, "full", action);
+    assert.equal(viewer.state.status, "cancelled", action);
+  }
+});
+
+test("an external pause cancels delayed play without overriding a later manual play", async t => {
+  for (const manualPlay of [false, true]) {
+    const { player, viewer } = setup(t);
+    const delayed = deferred();
+    player.playGate = delayed;
+    const started = viewer.playFrom(31_000);
+    await flush();
+    player.pause("ui");
+    if (manualPlay) { player.playGate = null; await player.play("ui"); }
+    delayed.resolve();
+    assert.equal(await started, false);
+    await flush();
+    assert.equal(player.paused, !manualPlay);
+    assert.equal(viewer.state.mode, "full");
+    assert.equal(viewer.state.status, "cancelled");
+  }
+});
+
 test("an uncompleted seek times out and late seek events cannot start playback", async t => {
   const { player, viewer } = setup(t);
   player.autoSeek = false;

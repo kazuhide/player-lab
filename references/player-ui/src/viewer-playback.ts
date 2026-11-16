@@ -256,7 +256,13 @@ export function createViewerPlayback(player: ViewerPlayerPort, options: {
   bind("timechanged", () => { checkSeek(); atBoundary(); });
   bind("play", event => { if (event.issuer !== ISSUER) wantsPlayback = true; });
   bind("playing", () => { armBoundary(); notify(); });
-  bind("paused", event => { if (event.issuer !== ISSUER) wantsPlayback = false; clearBoundary(); });
+  bind("paused", event => {
+    if (event.issuer !== ISSUER) {
+      wantsPlayback = false;
+      if (pendingSeek || pendingPlay) { cancel("cancelled"); notify(); }
+    }
+    clearBoundary();
+  });
   for (const name of ["sourceunloaded", "sourceloaded", "error"] as const) bind(name, () => {
     sourceReady = false; context++; undo = null; cancel("cancelled", false); notify();
   });
