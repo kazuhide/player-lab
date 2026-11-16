@@ -15,6 +15,38 @@ Bitmovin PlayerとAnalytics Collectorで操作を収集し、Observability API�
 映像上のグラフは最大値に合わせて高さを拡大します。
 視聴の想定を切り替えても、動画は再生を続けます。
 
+## アプリでAPIの値と計算過程を見る
+
+グラフ設定の横にある「API応答と計算過程」を開きます。再生記録を選ぶと、
+APIから返された`sequence_number`、`state`、`videotime_start`、`videotime_end`、
+`played`、`seeked`の値を確認できます。JSON表示でも元の項目名と値を保持します。
+表示するのは計算に使う項目の抜粋で、認証情報、ユーザー情報、計算に無関係な情報は含みません。
+
+各連番ではその区間を採用したのか、シークで再生を区切ったのか、除外したのかを示します。
+採用するサンプルは`state: "playing"`で`played`が正、`seeked`が0、コンテンツ上の範囲に長さがあるものです。
+後方へシークすると別の再生に分け、実際に再生した範囲が重なった部分を見返しとします。
+同じ再生内で分割された区間は、重なりをまとめてから比較します。
+視聴範囲はその記録で採用した範囲を合わせたものです。
+シーク直前の位置が曖昧な区間は除外しますが、生のサンプルは画面に残します。
+終端の長さを調整した場合も、生の値は変更しません。
+
+![APIの元の値とサンプルの採用・除外](screenshots/api-evidence-raw-ja.png)
+
+グラフの区間を選ぶと、各再生記録が寄与した視聴範囲と見返し範囲の長さを確認できます。
+それぞれの長さを足し、区間の長さ×集計対象の再生記録数で割った式を表示します。
+例えば、2,000msの区間と8件の記録で見返し範囲の合計が12,000msなら、
+`12,000 / (2,000 × 8) = 75%`です。ここで足すのはコンテンツ上の範囲の長さで、
+実時間の`played`ではありません。未観測の区間は未観測のまま扱います。
+分母に含めるのは、採用した再生範囲がある記録です。起動だけで再生範囲がない記録は含めません。
+再生記録の選択肢にはこのデモの表示用IDを使っています。
+APIの項目名と値は表とJSONに示し、表示用IDをAPIの再生IDとしては扱いません。
+
+![再生記録ごとの寄与と区間の計算式](screenshots/api-evidence-calculation-ja.png)
+
+計算過程の表示にはsnapshotを作るものと同じ[集計処理](../src/observed-replay.ts)を使います。
+曲線は表示用に滑らかにし、映像上では最大値に合わせて高さを拡大しています。
+表に示す元の割合は変わりません。再生記録、区間、言語を切り替えても動画の再生は続きます。
+
 ## 再生記録を収集してDashboardで確認する
 
 デモ専用のAnalyticsライセンスを使います。収集用のPlayerに次の項目を設定すると、
@@ -177,14 +209,50 @@ const pack = validatePrivateData({
 集計結果は`metricVersion: "observed-replay-coverage-v1"`、`synthetic: false`となり、
 [`validatePrivateData`](../src/private-data.ts)もこの区別を保ちます。
 
+### API応答の抜粋を確認用に含める
+
+観測したデータの視聴パターン（profile）に任意の確認用データ`evidence`を追加します。
+項目名を集計用に変換する前に、APIのサンプルを保持してください。
+次の`apiFetchedAt`はAPI応答を受け取った時点のUTC時刻で、
+`capturedFinalSequence`は別途保存した収集終了時の連番です。
+
+```js
+const apiFields = [
+  "sequence_number", "client_time", "state", "ad", "played", "seeked",
+  "videotime_start", "videotime_end", "video_duration", "video_id", "m3u8_url",
+];
+const evidence = {
+  schemaVersion: 1,
+  videoId: "player-lab-live-demo-<RUN_ID>-<SCENARIO>",
+  sourceUrl: "/__private/media/master.m3u8",
+  sessions: [{
+    id: "demo-record-1",
+    expectedLastSequence: capturedFinalSequence,
+    fetchedAt: apiFetchedAt,
+    response: {
+      status: "SUCCESS",
+      data: { result: rawSamples.map(row =>
+        Object.fromEntries(apiFields.map(field => [field, row[field]]))) },
+    },
+  }],
+};
+pack.profiles[0].evidence = evidence;
+validatePrivateData(pack);
+```
+
+複数の再生記録を集計した場合は、そのprofileのsnapshotに使った記録をすべて含めます。
+集計で`mediaDurationMs`を使った場合は、同じ実測値を`evidence`にも指定してください。
+検証処理は抜粋から再集計し、snapshotと一致しなければ拒否します。
+集計用に変換したデータからAPIのサンプルを逆生成しないでください。
+項目の定義は[確認用データの型](../src/observed-evidence.ts)を参照してください。
+
+確認用データもチェックアウト外のローカルJSONに保存し、既存の512KiBの応答上限を守ります。
+グラフだけを表示する実装では、従来どおり集計済みsnapshotだけを配信できます。
+確認画面を開いても、アカウントAPIへの要求は発生しません。
+
 ## グラフが示すもの
 
-再生記録ごとに、実際に再生した区間をまとめたものが視聴範囲です。
-後方へのシークで再生を区切り、別々の再生で重なった範囲を見返しとして数えます。
-シークで飛び越えた区間や、シーク直前の位置が曖昧な区間は視聴範囲に含めません。
 同じ再生記録で何度見返しても、各位置で1件分を超えて数えることはありません。
-
-各区間では再生記録ごとにその区間を再生した範囲の長さを足し、区間の長さ×再生記録数で割ります。
 未観測は`null`のまま残し、視聴はあるものの見返しがない区間は見返しを`0`とします。
 少ない記録からでもグラフを描けますが、視聴者全体の好みを示すものとは限りません。
 

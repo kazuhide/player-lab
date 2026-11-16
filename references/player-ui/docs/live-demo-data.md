@@ -16,6 +16,43 @@ Rewatching is selected initially. The previews share a 0–100% scale; the overl
 expands its highest value to make the shape visible. Changing the scenario
 updates the graph while the video keeps playing.
 
+## Inspect the API values and calculation in the app
+
+Choose **API response and calculation** beside the graph controls. Select a playback
+record to see the original `sequence_number`, `state`, `videotime_start`,
+`videotime_end`, `played` and `seeked` values. The JSON view retains the original
+API field names and values for the fields used by the calculation. It is an excerpt;
+authentication, user and unrelated metadata are excluded.
+
+Each sequence shows whether its interval was counted, separated by a seek or
+excluded. A counted sample must have `state: "playing"`, positive `played`,
+zero `seeked` and a positive content range. A backwards seek starts another pass through the content. Only the
+overlap of actual played intervals across passes becomes rewatched coverage.
+Fragments within the same pass are unioned before comparing passes; watched
+coverage is the union of the record's counted intervals.
+Ambiguous intervals immediately before a seek are excluded; the raw sample
+remains visible. A terminal-duration adjustment also leaves the raw value intact.
+
+![Original API fields and sample decisions](screenshots/api-evidence-raw-en.png)
+
+Select a graph interval to inspect each playback record's contributing watched
+and rewatched milliseconds. The displayed formula adds those contributions and
+divides by interval length × eligible record count. For example, 12,000 rewatched
+milliseconds in a 2,000 ms interval across eight records gives
+`12,000 / (2,000 × 8) = 75%`. These are content-timeline lengths, not elapsed
+wall-clock `played` durations. Missing observations remain missing.
+The eligible count includes records with counted content coverage; startup-only
+records without a played range do not enter the denominator.
+Record selectors use local display IDs. The table and JSON show the retained
+API fields, rather than treating those display IDs as returned impression IDs.
+
+![Contributions and the interval formula](screenshots/api-evidence-calculation-en.png)
+
+The calculation view uses the same [aggregation implementation](../src/observed-replay.ts)
+as the snapshot. The curve applies bounded smoothing for display; the video overlay
+scales heights to the distribution's maximum. Neither changes the table's raw
+coverage percentages. Changing the record, interval or language keeps playback running.
+
 ## Collect records and find them in Dashboard
 
 Use a dedicated demo Analytics license. A collection Player can use the following
@@ -186,18 +223,53 @@ The observed snapshot has `metricVersion: "observed-replay-coverage-v1"` and
 `synthetic: false`; [`validatePrivateData`](../src/private-data.ts) preserves that
 origin.
 
+### Include the API excerpt for inspection
+
+To make the values inspectable, add an optional `evidence` field to an observed
+profile. Keep the original API samples before converting their property names.
+`apiFetchedAt` below is the UTC timestamp recorded when the API response arrived;
+`capturedFinalSequence` still comes from the separate collection receipt.
+
+```js
+const apiFields = [
+  "sequence_number", "client_time", "state", "ad", "played", "seeked",
+  "videotime_start", "videotime_end", "video_duration", "video_id", "m3u8_url",
+];
+const evidence = {
+  schemaVersion: 1,
+  videoId: "player-lab-live-demo-<RUN_ID>-<SCENARIO>",
+  sourceUrl: "/__private/media/master.m3u8",
+  sessions: [{
+    id: "demo-record-1",
+    expectedLastSequence: capturedFinalSequence,
+    fetchedAt: apiFetchedAt,
+    response: {
+      status: "SUCCESS",
+      data: { result: rawSamples.map(row =>
+        Object.fromEntries(apiFields.map(field => [field, row[field]]))) },
+    },
+  }],
+};
+pack.profiles[0].evidence = evidence;
+validatePrivateData(pack);
+```
+
+For multiple records, include every record used by that profile's snapshot. If
+aggregation used `mediaDurationMs`, include the same independently measured value
+in `evidence`. Validation recomputes the graph from the excerpt and rejects a
+mismatched snapshot. Do not recreate API samples from the already normalized
+aggregation input. See [the evidence contract](../src/observed-evidence.ts).
+
+The evidence stays in the external local JSON file, subject to the existing
+512 KiB response limit. Graph-only integrations can continue to send the compact
+snapshot without this inspection data. Opening the inspector makes no account API request.
+
 ## What the graph means
 
-For each playback record, watched coverage is the union of its played intervals.
-A backwards seek starts a new playback pass; the overlap of separate passes is
-replay coverage. Seek jumps and ambiguous intervals immediately before them do
-not count as watched content. Repeated replays by one record contribute at most
-one record's coverage at each position.
-
-For each bucket, add the covered milliseconds across contributing records and
-divide by bucket length × record count. Missing observations stay `null`;
-observed intervals with no replay have replay `0`. A small sample can draw a
-curve, but does not establish what the wider audience prefers.
+Repeated replays by one record contribute at most one record's coverage at each
+position. Missing observations stay `null`; observed intervals with no replay
+have replay `0`. A small sample can draw a curve, but does not establish what the
+wider audience prefers.
 
 This is a Player Lab metric. Bitmovin Dashboard's built-in Engagement graph uses
 a different definition. Query API counts alone cannot reconstruct overlap within
