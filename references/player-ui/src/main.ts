@@ -8,6 +8,7 @@ import { renderIntegration, renderValues, setPrivateQuerySource, setSampleSource
 import { createPlayback, type Playback, type PlaybackState } from "./playback.ts";
 import { createTimelineGeometry } from "./timeline-geometry.ts";
 import { renderSamplePreviews } from "./sample-preview.ts";
+import { renderApiEvidence } from "./api-evidence-view.ts";
 import type { DemoManifest, MetricMode, TimelineSnapshot } from "./types.ts";
 
 const query = new URLSearchParams(location.search);
@@ -77,6 +78,8 @@ function renderData(): void {
     text(locale, mode === "replay" && noReplay ? "noRewatchNote" : "relativeNote");
   renderSamplePreviews(snapshot, profile.value, locale, isQueryData(), privateData?.kind);
   renderValues(snapshot, locale);
+  const observedProfile = privateData?.kind === "observability-replay-demo" ? privateData.profiles.find(item => item.id === privateProfileId) : undefined;
+  renderApiEvidence(observedProfile?.evidence, observedProfile?.snapshot, locale);
   renderGraph();
   const peakBox = document.querySelector<HTMLElement>("#peaks")!;
   peakBox.replaceChildren();

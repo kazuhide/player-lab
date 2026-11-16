@@ -24,7 +24,31 @@ export interface ObservedReplayInput {
   mediaDurationMs?: number;
   sessions: { id: string; expectedLastSequence: number; samples: ObservedSample[] }[];
 }
-type Interval = [start: number, end: number];
+export type Interval = [start: number, end: number];
+export type ObservedSampleReason = "played" | "seek-backward" | "seek-forward" | "ambiguous-before-seek" | "carried-seek-target" | "not-playing" | "no-played-range";
+export interface ObservedSampleTrace {
+  sequenceNumber: number;
+  /** Zero-based pass; a backward seek belongs to the new target pass. */
+  passIndex: number;
+  reason: ObservedSampleReason;
+  countedRange: Interval | null;
+  seekOriginMs: number | null;
+  seekTargetMs: number | null;
+}
+export interface ObservedReplayRecordTrace {
+  id: string;
+  /** Complete, deduplicated sequence order. */
+  samples: ObservedSampleTrace[];
+  /** Counted fragments grouped by pass, before their within-pass union. */
+  passes: Interval[][];
+  reach: Interval[];
+  replay: Interval[];
+}
+export interface ObservedReplayInspection {
+  snapshot: ObservedReplaySnapshot;
+  /** Includes ineligible startup-only records; use snapshot.sessionCount as the denominator. */
+  records: ObservedReplayRecordTrace[];
+}
 const FIELDS = ["sequenceNumber", "clientTime", "state", "ad", "played", "seeked", "videotimeStart", "videotimeEnd", "videoDuration", "videoId", "sourceUrl"] as const;
 // The tested media/API endpoint clocks differ by 5 ms; this is not a general SDK tolerance.
 const MAX_TERMINAL_CLOCK_DIFFERENCE_MS = 5;
@@ -66,8 +90,8 @@ function orderedSamples(session: ObservedReplayInput["sessions"][number], input:
   return samples;
 }
 
-function passes(samples: ObservedSample[], duration: number): Interval[][] {
-  const excluded = new Set<number>();
+function passes(samples: ObservedSample[], duration: number, traces?: ObservedSampleTrace[]): Interval[][] {
+  const excluded = new Map<number, "carried-seek-target" | "ambiguous-before-seek">();
   const origins = new Map<number, number>();
   for (let index = 0; index < samples.length; index++) {
     const seek = samples[index];
@@ -76,17 +100,17 @@ function passes(samples: ObservedSample[], duration: number): Interval[][] {
     while (previous >= 0) {
       const sample = samples[previous];
       if (["seeking", "pause", "paused"].includes(sample.state) || sample.played !== 0 || sample.seeked !== 0 || sample.videotimeStart !== sample.videotimeEnd || ![seek.videotimeStart, seek.videotimeEnd].includes(sample.videotimeEnd)) break;
-      excluded.add(previous--);
+      excluded.set(previous--, "carried-seek-target");
     }
     const interrupted = samples[previous];
     if (interrupted?.state !== "playing") continue;
     const backwards = interrupted.videotimeEnd < interrupted.videotimeStart;
     if (backwards && [seek.videotimeStart, seek.videotimeEnd].includes(interrupted.videotimeEnd)) {
       origins.set(index, interrupted.videotimeStart);
-      excluded.add(previous);
+      excluded.set(previous, "ambiguous-before-seek");
     } else if (!backwards && (seek.videotimeEnd >= seek.videotimeStart || interrupted.videotimeEnd === seek.videotimeEnd)) {
       // An interrupted PLAYING end can already contain the seek target; never count that jump.
-      excluded.add(previous);
+      excluded.set(previous, "ambiguous-before-seek");
     }
   }
   const result: Interval[][] = [[]];
@@ -95,7 +119,13 @@ function passes(samples: ObservedSample[], duration: number): Interval[][] {
   let target: number | undefined;
   for (let index = 0; index < samples.length; index++) {
     const sample = samples[index];
-    if (excluded.has(index)) continue;
+    const decision: ObservedSampleTrace | undefined = traces ? { sequenceNumber: sample.sequenceNumber, passIndex: result.length - 1,
+      reason: "not-playing", countedRange: null, seekOriginMs: null, seekTargetMs: null } : undefined;
+    const excludedReason = excluded.get(index);
+    if (excludedReason) {
+      if (decision) { decision.reason = excludedReason; traces!.push(decision); }
+      continue;
+    }
     const [start, end] = [sample.videotimeStart, sample.videotimeEnd];
     if (sample.state === "seeking") {
       const origin = origins.get(index) ?? start;
@@ -104,6 +134,13 @@ function passes(samples: ObservedSample[], duration: number): Interval[][] {
       target = end;
       cursor = end;
       last = undefined;
+      if (decision) {
+        decision.passIndex = result.length - 1;
+        decision.reason = end < origin ? "seek-backward" : "seek-forward";
+        decision.seekOriginMs = origin;
+        decision.seekTargetMs = end;
+        traces!.push(decision);
+      }
       continue;
     }
     if (end < start || end < cursor) throw new Error("backwards content clock requires an explicit seek");
@@ -112,8 +149,12 @@ function passes(samples: ObservedSample[], duration: number): Interval[][] {
       result.at(-1)!.push([start, Math.min(end, duration)]);
       last = [start, end];
       target = undefined;
+      if (decision) { decision.reason = "played"; decision.countedRange = [start, Math.min(end, duration)]; }
+    } else if (decision && sample.state === "playing") {
+      decision.reason = "no-played-range";
     }
     cursor = end;
+    if (decision) traces!.push(decision);
   }
   if (result.every(pass => pass.length === 0) && samples.some(sample => sample.state === "playing" && sample.played > 0 && sample.videotimeEnd !== sample.videotimeStart)) throw new Error("observed playing ranges are entirely ambiguous");
   return result;
@@ -152,8 +193,7 @@ function add(intervals: Interval[], values: number[], width: number): void {
   }
 }
 
-/** Only complete, consistently identified non-ad playback records can contribute observed coverage. */
-export function computeObservedReplay(input: ObservedReplayInput, bucketWidthMs = 2_000): ObservedReplaySnapshot {
+function aggregateObservedReplay(input: ObservedReplayInput, bucketWidthMs: number, records?: ObservedReplayRecordTrace[]): ObservedReplaySnapshot {
   object(input, ["content", "period", "videoId", "sourceUrl", "mediaDurationMs", "sessions"]);
   const content = validateContent(input.content);
   const period = validatePeriod(input.period);
@@ -175,7 +215,10 @@ export function computeObservedReplay(input: ObservedReplayInput, bucketWidthMs 
     const samples = orderedSamples(session, input, terminalEndLimit);
     if (ids.has(session.id)) throw new Error("duplicate observed playback identity");
     ids.add(session.id);
-    const intervals = coverage(passes(samples, content.durationMs));
+    const sampleTraces: ObservedSampleTrace[] | undefined = records ? [] : undefined;
+    const playbackPasses = passes(samples, content.durationMs, sampleTraces);
+    const intervals = coverage(playbackPasses);
+    if (records) records.push({ id: session.id, samples: sampleTraces!, passes: playbackPasses, reach: intervals.reach, replay: intervals.replay });
     if (intervals.reach.length === 0) continue;
     sessionCount++;
     const lengths = new Array<number>(count).fill(0);
@@ -193,4 +236,16 @@ export function computeObservedReplay(input: ObservedReplayInput, bucketWidthMs 
   return validateObservedReplaySnapshot({ schemaVersion: 1, metricVersion: "observed-replay-coverage-v1", synthetic: false,
     content, period, generatedAt: period.end, sessionCount, bucketWidthMs: width,
     suggestedMode: points.some(point => (point.replay ?? 0) > 0) ? "replay" : sessionCount ? "reach" : "empty", points });
+}
+
+/** Only complete, consistently identified non-ad playback records can contribute observed coverage. */
+export function computeObservedReplay(input: ObservedReplayInput, bucketWidthMs = 2_000): ObservedReplaySnapshot {
+  return aggregateObservedReplay(input, bucketWidthMs);
+}
+
+/** Explains the same calculation without allocating traces during ordinary computation. */
+export function inspectObservedReplay(input: ObservedReplayInput, bucketWidthMs = 2_000): ObservedReplayInspection {
+  const records: ObservedReplayRecordTrace[] = [];
+  const snapshot = aggregateObservedReplay(input, bucketWidthMs, records);
+  return { snapshot, records };
 }
