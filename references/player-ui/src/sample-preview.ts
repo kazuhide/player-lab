@@ -1,4 +1,5 @@
 import { text, type Locale, type TextKey } from "./i18n.ts";
+import type { PrivateData } from "./private-data.ts";
 import { createTimelineGeometry } from "./timeline-geometry.ts";
 import type { MetricMode, TimelineSnapshot } from "./types.ts";
 
@@ -9,9 +10,10 @@ const HINTS: Record<string, TextKey> = {
 const SVG = "http://www.w3.org/2000/svg";
 
 /** Compare both distributions without independently amplifying the smaller one. */
-export function renderSamplePreviews(snapshot: TimelineSnapshot | null, profile: string, locale: Locale, queryData = false, liveDemo = false): void {
+export function renderSamplePreviews(snapshot: TimelineSnapshot | null, profile: string, locale: Locale, queryData = false, privateKind?: PrivateData["kind"]): void {
   const hint = document.querySelector<HTMLElement>("#profile-hint")!;
-  const hintText = liveDemo ? text(locale, "liveDemoHint") : queryData ? text(locale, "privateHint") : snapshot && HINTS[profile] ? text(locale, HINTS[profile]) : "";
+  const hintText = privateKind === "observability-replay-demo" ? text(locale, "observedDemoHint") :
+    privateKind === "synthetic-live-demo" ? text(locale, "liveDemoHint") : queryData ? text(locale, "privateHint") : snapshot && HINTS[profile] ? text(locale, HINTS[profile]) : "";
   if (hint.textContent !== hintText) hint.textContent = hintText;
   for (const mode of ["reach", "replay"] as MetricMode[]) {
     const svg = document.querySelector<SVGSVGElement>(`#preview-${mode}`)!;

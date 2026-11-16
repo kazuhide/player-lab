@@ -1,4 +1,4 @@
-import type { DemoContent, DemoManifest, EngagementSnapshot } from "./types.ts";
+import type { DemoContent, DemoManifest, EngagementSnapshot, ObservedReplaySnapshot } from "./types.ts";
 
 const MAX_DURATION_MS = 86_400_000;
 const MAX_POINTS = 2_000;
@@ -49,9 +49,13 @@ export function validateBucketWidth(value: unknown, duration: number): number {
   return width;
 }
 
-export function validateSnapshot(value: unknown): EngagementSnapshot {
+function validateCoverageSnapshot<T extends EngagementSnapshot | ObservedReplaySnapshot>(
+  value: unknown, metricVersion: T["metricVersion"], synthetic: T["synthetic"],
+): T {
   const snapshot = object(value, ["schemaVersion", "metricVersion", "synthetic", "content", "period", "generatedAt", "sessionCount", "bucketWidthMs", "suggestedMode", "points"], "snapshot");
-  if (snapshot.schemaVersion !== 1 || snapshot.metricVersion !== "replay-coverage-v1" || snapshot.synthetic !== true) throw new Error("unsupported synthetic snapshot version");
+  if (snapshot.schemaVersion !== 1 || snapshot.metricVersion !== metricVersion || snapshot.synthetic !== synthetic) {
+    throw new Error("unsupported " + (synthetic ? "synthetic" : "observed") + " snapshot version");
+  }
   const content = validateContent(snapshot.content);
   const period = validatePeriod(snapshot.period);
   if (timestamp(snapshot.generatedAt, "generatedAt") < Date.parse(period.end)) throw new Error("generatedAt precedes the sample period");
@@ -75,7 +79,15 @@ export function validateSnapshot(value: unknown): EngagementSnapshot {
   });
   const mode = hasReplay ? "replay" : hasReach ? "reach" : "empty";
   if (snapshot.suggestedMode !== mode || (sessionCount > 0) !== hasReach) throw new Error("snapshot mode or session count contradicts its metrics");
-  return snapshot as unknown as EngagementSnapshot;
+  return snapshot as unknown as T;
+}
+
+export function validateSnapshot(value: unknown): EngagementSnapshot {
+  return validateCoverageSnapshot<EngagementSnapshot>(value, "replay-coverage-v1", true);
+}
+
+export function validateObservedReplaySnapshot(value: unknown): ObservedReplaySnapshot {
+  return validateCoverageSnapshot<ObservedReplaySnapshot>(value, "observed-replay-coverage-v1", false);
 }
 
 export function validateManifest(value: unknown): DemoManifest {

@@ -54,6 +54,12 @@ export interface EngagementSnapshot {
   points: EngagementPoint[];
 }
 
+/** Coverage computed from collected playback records, rather than authored fixtures. */
+export interface ObservedReplaySnapshot extends Omit<EngagementSnapshot, "metricVersion" | "synthetic"> {
+  metricVersion: "observed-replay-coverage-v1";
+  synthetic: false;
+}
+
 export interface QueryIncidencePoint extends EngagementPoint {
   replay: null;
 }
@@ -71,7 +77,7 @@ export interface QueryIncidenceSnapshot {
   points: QueryIncidencePoint[];
 }
 
-export type TimelineSnapshot = EngagementSnapshot | QueryIncidenceSnapshot;
+export type TimelineSnapshot = EngagementSnapshot | ObservedReplaySnapshot | QueryIncidenceSnapshot;
 
 export interface DemoProfile {
   id: string;

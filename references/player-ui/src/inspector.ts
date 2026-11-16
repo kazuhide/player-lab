@@ -29,9 +29,9 @@ const response = await fetch("/__private/query-data", {
 if (!response.ok) throw new Error("Could not load the query data");
 const data = validatePrivateData(await response.json());
 const { source } = data;
-const snapshot = data.kind === "synthetic-live-demo"
-  ? data.profiles[${privateProfileIndex}].snapshot
-  : data.snapshot;
+const snapshot = data.kind === "query"
+  ? data.snapshot
+  : data.profiles[${privateProfileIndex}].snapshot;
 const player = new Player(document.querySelector("#player"), {
   key: ${JSON.stringify(key)}, // localhost does not need a Player key
   ui: false,
@@ -86,7 +86,7 @@ export function renderValues(snapshot: TimelineSnapshot | null, locale: Locale):
   for (const point of snapshot.points) {
     const row = body.insertRow();
     const metric = (value: number | null) => value === null ? text(locale, "unobserved") : `${(value * 100).toFixed(1)}%`;
-    const replay = snapshot.synthetic ? metric(point.replay) : text(locale, "unavailable");
+    const replay = snapshot.metricVersion === "watched-impression-incidence-v1" ? text(locale, "unavailable") : metric(point.replay);
     for (const value of [`${timeLabel(point.startMs)}–${timeLabel(point.endMs)}`, replay, metric(point.reach), String(point.support)]) row.insertCell().textContent = value;
   }
 }
