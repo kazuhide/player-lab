@@ -54,6 +54,9 @@ cover the complete timeline in order, including a shorter final bucket when
 needed. Counts are integers from zero to one billion, and an interval count
 cannot exceed the population. With a nonzero population, a completed zero count
 is `0%`; with no eligible records, ratios are unavailable.
+Across the complete timeline, the sum of interval counts must be at least the
+population: each eligible record must touch an interval. That sum can exceed the
+population because one record can reach several intervals.
 
 The [validator](../src/query-incidence.ts) rejects missing or extra fields,
 credentials in URL user information, incomplete batches and inconsistent counts.

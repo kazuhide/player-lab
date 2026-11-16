@@ -54,13 +54,25 @@ test("empty populations retain unavailable ratios rather than measured zeros", (
 
 test("known zero incidence remains observed in geometry while replay remains unavailable", () => {
   const input = queryData();
-  for (const bucket of input.buckets) bucket.impressions = 0;
   const { snapshot } = validatePrivateQueryData(input);
   const watched = createTimelineGeometry(snapshot, "reach", 300, 50);
   assert.equal(watched.hasValues, true);
-  assert.equal(watched.hasPositiveValues, false);
-  assert.ok(watched.segments[0].points.every(point => point.rawValue === 0 && point.y === watched.baselineY));
+  const knownZero = watched.segments.flatMap(segment => segment.points).find(point => point.rawValue === 0);
+  assert.ok(knownZero);
+  assert.equal(snapshot.points[2].reach, 0);
   assert.deepEqual(createTimelineGeometry(snapshot, "replay", 300, 50).segments, []);
+});
+
+test("a complete timeline cannot account for fewer records than its eligible population", () => {
+  for (const counts of [[0, 0, 0], [2, 1, 0]]) {
+    const input = queryData();
+    input.buckets.forEach((bucket, index) => { bucket.impressions = counts[index]; });
+    assert.throws(() => validatePrivateQueryData(input), /population/);
+  }
+  const coherent = queryData();
+  coherent.buckets[0].impressions = 2;
+  coherent.buckets[1].impressions = 2;
+  assert.deepEqual(validatePrivateQueryData(coherent).snapshot.points.map(point => point.reach), [0.5, 0.5, 0]);
 });
 
 test("the final partial bucket follows the actual content duration", () => {

@@ -69,6 +69,9 @@ export function validatePrivateQueryData(value: unknown): { snapshot: QueryIncid
     if (impressions > sessionCount) throw new Error("bucket impression count exceeds its population");
     return { startMs, endMs, support: impressions, reach: sessionCount > 0 ? impressions / sessionCount : null, replay: null };
   });
+  if (points.reduce((total, point) => total + point.support, 0) < sessionCount) {
+    throw new Error("Query intervals do not account for their complete eligible population");
+  }
   return {
     snapshot: {
       schemaVersion: 1, metricVersion: "watched-impression-incidence-v1", synthetic: false,
