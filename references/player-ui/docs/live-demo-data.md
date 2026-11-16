@@ -18,40 +18,44 @@ updates the graph while the video keeps playing.
 
 ## Inspect the API values and calculation in the app
 
-Choose **API response and calculation** beside the graph controls. Select a playback
-record to see the original `sequence_number`, `state`, `videotime_start`,
-`videotime_end`, `played` and `seeked` values. The JSON view retains the original
-API field names and values for the fields used by the calculation. It is an excerpt;
-authentication, user and unrelated metadata are excluded.
+Open **API response and calculation** beside the graph controls, then choose a
+playback record and graph interval. The table shows one returned sample per row,
+in its original order: `sequence_number`, `state`, `videotime_start`,
+`videotime_end`, `played`, `seeked` and its treatment in the calculation.
+Select a sequence to see the reason. Rows contributing to the selected interval
+are marked and connected to the calculation below.
 
-Each sequence shows whether its interval was counted, separated by a seek or
-excluded. A counted sample must have `state: "playing"`, positive `played`,
-zero `seeked` and a positive content range. A backwards seek starts another pass through the content. Only the
-overlap of actual played intervals across passes becomes rewatched coverage.
-Fragments within the same pass are unioned before comparing passes; watched
-coverage is the union of the record's counted intervals.
-Ambiguous intervals immediately before a seek are excluded; the raw sample
-remains visible. A terminal-duration adjustment also leaves the raw value intact.
+![API sample rows contributing to the selected interval](screenshots/api-evidence-raw-en.png)
 
-![Original API fields and sample decisions](screenshots/api-evidence-raw-en.png)
+The calculation follows the sample sequences and playback passes into watched
+and rewatched ranges within that interval, then into the selected record's
+contributing milliseconds. The formula below uses the totals across all records.
+For example, 12,000 rewatched milliseconds in a 2,000 ms interval across eight
+records gives `12,000 / (2,000 × 8) = 75%`. These are content-timeline lengths,
+not elapsed wall-clock `played` durations. Missing observations remain distinct
+from an observed 0% with no rewatching. The denominator includes records with
+counted content coverage; startup-only records without a played range are excluded.
 
-Select a graph interval to inspect each playback record's contributing watched
-and rewatched milliseconds. The displayed formula adds those contributions and
-divides by interval length × eligible record count. For example, 12,000 rewatched
-milliseconds in a 2,000 ms interval across eight records gives
-`12,000 / (2,000 × 8) = 75%`. These are content-timeline lengths, not elapsed
-wall-clock `played` durations. Missing observations remain missing.
-The eligible count includes records with counted content coverage; startup-only
-records without a played range do not enter the denominator.
-Record selectors use local display IDs. The table and JSON show the retained
-API fields, rather than treating those display IDs as returned impression IDs.
+![From samples to watched and rewatched ranges and the interval formula](screenshots/api-evidence-calculation-en.png)
 
-![Contributions and the interval formula](screenshots/api-evidence-calculation-en.png)
+Expand the details for the per-record breakdown or original response JSON. The
+JSON is a field-selected excerpt that preserves original names, values, order and
+identical retries; authentication and user metadata are excluded. Record selectors
+use local display IDs, not returned impression IDs. Changing the record, interval
+or language keeps playback running.
 
-The calculation view uses the same [aggregation implementation](../src/observed-replay.ts)
-as the snapshot. The curve applies bounded smoothing for display; the video overlay
-scales heights to the distribution's maximum. Neither changes the table's raw
-coverage percentages. Changing the record, interval or language keeps playback running.
+### Aggregation rules
+
+A counted sample must have `state: "playing"`, positive `played`, zero `seeked`
+and a positive content range. Intervals within a playback pass are unioned;
+overlap across passes separated by a backwards seek becomes rewatched coverage.
+Watched coverage is the union of the record's counted intervals. Ambiguous ranges
+immediately before a seek are excluded, and identical retries are not counted twice.
+Neither exclusions nor a terminal-duration adjustment change the raw values.
+
+The calculation uses the same [aggregation implementation](../src/observed-replay.ts)
+as the snapshot. Bounded smoothing and the overlay's maximum-height scaling affect
+only the drawing, not the original coverage percentages.
 
 ## Collect records and find them in Dashboard
 
