@@ -19,17 +19,26 @@ function end(response: ServerResponse, status: number): void {
 
 function validatePlaylist(text: string): void {
   if (!text.startsWith("#EXTM3U\n") && !text.startsWith("#EXTM3U\r\n")) throw new Error("Invalid local playlist");
+  // The SDK treats a bare CR as a new line; validate the same line boundaries.
+  if (/\r(?!\n)/.test(text)) throw new Error("Local playlists require LF or CRLF line endings");
+  let nextIsPlaylist = false;
   for (const line of text.split(/\r?\n/)) {
     if (!line) continue;
     if (!line.startsWith("#")) {
-      if (!SAFE_NAME.test(line)) throw new Error("Nonlocal playlist reference");
+      if (!SAFE_NAME.test(line) || (nextIsPlaylist && !line.endsWith(".m3u8"))) throw new Error("Nonlocal or unvalidated playlist reference");
+      nextIsPlaylist = false;
       continue;
     }
     if (line.startsWith("#EXT-X-DEFINE:")) throw new Error("Playlist variables are unsupported");
+    if (line.startsWith("#EXT-X-CONTENT-STEERING:")) throw new Error("Local HLS does not support content steering");
+    if (line.startsWith("#EXT-X-STREAM-INF:")) nextIsPlaylist = true;
+    const playlistAttributes = /^#EXT-X-(?:MEDIA|I-FRAME-STREAM-INF|IMAGE-STREAM-INF|RENDITION-REPORT):/.test(line);
     for (const match of line.matchAll(/\b[A-Z0-9-]*URI\s*=\s*(?:"([^"]*)"|([^,\r\n]*))/gi)) {
-      if (!SAFE_NAME.test(match[1] ?? match[2])) throw new Error("Nonlocal playlist attribute");
+      const uri = match[1] ?? match[2];
+      if (!SAFE_NAME.test(uri) || (playlistAttributes && !uri.endsWith(".m3u8"))) throw new Error("Nonlocal or unvalidated playlist attribute");
     }
   }
+  if (nextIsPlaylist) throw new Error("Missing child playlist");
 }
 
 async function openMedia(directory: string, name: string, repository: string): Promise<{ handle: FileHandle; size: number; playlist?: Buffer }> {

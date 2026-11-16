@@ -100,6 +100,9 @@ Include every referenced rendition, audio playlist, initialization segment and
 media file. Name the entry playlist `master.m3u8` and rewrite all playlist URI
 references to flat filenames such as `video-1080.m3u8` and `video-1080.mp4`.
 Preserve segment timing and byte-range attributes; do not change the video edit.
+Every child playlist must use the `.m3u8` extension. Use LF or CRLF line endings.
+Content Steering, which can redirect playback to another delivery host, is not
+supported in this local view.
 
 Local filenames may contain ASCII letters, digits, hyphens and underscores, with
 one of these extensions: `.m3u8`, `.ts`, `.m4s`, `.mp4`, `.aac` or `.vtt`.

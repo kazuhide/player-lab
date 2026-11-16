@@ -115,3 +115,44 @@ test("local manifests cannot request remote, absolute, variable or traversing re
     }
   }
 });
+
+test("a bare carriage return cannot hide a remote HLS reference", async t => {
+  const { base, directory } = await setup(t);
+  for (const hidden of [
+    "#EXTINF:4,\rhttps://example.invalid/segment.ts",
+    '#comment\r#EXT-X-MEDIA:TYPE=AUDIO,URI="https://example.invalid/audio.m3u8"',
+    "#comment\r#EXT-X-STREAM-INF:BANDWIDTH=1000\rhttps://example.invalid/variant.m3u8",
+  ]) {
+    await writeFile(join(directory, "master.m3u8"), `#EXTM3U\n${hidden}\n`);
+    assert.equal((await fetch(base + "/__private/media/master.m3u8")).status, 503, hidden);
+  }
+});
+
+test("every HLS playlist role requires a validated m3u8 child", async t => {
+  const { base, directory } = await setup(t);
+  for (const name of ["variant.ts", "variant.mp4", "variant.m4s", "variant.aac", "variant.vtt"]) {
+    await writeFile(join(directory, name), "#EXTM3U\n#EXTINF:4,\nhttps://example.invalid/segment.ts\n", { mode: 0o600 });
+    for (const reference of [
+      `#EXT-X-STREAM-INF:BANDWIDTH=1000\n${name}`,
+      `#EXT-X-MEDIA:TYPE=AUDIO,URI="${name}"`,
+      `#EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=1000,URI="${name}"`,
+      `#EXT-X-IMAGE-STREAM-INF:BANDWIDTH=1000,URI="${name}"`,
+      `#EXT-X-RENDITION-REPORT:URI="${name}"`,
+    ]) {
+      await writeFile(join(directory, "master.m3u8"), `#EXTM3U\n${reference}\n`);
+      assert.equal((await fetch(base + "/__private/media/master.m3u8")).status, 503, reference);
+    }
+  }
+  for (const newline of ["\n", "\r\n"]) {
+    const valid = ["#EXTM3U", '#EXT-X-MEDIA:TYPE=AUDIO,URI="audio.m3u8"',
+      "#EXT-X-STREAM-INF:BANDWIDTH=1000", "#comment", "video.m3u8", ""].join(newline);
+    await writeFile(join(directory, "master.m3u8"), valid);
+    assert.equal((await fetch(base + "/__private/media/master.m3u8")).status, 200);
+  }
+});
+
+test("local HLS does not accept content steering through an opaque file", async t => {
+  const { base, directory } = await setup(t);
+  await writeFile(join(directory, "master.m3u8"), '#EXTM3U\n#EXT-X-CONTENT-STEERING:SERVER-URI="steering.mp4"\n');
+  assert.equal((await fetch(base + "/__private/media/master.m3u8")).status, 503);
+});
