@@ -9,15 +9,15 @@ const HINTS: Record<string, TextKey> = {
 const SVG = "http://www.w3.org/2000/svg";
 
 /** Compare both distributions without independently amplifying the smaller one. */
-export function renderSamplePreviews(snapshot: TimelineSnapshot | null, profile: string, locale: Locale, privateData = false): void {
+export function renderSamplePreviews(snapshot: TimelineSnapshot | null, profile: string, locale: Locale, queryData = false, liveDemo = false): void {
   const hint = document.querySelector<HTMLElement>("#profile-hint")!;
-  const hintText = privateData ? text(locale, "privateHint") : snapshot && HINTS[profile] ? text(locale, HINTS[profile]) : "";
+  const hintText = liveDemo ? text(locale, "liveDemoHint") : queryData ? text(locale, "privateHint") : snapshot && HINTS[profile] ? text(locale, HINTS[profile]) : "";
   if (hint.textContent !== hintText) hint.textContent = hintText;
   for (const mode of ["reach", "replay"] as MetricMode[]) {
     const svg = document.querySelector<SVGSVGElement>(`#preview-${mode}`)!;
     const empty = document.querySelector<HTMLElement>(`#preview-${mode}-empty`)!;
     svg.replaceChildren();
-    if (privateData && mode === "replay") {
+    if (queryData && mode === "replay") {
       svg.dataset.scale = "0-1";
       svg.dataset.state = "unavailable";
       empty.hidden = false;
@@ -32,7 +32,7 @@ export function renderSamplePreviews(snapshot: TimelineSnapshot | null, profile:
       path.setAttribute("d", segment.fillPath);
       svg.append(path);
     }
-    empty.hidden = geometry.hasPositiveValues || (privateData && mode === "reach" && geometry.hasValues);
+    empty.hidden = geometry.hasPositiveValues || (queryData && mode === "reach" && geometry.hasValues);
     empty.textContent = !snapshot ? "—" : !geometry.hasValues ? text(locale, "noRecords") : text(locale, "noRewatch");
   }
 }

@@ -31,7 +31,7 @@ function generationTime(value: unknown, periodEnd: string): string {
   return value;
 }
 
-function sourceURL(value: unknown): string {
+export function validateSourceURL(value: unknown): string {
   if (value === "/__private/media/master.m3u8") return value;
   if (typeof value !== "string" || value.length === 0 || value.length > MAX_SOURCE_LENGTH) {
     throw new Error("source URL is outside its supported size");
@@ -55,7 +55,7 @@ export function validatePrivateQueryData(value: unknown): { snapshot: QueryIncid
   const period = validatePeriod(object(input.period, ["start", "end"], "period"));
   const generatedAt = generationTime(input.generatedAt, period.end);
   const source = object(input.source, ["hls"], "source");
-  const hls = sourceURL(source.hls);
+  const hls = validateSourceURL(source.hls);
   const sessionCount = count(input.sessionCount, "session count");
   const bucketWidthMs = validateBucketWidth(input.bucketWidthMs, content.durationMs);
   if (!Array.isArray(input.buckets) || input.buckets.length !== Math.ceil(content.durationMs / bucketWidthMs)) {

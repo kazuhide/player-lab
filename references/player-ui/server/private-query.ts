@@ -3,7 +3,7 @@ import { open, realpath } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { isAbsolute, relative, sep } from "node:path";
 import type { Plugin } from "vite";
-import { validatePrivateQueryData } from "../src/query-incidence.ts";
+import { validatePrivateData } from "../src/private-data.ts";
 import { privateMediaHandler } from "./private-media.ts";
 
 const ENDPOINT = "/__private/query-data";
@@ -44,7 +44,7 @@ async function readPrivateFile(file: string, repository: string, mediaDirectory?
     }
     if (length > MAX_BYTES) throw new Error("Private data exceeds the size limit");
     const data: unknown = JSON.parse(buffer.subarray(0, length).toString("utf8"));
-    const { source } = validatePrivateQueryData(data);
+    const { source } = validatePrivateData(data);
     if (source.hls === "/__private/media/master.m3u8" && !mediaDirectory) throw new Error("Private media is not configured");
     return data;
   } finally {

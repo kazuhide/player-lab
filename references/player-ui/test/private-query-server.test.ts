@@ -53,6 +53,35 @@ test("a local HLS source requires explicit private media configuration", async t
   assert.equal((await fetch(context.base + "/__private/query-data")).status, 200);
 });
 
+test("the guarded private endpoint also serves explicit synthetic live scenarios", async t => {
+  const context = await setup(t);
+  const data = input();
+  const pack = {
+    schemaVersion: 1, kind: "synthetic-live-demo",
+    source: { hls: "/__private/media/master.m3u8" },
+    profiles: [{
+      id: "focused", title: { en: "Focused replay", ja: "集中" },
+      snapshot: {
+        schemaVersion: 1, metricVersion: "replay-coverage-v1", synthetic: true,
+        content: data.content, period: data.period, generatedAt: data.generatedAt,
+        sessionCount: 10, bucketWidthMs: 2_000, suggestedMode: "replay",
+        points: [{ startMs: 0, endMs: 2_000, support: 10, reach: 1, replay: 0.5 },
+          { startMs: 2_000, endMs: 4_000, support: 4, reach: 0.4, replay: 0 }],
+      },
+    }],
+  };
+  await writeFile(context.file, JSON.stringify(pack));
+  assert.equal((await fetch(context.base + "/__private/query-data")).status, 503);
+  context.setMediaDirectory("/explicit/private/media");
+  const response = await fetch(context.base + "/__private/query-data", { headers: { origin: context.base } });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), pack);
+  assert.equal(response.headers.get("access-control-allow-origin"), null);
+  pack.profiles[0].snapshot.synthetic = false;
+  await writeFile(context.file, JSON.stringify(pack));
+  assert.equal((await fetch(context.base + "/__private/query-data")).status, 503);
+});
+
 test("private data is opt-in, validated, uncached and restricted to the local origin", async t => {
   const context = await setup(t);
   const response = await fetch(context.base + "/__private/query-data", { headers: { origin: context.base } });
