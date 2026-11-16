@@ -77,7 +77,9 @@ test("inspects original API values and canonical bucket arithmetic without resta
   await expect(page.locator("#evidence-flow-replay-ms")).toHaveText("10,000 ms");
   await expect(page.locator("#evidence-replay-formula")).toHaveText("10,000 / (10,000 × 2) = 50.0%");
   await expect(page.locator("#evidence-reach-formula")).toHaveText("20,000 / (10,000 × 2) = 100.0%");
-  await rows.nth(2).getByRole("button").click();
+  await rows.nth(2).getByRole("button").focus();
+  await page.keyboard.press("Enter");
+  await expect(rows.nth(2).getByRole("button")).toBeFocused();
   await expect(rows.nth(2).locator('[data-field="seeked"]')).toHaveText("125");
   await expect(page.locator("#evidence-json")).toContainText('"videotime_start": 20000');
   await expect(page.locator("#evidence-json")).not.toContainText("videotimeStart");
@@ -85,7 +87,10 @@ test("inspects original API values and canonical bucket arithmetic without resta
   expect(response.data.result.map((sample: { sequence_number: number }) => sample.sequence_number)).toEqual([2, 0, 1, 1]);
   expect(response.data.result).toHaveLength(4);
   await expect(page.locator("#evidence-decision")).toContainText(/Backward seek|後方シーク/);
-  await rows.nth(3).getByRole("button").click();
+  await page.keyboard.press("Tab");
+  await expect(rows.nth(3).getByRole("button")).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(rows.nth(3).getByRole("button")).toBeFocused();
   await expect(page.locator("#evidence-decision")).toContainText(/retry|再送/);
   await page.locator('#evidence-flow-samples button[data-sequence="2"]').click();
   await expect(rows.nth(0)).toHaveAttribute("data-selected", "true");

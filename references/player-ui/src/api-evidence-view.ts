@@ -35,8 +35,11 @@ function selectOptions(select: HTMLSelectElement, options: [string, string][], v
 
 function selectSample(id: string, index: number): void {
   if (id !== recordId || !evidence?.sessions.find(session => session.id === id)?.response.data.result[index]) return;
+  const rows = element<HTMLTableSectionElement>("evidence-samples");
+  const restoreFocus = rows.contains(document.activeElement);
   selectedRow = index;
   renderSource();
+  if (restoreFocus) rows.rows[selectedRow].querySelector<HTMLButtonElement>("button")!.focus({ preventScroll: true });
 }
 
 function renderSource(): void {
