@@ -130,6 +130,13 @@ server. Player license checks still require network access. The directory and
 files must belong to the current user and have no group or other access;
 symlinks are refused. Neither media files nor Query data belong in public history.
 
+## Simulated live data
+
+For authored replay examples with a local clip, see
+[simulated live rewatching](live-demo-data.md). That input explicitly identifies
+fictional data and enables rewatching; real Query overlap counts retain their
+separate incidence-only metric.
+
 ## Build the public demo
 
 Stop the private server and remove `PLAYER_UI_PRIVATE_QUERY_FILE` and

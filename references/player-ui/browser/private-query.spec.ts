@@ -73,7 +73,7 @@ test("validates private data before starting playback and preserves missing repl
   await expect(lastRow.locator("td").nth(2)).toHaveText("0.0%");
   await page.locator("#configuration summary").click();
   await expect(page.locator("#configuration-code")).toContainText(PRIVATE_DATA_PATH);
-  await expect(page.locator("#configuration-code")).toContainText("validatePrivateQueryData");
+  await expect(page.locator("#configuration-code")).toContainText("validatePrivateData");
   await expect(page.locator("#configuration-code")).not.toContainText(PUBLIC_SOURCE);
   await page.evaluate(() => { (window as unknown as { originalVideo: HTMLVideoElement | null }).originalVideo = document.querySelector("video"); });
   await page.locator(".bmpui-ui-controlbar:visible").getByRole("button", { name: /^(Play|再生)$/ }).click();
@@ -86,7 +86,7 @@ test("validates private data before starting playback and preserves missing repl
     .toHaveText(/Playback records reaching this section|区間を見た再生記録/);
   await expect(page.locator("#preview-replay-empty")).toHaveText(/Not available|取得なし/);
   if (await page.locator("html").getAttribute("lang") !== "ja") await page.locator("#language").click();
-  await expect(page.locator("#source-title")).toHaveText("非公開動画");
+  await expect(page.locator("#source-title")).toHaveText("検証用動画");
   await expect(page.locator(".bmpui-label-metadata-title").first()).toHaveText("");
   expect(await page.evaluate(() => (window as unknown as { originalVideo: HTMLVideoElement | null }).originalVideo === document.querySelector("video"))).toBe(true);
   expect(accountRequests).toEqual([]);

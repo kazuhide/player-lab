@@ -11,7 +11,7 @@ let controller: AbortController | undefined;
 let sampleURL: URL | undefined;
 let language: Locale = "en";
 
-export function renderIntegration(profile: DemoProfile | undefined, mode: MetricMode, enabled: boolean, accent: string, locale: Locale, privateData = false): void {
+export function renderIntegration(profile: DemoProfile | undefined, mode: MetricMode, enabled: boolean, accent: string, locale: Locale, privateData = false, privateProfileIndex = 0): void {
   language = locale;
   const key = import.meta.env.VITE_PUBLIC_PLAYER_LICENSE_KEY ? "<PUBLIC_PLAYER_KEY>" : "";
   if (privateData) {
@@ -19,7 +19,7 @@ export function renderIntegration(profile: DemoProfile | undefined, mode: Metric
     code.textContent = `import { Player, PlayerEvent } from "bitmovin-player";
 import "bitmovin-player-ui/dist/css/bitmovinplayer-ui.css";
 import "./style.css";
-import { validatePrivateQueryData } from "./query-incidence";
+import { validatePrivateData } from "./private-data";
 import { createPlayerUi } from "./create-player-ui";
 
 const response = await fetch("/__private/query-data", {
@@ -27,7 +27,11 @@ const response = await fetch("/__private/query-data", {
   credentials: "omit",
 });
 if (!response.ok) throw new Error("Could not load the query data");
-const { snapshot, source } = validatePrivateQueryData(await response.json());
+const data = validatePrivateData(await response.json());
+const { source } = data;
+const snapshot = data.kind === "synthetic-live-demo"
+  ? data.profiles[${privateProfileIndex}].snapshot
+  : data.snapshot;
 const player = new Player(document.querySelector("#player"), {
   key: ${JSON.stringify(key)}, // localhost does not need a Player key
   ui: false,
@@ -38,7 +42,7 @@ const { manager, setGraphData } = createPlayerUi(player, ${JSON.stringify(locale
 player.on(PlayerEvent.Ready, () => {
   const duration = player.getDuration() * 1000;
   const matches = Number.isFinite(duration) && Math.abs(duration - snapshot.content.durationMs) <= 1000;
-  setGraphData(matches ? snapshot : null, "reach", ${JSON.stringify(locale)}, ${enabled} && matches);
+  setGraphData(matches ? snapshot : null, ${JSON.stringify(mode)}, ${JSON.stringify(locale)}, ${enabled} && matches);
 });
 document.querySelector(".player-frame").dataset.accent = ${JSON.stringify(accent)};
 await player.load({ hls: source.hls, title: "" });

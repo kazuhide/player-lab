@@ -2,7 +2,7 @@ import "bitmovin-player-ui/dist/css/bitmovinplayer-ui.css";
 import "./style.css";
 import packageInfo from "../package.json";
 import { readManifest, readSnapshot } from "./data.ts";
-import { validatePrivateQueryData } from "./query-incidence.ts";
+import { validatePrivateData, type PrivateData } from "./private-data.ts";
 import { applyLocale, recordCount, text, timeLabel, type Locale } from "./i18n.ts";
 import { renderIntegration, renderValues, setPrivateQuerySource, setSampleSource } from "./inspector.ts";
 import { createPlayback, type Playback, type PlaybackState } from "./playback.ts";
@@ -17,6 +17,8 @@ let manifest: DemoManifest | undefined;
 let snapshot: TimelineSnapshot | null = null;
 let mode: MetricMode = privateMode ? "reach" : "replay";
 let privateSource: { hls: string } | undefined;
+let privateData: PrivateData | undefined;
+let privateProfileId = "";
 let playback: Playback | undefined;
 let playbackState: PlaybackState = "loading";
 let dataState: "loading" | "ready" | "empty" | "error" = "loading";
@@ -31,10 +33,14 @@ const videoStatus = document.querySelector<HTMLElement>("#player-status")!;
 const retryData = document.querySelector<HTMLButtonElement>("#retry-data")!;
 const retryVideo = document.querySelector<HTMLButtonElement>("#retry-video")!;
 
+function isQueryData(): boolean {
+  return privateMode && privateData?.kind !== "synthetic-live-demo";
+}
+
 function updateAddress(): void {
   const url = new URL(location.href);
   url.searchParams.set("lang", locale);
-  if (privateMode) url.searchParams.delete("sample");
+  if (isQueryData()) url.searchParams.delete("sample");
   else if (profile.value) url.searchParams.set("sample", profile.value);
   history.replaceState(null, "", url);
 }
@@ -59,13 +65,13 @@ function renderData(): void {
   document.querySelector<HTMLElement>("#session-count")!.textContent = snapshot ? recordCount(locale, snapshot.sessionCount) : "—";
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="metric"]')) {
     input.checked = input.value === mode;
-    input.disabled = !snapshot?.sessionCount || (privateMode && input.value === "replay");
+    input.disabled = !snapshot?.sessionCount || (isQueryData() && input.value === "replay");
   }
   const note = document.querySelector<HTMLElement>("#metric-note")!;
   const noReplay = snapshot && !snapshot.points.some(point => (point.replay ?? 0) > 0);
-  note.textContent = privateMode ? text(locale, "privateMetricNote") : !snapshot ? "" : snapshot.sessionCount === 0 ? text(locale, "empty") :
+  note.textContent = isQueryData() ? text(locale, "privateMetricNote") : !snapshot ? "" : snapshot.sessionCount === 0 ? text(locale, "empty") :
     text(locale, mode === "replay" && noReplay ? "noRewatchNote" : "relativeNote");
-  renderSamplePreviews(snapshot, profile.value, locale, privateMode);
+  renderSamplePreviews(snapshot, profile.value, locale, isQueryData(), privateData?.kind === "synthetic-live-demo");
   renderValues(snapshot, locale);
   renderGraph();
   const peakBox = document.querySelector<HTMLElement>("#peaks")!;
@@ -88,7 +94,8 @@ function renderData(): void {
     empty.textContent = snapshot ? text(locale, snapshot.sessionCount ? "noPeaks" : "empty") : "—";
     peakBox.append(empty);
   }
-  renderIntegration(manifest?.profiles.find(item => item.id === profile.value), mode, showGraph.checked, accent.value, locale, privateMode);
+  const privateProfileIndex = privateData?.kind === "synthetic-live-demo" ? privateData.profiles.findIndex(item => item.id === privateProfileId) : 0;
+  renderIntegration(manifest?.profiles.find(item => item.id === profile.value), mode, showGraph.checked, accent.value, locale, privateMode, Math.max(0, privateProfileIndex));
 }
 
 function renderLocale(): void {
@@ -96,9 +103,18 @@ function renderLocale(): void {
   const value = profile.value;
   profile.replaceChildren();
   if (privateMode) {
-    profile.add(new Option(text(locale, "privateProfile"), "private"));
-    profile.disabled = true;
-    const replacements = {
+    const liveDemo = privateData?.kind === "synthetic-live-demo";
+    if (privateData?.kind === "synthetic-live-demo") {
+      for (const item of privateData.profiles) profile.add(new Option(item.title[locale], item.id));
+      profile.value = privateProfileId;
+    } else profile.add(new Option(text(locale, "privateProfile"), "private"));
+    profile.disabled = !liveDemo;
+    profile.hidden = !liveDemo;
+    document.querySelector<HTMLLabelElement>('label[for="profile"]')!.hidden = !liveDemo;
+    const replacements = liveDemo ? {
+      synthetic: "liveDemoData", sourceCaption: "liveDemoSourceCaption", scenario: "liveDemoScenario",
+      footerNote: "liveDemoFooter", snapshotFile: "liveDemoSnapshot",
+    } as const : {
       synthetic: "queryData", sourceCaption: "privateSourceCaption", scenario: "privateScenario",
       watched: "privateWatched", watchDefinition: "privateWatchDefinition", replayDefinition: "privateReplayDefinition",
       previewScale: "privatePreviewScale", watchCoverage: "privateWatched", footerNote: "privateFooter", snapshotFile: "privateQueryFile",
@@ -108,7 +124,7 @@ function renderLocale(): void {
     }
     document.querySelector<HTMLElement>("#source-title")!.textContent = text(locale, "privateVideo");
     document.querySelector<HTMLAnchorElement>("#calculation-link")!.href =
-      `https://github.com/kazuhide/player-lab/blob/main/references/player-ui/docs/private-query-data${locale === "ja" ? ".ja" : ""}.md`;
+      `https://github.com/kazuhide/player-lab/blob/main/references/player-ui/docs/${liveDemo ? "live-demo-data" : "private-query-data"}${locale === "ja" ? ".ja" : ""}.md`;
     setPrivateQuerySource(locale);
   } else {
     for (const item of manifest?.profiles ?? []) profile.add(new Option(item.title[locale], item.id));
@@ -130,13 +146,22 @@ async function initializePrivateData(): Promise<void> {
     // The loopback-only server caps this response at 512 KiB before delivery.
     const response = await fetch("/__private/query-data", { cache: "no-store", credentials: "omit", signal: controller.signal });
     if (!response.ok) throw new Error("Private data request failed");
-    const next = validatePrivateQueryData(await response.json());
+    const next = validatePrivateData(await response.json());
     if (request !== generation) return;
-    snapshot = next.snapshot;
+    privateData = next;
     privateSource = next.source;
-    mode = "reach";
+    if (next.kind === "synthetic-live-demo") {
+      const requested = query.get("sample") ?? privateProfileId;
+      const selected = next.profiles.find(item => item.id === requested) ?? next.profiles[0];
+      privateProfileId = selected.id;
+      snapshot = selected.snapshot;
+      mode = "replay";
+    } else {
+      snapshot = next.snapshot;
+      mode = "reach";
+    }
     dataState = snapshot.sessionCount === 0 ? "empty" : "ready";
-    renderData();
+    renderLocale();
     initializePlayer();
     updateAddress();
   } catch {
@@ -147,6 +172,16 @@ async function initializePrivateData(): Promise<void> {
 }
 
 async function chooseProfile(id: string): Promise<void> {
+  if (privateData?.kind === "synthetic-live-demo") {
+    const selected = privateData.profiles.find(item => item.id === id);
+    if (!selected) return;
+    privateProfileId = id;
+    snapshot = selected.snapshot;
+    dataState = snapshot.sessionCount === 0 ? "empty" : "ready";
+    renderData();
+    updateAddress();
+    return;
+  }
   if (!manifest) return;
   const selected = manifest.profiles.find(item => item.id === id);
   if (!selected) return;
@@ -196,7 +231,7 @@ profile.addEventListener("change", () => void chooseProfile(profile.value));
 retryData.addEventListener("click", () => void (privateMode ? initializePrivateData() : manifest ? chooseProfile(profile.value) : initializeData()));
 retryVideo.addEventListener("click", () => { if (playback) void playback.load(); else initializePlayer(); });
 for (const input of document.querySelectorAll<HTMLInputElement>('input[name="metric"]')) input.addEventListener("change", () => {
-  if (input.checked && (!privateMode || input.value === "reach")) { mode = input.value as MetricMode; renderData(); }
+  if (input.checked && (!isQueryData() || input.value === "reach")) { mode = input.value as MetricMode; renderData(); }
 });
 showGraph.addEventListener("change", renderData);
 accent.addEventListener("change", () => {
