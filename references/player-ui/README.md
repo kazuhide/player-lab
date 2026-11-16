@@ -2,10 +2,11 @@
 
 [English](README.md) · [日本語](README.ja.md)
 
-An independent Web example that adds a viewing-pattern graph to the official
-Bitmovin Player UI v4. The default demo plays a short Big Buck Bunny source with
-synthetic viewing data. Change the dataset and inspect the timeline's precomputed
-values, or load an optional Observability-derived demo pack.
+An independent Web example combining the official Bitmovin Player UI v4 with
+viewing data. The default Big Buck Bunny demo includes a viewing-pattern graph,
+short highlights playback, saved viewing progress and previous audio/caption
+settings. Its sample records are synthetic and need no Analytics account.
+An optional Observability-derived pack can supply the graph's values.
 
 The example uses Player **8.284.0** and UI **4.23.1**. Standard playback controls
 come from the unmodified official UI package. The graph is a separate Player Lab
@@ -44,6 +45,23 @@ variable. See [the Player configuration](src/playback.ts).
 
 This directory has its own package and lock file. It can be copied and built
 without another Player Lab application's source or build output.
+
+## Try the viewing tools
+
+Use the tabs beneath the video. The actions use the same Player and leave the
+standard playback controls available.
+
+| Viewer goal | Action |
+| --- | --- |
+| Watch a short selection | Preview the highlights within a time budget, then start playback |
+| Continue or find a missed section | Choose a saved-history example, resume or select a chapter |
+| Use the previous audio/caption settings | Restore settings supported by the current source, or undo the change |
+
+The history examples are saved demo data, separate from the aggregate graph.
+The English and Japanese caption tracks are original visual descriptions for
+this reference, rather than translations of dialogue.
+See [Viewing-data controls](docs/viewer-experiences.md) for the data calculations,
+official UI components, integration code and unavailable states.
 
 ## Try the graph
 

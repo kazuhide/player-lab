@@ -6,13 +6,15 @@ import {
 import { EngagementTimeline } from "./EngagementTimeline.ts";
 import { UI_JA } from "./ui-ja.ts";
 import type { MetricMode, TimelineSnapshot } from "./types.ts";
+import { createViewerMarkers, type ViewerMarkerDefinition } from "./viewer-markers.ts";
 
-/** Keeps official layouts and seek behavior; only the aggregate graph is application-owned. */
+/** Keep official layouts and seeking, with reference-owned graph data and markers. */
 export function createPlayerUi(player: PlayerAPI, locale: "en" | "ja" = "en"): {
   manager: UIManager;
   timelines: EngagementTimeline[];
   setGraphData(snapshot: TimelineSnapshot | null, mode: MetricMode, locale: "en" | "ja", enabled: boolean): void;
   setLocale(locale: "en" | "ja"): void;
+  setViewerMarkers(markers: readonly ViewerMarkerDefinition[]): void;
 } {
   const localization = {
     language: locale,
@@ -129,9 +131,11 @@ export function createPlayerUi(player: PlayerAPI, locale: "en" | "ja" = "en"): {
     if (manager.activeUi) refreshAccessibleLabels(manager.activeUi.getUI());
   };
   manager.onActiveUiChanged.subscribe(refreshActiveLabels);
+  const viewerMarkers = createViewerMarkers(manager.timelineMarkers);
   return {
     manager,
     timelines,
+    setViewerMarkers(markers) { viewerMarkers.set(markers); },
     setGraphData(snapshot, mode, graphLocale, enabled) {
       graphState = { snapshot, mode, locale: graphLocale, enabled };
       for (const timeline of timelines) {
