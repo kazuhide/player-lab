@@ -90,6 +90,9 @@ Export・集約Query・QueryとImpression Detailsのリクエスト例をまと�
 
 現在の集計処理は合成データ専用です。実際のExportやAPIデータには別の検証・変換処理が必要です。
 実データを合成データとして扱わないでください。
+集約Queryの件数は[非公開データ用のローカル画面](docs/private-query-data.ja.md)で
+検証済みの集計結果と対応するHLSソースを読み込めます。
+区間を見た再生記録の割合を表示し、再視聴は取得なしと明示します。アカウントAPIへの問い合わせは行いません。
 
 ## 再生前にデータを準備する
 
@@ -121,6 +124,8 @@ CMSへ組み込む場合は、サーバーやバッチ処理で次の処理を�
 [集計処理](src/engagement.ts)を参照してください。
 再生するコンテンツと一致する`EngagementSnapshot`を検証して渡し、
 指標に`replay`または`reach`を選びます。
+別に検証した`QueryIncidenceSnapshot`では`reach`だけを使用し、`replay`は取得なしとして扱います。
+描画処理は`TimelineSnapshot`として両方の形式を受け付けます。
 [公式UIへの組み込み例](src/create-player-ui.ts)では公式のコンテナーにグラフを追加し、
 再生位置の操作は公式のシークバーに任せています。
 

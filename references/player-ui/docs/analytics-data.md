@@ -5,7 +5,9 @@
 The graph uses Player Lab's definitions of **Watched sections** (`reach`) and
 **Rewatched sections** (`replay`). These are calculated from playback intervals;
 they are not built-in Analytics metrics or a reproduction of Dashboard Engagement.
-The reference currently reads synthetic snapshots and makes no Analytics requests.
+The default reference reads synthetic snapshots and makes no Analytics requests.
+An optional [private local view](private-query-data.md) reads aggregate Query
+counts from an external file and displays a separately labelled incidence metric.
 
 | Data source | Watched sections | Rewatched sections |
 | --- | --- | --- |
@@ -159,10 +161,10 @@ does not establish that it is accepted for grouping. This route is not a working
 replacement for raw Export or impression details. `SEEKED` is a seek duration,
 not a pass identifier or a substitute for the original state sequence.
 
-Do not fill the missing replay metric with zero. The current snapshot validator
+Do not fill the missing replay metric with zero. The synthetic snapshot validator
 requires both metrics for observed intervals and accepts only the demo metric
-version. A Query-only incidence view needs a separate metric definition and an
-explicit unavailable replay state before it can be added to the application.
+version. The [private Query view](private-query-data.md) uses a separate validator
+and `watched-impression-incidence-v1` contract, with replay explicitly unavailable.
 
 ## Operate the batch safely
 
@@ -182,7 +184,8 @@ A compressed session summary cannot reconstruct repeat passes. Check
 before choosing the window. Missing pages, aged-out samples or a clipped session
 must remain incomplete; do not publish them as a complete no-rewatch result.
 
-The current code deliberately rejects unlabelled real data. Do not mark an account
-export as `synthetic: true` to bypass that guard. A production adapter needs its
-own validated real-data boundary and snapshot contract; it is not implemented by
-these request examples. See [precomputing and CMS integration](../README.md#prepare-data-before-playback).
+The synthetic processor deliberately rejects real data. Do not mark an account
+export as `synthetic: true` to bypass that guard. The private view validates only
+precomputed aggregate Query counts; it does not normalize raw Export files or
+Impression Details. Those adapters and production data delivery still need to be
+implemented for your application. See [precomputing and CMS integration](../README.md#prepare-data-before-playback).

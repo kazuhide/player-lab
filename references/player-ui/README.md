@@ -94,6 +94,9 @@ the same metrics and which produce a different watched-distribution measure.
 
 The current processor accepts only synthetic fixtures. Real Export or API data
 needs a separate validated adapter; do not relabel account data as synthetic.
+For aggregate Query counts, the optional [private local view](docs/private-query-data.md)
+accepts a validated batch and its matching HLS source. It displays interval
+incidence, with replay explicitly unavailable, and makes no account API requests.
 
 ## Prepare data before playback
 
@@ -126,6 +129,8 @@ Start with [the snapshot types](src/types.ts),
 [the timeline component](src/EngagementTimeline.ts) and
 [the calculation](src/engagement.ts). Supply a validated `EngagementSnapshot`
 for the exact loaded content and choose `replay` or `reach` as its metric.
+A separately validated `QueryIncidenceSnapshot` supports `reach` only. Its
+`replay` values are unavailable; the renderer accepts both through `TimelineSnapshot`.
 See [the official UI composition](src/create-player-ui.ts) for adding the graph
 to official containers while keeping the official seek bar responsible for seeking.
 

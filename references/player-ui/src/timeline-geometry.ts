@@ -1,4 +1,4 @@
-import type { EngagementPoint, EngagementSnapshot, MetricMode } from "./types.ts";
+import type { EngagementPoint, MetricMode, TimelineSnapshot } from "./types.ts";
 
 export interface TimelinePosition {
   x: number;
@@ -56,7 +56,7 @@ function smoothPath(points: { x: number; y: number }[]): string {
 
 /** Creates display geometry only. The snapshot's measurements and support are never changed. */
 export function createTimelineGeometry(
-  snapshot: EngagementSnapshot | null,
+  snapshot: TimelineSnapshot | null,
   mode: MetricMode,
   width: number,
   height: number,

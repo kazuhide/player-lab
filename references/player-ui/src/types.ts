@@ -54,6 +54,25 @@ export interface EngagementSnapshot {
   points: EngagementPoint[];
 }
 
+export interface QueryIncidencePoint extends EngagementPoint {
+  replay: null;
+}
+
+/** Query overlap counts measure interval incidence; they contain no replay measurement. */
+export interface QueryIncidenceSnapshot {
+  schemaVersion: 1;
+  metricVersion: "watched-impression-incidence-v1";
+  synthetic: false;
+  content: DemoContent;
+  period: { start: string; end: string };
+  generatedAt: string;
+  sessionCount: number;
+  bucketWidthMs: number;
+  points: QueryIncidencePoint[];
+}
+
+export type TimelineSnapshot = EngagementSnapshot | QueryIncidenceSnapshot;
+
 export interface DemoProfile {
   id: string;
   title: { en: string; ja: string };
