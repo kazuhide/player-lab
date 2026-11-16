@@ -89,6 +89,18 @@
       </div>
 
       <section class="inspection" aria-label="Integration">
+        <details id="scenario-method" hidden>
+          <summary data-i18n="scenarioMethod">Scenarios and calculation</summary>
+          <p class="detail-note" data-i18n="scenarioCommon">The choices change the saved playback records, not the aggregation formula.</p>
+          <ul class="detail-note">
+            <li data-i18n="scenarioFocused">Concentrated: check whether rewatching the same sections produces localized peaks.</li>
+            <li data-i18n="scenarioDistributed">Distributed: compare with records that revisit different sections.</li>
+            <li data-i18n="scenarioSparse">Small audience: see how fewer records can still produce a high percentage.</li>
+          </ul>
+          <p class="detail-note" data-i18n="scenarioCoverage">Rewatch coverage = total rewatched content milliseconds / (interval length × eligible playback records). Records are playback sessions, not unique people.</p>
+          <p class="detail-note" data-i18n="scenarioDrawing">Drawing uses count-dependent smoothing and scales each overlay to its own maximum. Compare original percentages in Underlying values or API response and calculation.</p>
+          <p class="detail-note"><a id="scenario-method-guide" href="https://github.com/kazuhide/player-lab/blob/main/references/player-ui/docs/live-demo-data.md" data-i18n="scenarioGuide">Definitions, worked examples and drawing rules</a></p>
+        </details>
         <details id="api-evidence" hidden>
           <summary data-i18n="apiEvidence">API response and calculation</summary>
           <p id="evidence-state" class="detail-note" role="status"></p>

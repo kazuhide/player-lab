@@ -6,15 +6,94 @@ records are retrieved through the Observability APIs and aggregated before the
 page loads. The media is an on-demand HLS clip; live-style viewing is the demo
 scenario.
 
-| Scenario | Playback pattern | Graph |
-| --- | --- | --- |
-| Concentrated rewatching | Records include returns to the same moments | Localized peaks |
-| Distributed rewatching | Records include returns to different moments | Lower peaks across a wider area |
-| A small audience | A few records include returns to earlier moments | Replay remains visible with a small sample count |
+## Why the scenarios are separate
 
-Rewatching is selected initially. The previews share a 0–100% scale; the overlay
-expands its highest value to make the shape visible. Changing the scenario
-updates the graph while the video keeps playing.
+The selector changes saved playback records and their precomputed snapshots.
+It does not choose a different aggregation formula or definition of rewatching.
+The examples compare how to read results when viewing behavior or record count changes for the same video.
+
+| Scenario | Playback pattern | What to compare |
+| --- | --- | --- |
+| Concentrated rewatching | Records include returns to the same moments | Rewatching shared by records at particular moments |
+| Distributed rewatching | Records include returns to different moments | The result when rewatch positions do not line up |
+| A small audience | A few records include returns to earlier moments | A high percentage can still come from few records |
+
+A curve can be drawn from few records, but a high percentage alone does not establish a pattern shared by a broad audience.
+Records are Analytics impressions, meaning playback sessions, not unique people.
+These are authored demo patterns, not an automatic classifier of real viewers.
+
+Rewatching is selected initially. Changing the scenario updates the graph while the video keeps playing.
+Open **Scenarios and calculation** below the demo for the explanation and guide link.
+
+## One aggregation method for every scenario
+
+[observed-replay.ts](../src/observed-replay.ts) receives playback records, content identity, a reporting period and interval width.
+It does not receive the scenario name or ID as a calculation condition.
+`chooseProfile` in [main.ts](../src/main.ts) selects a precomputed snapshot, not another formula.
+These are Player Lab metrics; they do not reproduce the Dashboard's Engagement formula.
+
+1. Check sequence receipts and remove identical retries, then sort by sequence.
+   Missing sequences or conflicting retries reject the record rather than silently lowering its contribution.
+2. Accept valid content ranges with `state: "playing"`, `played > 0` and `seeked = 0`.
+   Seek jumps and ambiguous ranges immediately before a seek do not become watched coverage.
+3. Separate passes at backward seeks and merge overlapping fragments within each pass.
+   Watched coverage is the union of positions played at least once; replay coverage covers positions played in at least two distinct passes.
+4. Intersect each record's watched and replayed ranges with each graph interval and sum their lengths.
+
+Let `L` be the interval length and `N` the total number of records containing an accepted played range.
+Ordinary intervals are 2,000 ms; use the actual shorter length for a final partial interval.
+
+```text
+Watched coverage = sum of each record's watched milliseconds inside the interval / (L × N)
+Replay coverage = sum of each record's replayed milliseconds inside the interval / (L × N)
+```
+
+`N` includes eligible records that never reached the selected interval. Startup-only records are excluded.
+When `N = 0`, coverage remains `null` rather than dividing by zero.
+`support` counts records reaching that interval; it is not the denominator `N`.
+Repeated rewatches in one record contribute at most once per content position.
+Lengths come from video positions, so slow playback alone does not increase coverage.
+Observed positions with no rewatch have `0`; an interval without observations retains `null`.
+
+### Worked examples with different behavior and counts
+
+Each example uses a two-second interval. The denominator changes with the record count even if the total replayed length stays the same.
+
+| Example | N | Total replayed milliseconds inside the interval | Calculation |
+| --- | --- | --- | --- |
+| Concentrated | 8 | 12,000 ms | `12,000 / (2,000 × 8) = 75%` |
+| One interval in distributed viewing | 8 | 2,000 ms | `2,000 / (2,000 × 8) = 12.5%` |
+| Small audience | 4 | 6,000 ms | `6,000 / (2,000 × 4) = 75%` |
+
+Distributed viewing can contribute less to any one interval because the records revisit different positions.
+The small-audience 75% is not supported by as many records as the eight-record 75%.
+Neither percentage is a probability that a moment was interesting or a statistical confidence score.
+
+Partial rewatches contribute only their covered length. If two of eight records rewatch 1,618 ms and 1,616 ms of a two-second interval,
+and the others contribute zero, coverage is `3,234 / (2,000 × 8) = 20.2125%`.
+Counting two records as `2 / 8 = 25%` would be a different metric.
+Select an interval in the app to inspect the contributions and formula for the actual input.
+
+### Aggregation values and drawing
+
+Aggregation is shared, but [drawing](../src/timeline-geometry.ts) varies smoothing strength with record count.
+This is a display heuristic, not a calculation of statistical confidence in sparse data.
+For a raw value `r` and its weighted local average `a`, the drawing value `d` is:
+
+```text
+alpha = 1 / (1 + sqrt(max(1, N)))
+d = (1 - alpha) × r + alpha × a
+```
+
+With observed neighbors on both sides, `a = (left + 2 × r + right) / 4`.
+At an edge, only available neighbors are used; averaging never crosses an unobserved gap.
+For four records, `alpha` is about 0.333; for eight it is about 0.261. Fewer records therefore move the drawing a little closer to neighboring values.
+
+Card previews share a 0–100% scale. The video overlay expands its own smoothed maximum to the graph height.
+Curves whose raw maxima are 12.5% and 75% can therefore have equally tall overlay peaks.
+Use **Underlying values** or **API response and calculation** to compare original percentages across scenarios.
+Those numbers precede smoothing; drawing never changes the snapshot.
+See [metric definitions](analytics-data.md#what-the-values-mean) for the difference from record-count incidence.
 
 ## Inspect the API values and calculation in the app
 
@@ -30,11 +109,7 @@ are marked and connected to the calculation below.
 The calculation follows the sample sequences and playback passes into watched
 and rewatched ranges within that interval, then into the selected record's
 contributing milliseconds. The formula below uses the totals across all records.
-For example, 12,000 rewatched milliseconds in a 2,000 ms interval across eight
-records gives `12,000 / (2,000 × 8) = 75%`. These are content-timeline lengths,
-not elapsed wall-clock `played` durations. Missing observations remain distinct
-from an observed 0% with no rewatching. The denominator includes records with
-counted content coverage; startup-only records without a played range are excluded.
+These are content-timeline lengths, not elapsed wall-clock `played` durations.
 
 ![From samples to watched and rewatched ranges and the interval formula](screenshots/api-evidence-calculation-en.png)
 
@@ -44,18 +119,8 @@ identical retries; authentication and user metadata are excluded. Record selecto
 use local display IDs, not returned impression IDs. Changing the record, interval
 or language keeps playback running.
 
-### Aggregation rules
-
-A counted sample must have `state: "playing"`, positive `played`, zero `seeked`
-and a positive content range. Intervals within a playback pass are unioned;
-overlap across passes separated by a backwards seek becomes rewatched coverage.
-Watched coverage is the union of the record's counted intervals. Ambiguous ranges
-immediately before a seek are excluded, and identical retries are not counted twice.
-Neither exclusions nor a terminal-duration adjustment change the raw values.
-
-The calculation uses the same [aggregation implementation](../src/observed-replay.ts)
-as the snapshot. Bounded smoothing and the overlay's maximum-height scaling affect
-only the drawing, not the original coverage percentages.
+The calculation and snapshot use the same aggregation implementation.
+Neither exclusions nor a terminal-duration adjustment change the original API values.
 
 ## Collect records and find them in Dashboard
 
