@@ -11,6 +11,19 @@ final class ArchiveTests: XCTestCase {
         XCTAssertEqual(event.archiveStatus, "not_ready")
     }
 
+    func testArchiveChoiceStaysInsideItsEvent() throws {
+        let file = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .appendingPathComponent("../../fixtures/catalog.json")
+        let catalog = try JSONDecoder().decode(EventCatalog.self, from: Data(contentsOf: file))
+        let event = try XCTUnwrap(catalog.events.first { $0.id == "SP-EVENT-S" })
+        XCTAssertEqual(catalog.archive(for: event, selectedID: nil)?.id, event.archiveAssetId)
+        XCTAssertEqual(catalog.archive(for: event, selectedID: "SP-ARCH-E")?.id, "SP-ARCH-E")
+        XCTAssertNil(catalog.archive(for: event, selectedID: "SP-CLIP-A"))
+        XCTAssertNil(catalog.archive(for: event, selectedID: "SP-ARCH-EVENT"))
+        let next = try XCTUnwrap(catalog.events.first { $0.id == "SP-EVENT-30" })
+        XCTAssertEqual(catalog.archive(for: next, selectedID: nil)?.id, next.archiveAssetId)
+    }
+
     func testEndedEventWithNoDVRWindowUsesFullArchiveEvidence() throws {
         let json = """
         {"id":"event","status":"ended","archiveStatus":"ready","liveAssetId":"live","archiveAssetId":"archive",

@@ -23,13 +23,17 @@ final class CatalogTests: XCTestCase {
         XCTAssertTrue(asset.waitForExistence(timeout: 15))
         try XCTSkipUnless(asset.isEnabled, "Configure the reference Player license to run playback.")
         activate(asset, in: app)
-        if app.alerts.firstMatch.exists { activate(app.alerts.buttons["Start over"].firstMatch, in: app) }
-        let controls = app.buttons["Learning controls"]
-        let standard = app.buttons["Standard controls"]
-        if !standard.exists {
-            XCTAssertTrue(controls.waitForExistence(timeout: 10))
-            activate(controls, in: app)
-        }
+        let startOver = app.alerts.buttons["Start over"].firstMatch
+        let mode = app.buttons.matching(NSPredicate(format: "label IN %@", ["Learning controls", "Standard controls"])).firstMatch
+        let opened = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            startOver.exists || mode.exists
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [opened], timeout: 10), .completed)
+        if startOver.exists { activate(startOver, in: app) }
+        // After dismissing the resume alert tvOS may still be animating. Wait
+        // for either valid mode before reading the restored preference.
+        XCTAssertTrue(mode.waitForExistence(timeout: 10))
+        if mode.label == "Learning controls" { activate(mode, in: app) }
         let pause = app.buttons["Pause"].firstMatch
         XCTAssertTrue(pause.waitForExistence(timeout: 20), "The fixture should enter playback")
         activate(pause, in: app)

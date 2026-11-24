@@ -64,18 +64,29 @@ struct ReferenceScreen: View {
                                     .disabled(!session.canReturn)
                             }
                         }
-                        Toggle("Continue into the archive automatically", isOn: $session.autoContinue)
+                        if let archive = session.targetArchive {
+                            let archives = session.assets.filter { $0.kind == "archive" }
+                            if archives.count > 1 {
+                                Picker("Archive for continuation", selection: $session.archiveTargetID) {
+                                    ForEach(archives) { choice in
+                                        Text(choice.displayTitle).tag(Optional(choice.id))
+                                    }
+                                }
+                            }
+                            Toggle("Continue into the archive automatically", isOn: $session.autoContinue)
+                            if session.asset?.kind == "live", session.archiveReady {
+                                if session.mappedPosition(for: archive) != nil {
+                                    Button("Continue at viewed position") { session.continueAtViewedPosition() }
+                                } else {
+                                    Text("The viewed position is unavailable in this archive.")
+                                }
+                                Button("Start archive from beginning") { session.open(archive) }
+                            }
+                        }
                         ForEach(session.assets) { asset in
                             Button(asset.displayTitle) { session.open(asset) }
                                 .disabled(session.player == nil || (asset.kind == "archive" && !session.archiveReady) ||
                                           (asset.kind == "live" && session.status != "live"))
-                            if asset.kind == "archive", session.asset?.kind == "live", session.archiveReady {
-                                Button("Continue at viewed position") {
-                                    if let offset = session.mappedPosition(for: asset) {
-                                        session.open(asset, seek: offset, play: session.desiredPlayback)
-                                    }
-                                }.disabled(session.mappedPosition(for: asset) == nil)
-                            }
                         }
                     }
                 } else if let error = session.problem {

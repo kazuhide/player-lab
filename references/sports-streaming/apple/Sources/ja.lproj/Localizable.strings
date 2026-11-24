@@ -39,3 +39,6 @@
 "Handoff records" = "録画への引き継ぎ記録";
 "Share JSON" = "JSON を共有";
 "Could not export handoff records." = "引き継ぎ記録を書き出せませんでした。";
+"Archive for continuation" = "引き継ぎ先の録画";
+"The viewed position is unavailable in this archive." = "この録画では元の視聴位置から再生できません。";
+"Start archive from beginning" = "録画の最初から再生";

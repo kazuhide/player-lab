@@ -8,6 +8,11 @@ final class SportsSession: Playback {
     @Published var event: Event?
     @Published var update: EventUpdate?
     @Published var asset: SportAsset?
+    @Published var archiveTargetID: String?
+    var targetArchive: SportAsset? {
+        guard let event else { return nil }
+        return catalog?.archive(for: event, selectedID: archiveTargetID)
+    }
     @Published var autoContinue = false
     @Published var statusError = false
     @Published var notice: String?
@@ -63,6 +68,7 @@ final class SportsSession: Playback {
         player?.unload()
         generation = UUID()
         event = next
+        archiveTargetID = next.archiveAssetId
         update = nil
         asset = nil
         savedLive = nil
@@ -82,10 +88,7 @@ final class SportsSession: Playback {
                 guard fresh.applies(to: event) else { throw URLError(.cannotDecodeContentData) }
                 update = fresh
                 statusError = false
-                if autoContinue && status == "ended", let archive = assets.first(where: { $0.id == event.archiveAssetId }),
-                   let seconds = mappedPosition(for: archive) {
-                    open(archive, seek: seconds, play: desiredPlayback)
-                }
+                if autoContinue && status == "ended" { continueAtViewedPosition() }
             } catch { if !Task.isCancelled && token == generation { statusError = true } }
             do { try await Task.sleep(nanoseconds: 2_000_000_000) } catch { return }
         }
@@ -109,6 +112,11 @@ final class SportsSession: Playback {
         if let fresh = update?.archiveMapping, fresh.assetId == archive.id { return fresh.position(for: time) }
         return ArchiveMap(assetId: archive.id, durationMs: archive.measuredDurationMs, utcStartMs: archive.utcStartMs,
                           utcMappings: archive.utcMappings).position(for: time)
+    }
+
+    func continueAtViewedPosition() {
+        guard let archive = targetArchive, let seconds = mappedPosition(for: archive) else { return }
+        open(archive, seek: seconds, play: desiredPlayback)
     }
 
     func open(_ next: SportAsset, seek: Double? = nil, play: Bool = true, restoreUTC: Double? = nil) {

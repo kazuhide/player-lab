@@ -39,3 +39,6 @@
 "Handoff records" = "Handoff records";
 "Share JSON" = "Share JSON";
 "Could not export handoff records." = "Could not export handoff records.";
+"Archive for continuation" = "Archive for continuation";
+"The viewed position is unavailable in this archive." = "The viewed position is unavailable in this archive.";
+"Start archive from beginning" = "Start archive from beginning";

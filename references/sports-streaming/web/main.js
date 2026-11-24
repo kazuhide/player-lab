@@ -266,14 +266,32 @@ async function decodedReturnOffset(player, target) {
   player.mute('positioning');
   try {
     await player.play('positioning');
-    if (session.player !== player) return null;
-    player.pause('positioning');
-    return liveReturnOffset(
-      target,
-      player.getCurrentTime('absolutetime'),
-      player.getTimeShift(),
-      player.getMaxTimeShift()
-    );
+    const deadline = performance.now() + 4500;
+    const video = host.querySelector('video');
+    // play() may resolve before the SDK's decoded time and seek window have
+    // settled. In particular, an immediately reopened live edge can lag the
+    // previous player by a fraction of one segment.
+    while (session.player === player && performance.now() < deadline) {
+      const current = player.getCurrentTime('absolutetime');
+      const offset = liveReturnOffset(target, current, player.getTimeShift(), player.getMaxTimeShift());
+      if (
+        video &&
+        video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+        !video.seeking &&
+        sourceUtc(asset, current) !== null &&
+        offset !== null
+      ) {
+        player.pause('positioning');
+        return liveReturnOffset(
+          target,
+          player.getCurrentTime('absolutetime'),
+          player.getTimeShift(),
+          player.getMaxTimeShift()
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    return null;
   } finally {
     host.style.visibility = '';
     if (session.player === player) {
@@ -318,7 +336,9 @@ function observeHandoff() {
     return;
   const video = session.host.querySelector('video');
   if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
-  const positionMs = Math.round(player.getCurrentTime('relativetime') * 1000);
+  const seconds = player.getCurrentTime('relativetime');
+  if (!Number.isFinite(seconds) || seconds < 0) return;
+  const positionMs = Math.round(seconds * 1000);
   if (
     ledger.observe(
       pending.ticket,

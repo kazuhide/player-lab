@@ -31,6 +31,11 @@ struct Event: Decodable, Identifiable {
 struct EventCatalog: Decodable {
     let events: [Event]
     let assets: [SportAsset]
+
+    func archive(for event: Event, selectedID: String?) -> SportAsset? {
+        let id = selectedID ?? event.archiveAssetId
+        return assets.first { $0.eventId == event.id && $0.kind == "archive" && $0.id == id }
+    }
 }
 
 struct ArchiveMap: Decodable {

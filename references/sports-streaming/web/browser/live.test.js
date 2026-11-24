@@ -29,7 +29,16 @@ test(
       await page.locator('#assets button[data-id="SP-LIVE-S"]').click();
       await page.selectOption('#mode', 'custom');
       await page.waitForFunction(() => document.querySelector('#play').textContent === 'Pause');
+      await page.waitForFunction(() => Number(document.querySelector('#seek').min) < -5);
+      await page.locator('#seek').evaluate((input) => {
+        input.value = '-4';
+        input.dispatchEvent(new Event('change'));
+      });
+      await page.waitForFunction(() => document.querySelector('#log [data-event="TimeShifted"]') !== null);
       await page.locator('#play').click();
+      await page.waitForFunction(
+        () => document.querySelector('video')?.paused && document.querySelector('video').readyState >= 2
+      );
       const saved = await page.locator('video').evaluate((v) => v.currentTime);
       const origin = updates.find((update) => update.status === 'live')?.utcStartMs;
       assert.ok(
