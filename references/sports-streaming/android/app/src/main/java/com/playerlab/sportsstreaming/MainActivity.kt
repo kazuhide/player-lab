@@ -62,6 +62,14 @@ class MainActivity : AppCompatActivity() {
     private fun handleRemote(event: KeyEvent): Boolean =
         isTelevision && ::playback.isInitialized && playback.handleTransportKey(event)
 
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (!fullscreen && !pictureInPicture && ::surface.isInitialized &&
+            event.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && event.action == KeyEvent.ACTION_DOWN) {
+            surface.focusCatalog?.let { it(); return true }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
         handleRemote(event) || super.onKeyDown(keyCode, event)
 

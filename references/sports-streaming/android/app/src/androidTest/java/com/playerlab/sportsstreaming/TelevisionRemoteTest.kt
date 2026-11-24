@@ -1,6 +1,7 @@
 package com.playerlab.sportsstreaming
 
 import android.content.Intent
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.webkit.WebView
 import androidx.core.view.descendants
@@ -34,14 +35,20 @@ class TelevisionRemoteTest {
                 val catalog = requireNotNull(activity.playbackForTest().state.value.catalog)
                 clip = requireNotNull(catalog.asset("SP-CLIP-A")).localizedTitle(activity.resources.configuration.locales[0].language == "ja")
             }
-            assertNotNull(device.wait(Until.findObject(By.text(clipsTab)), 5_000))
-            val focusedTab = By.focused(true).hasDescendant(By.text(clipsTab))
+            val tab = requireNotNull(device.wait(Until.findObject(By.text(clipsTab)), 5_000)).visibleCenter
+            fun focusedBounds() = device.findObject(By.focused(true))?.visibleBounds
+            var focused = focusedBounds()
             for (step in 1..6) {
-                if (device.hasObject(focusedTab)) break
-                device.pressDPadRight()
-                device.waitForIdle()
+                if (focused?.contains(tab.x, tab.y) == true) break
+                val previous = focused
+                input.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT)
+                val deadline = SystemClock.uptimeMillis() + 1_500
+                do {
+                    SystemClock.sleep(100)
+                    focused = focusedBounds()
+                } while ((focused == null || focused == previous) && SystemClock.uptimeMillis() < deadline)
             }
-            assertTrue("The remote should reach the clips tab", device.hasObject(focusedTab))
+            assertTrue("Remote focus $focused should reach $tab", focused?.contains(tab.x, tab.y) == true)
             input.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
             val firstClip = requireNotNull(device.wait(Until.findObject(By.text(clip)), 5_000))
             assertTrue(firstClip.visibleBounds.height() > 0)

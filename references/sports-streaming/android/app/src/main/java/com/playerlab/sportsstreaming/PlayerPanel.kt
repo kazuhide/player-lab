@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
@@ -44,14 +44,14 @@ import androidx.compose.ui.viewinterop.AndroidView
                 }
                 TextButton(onClick = { session.setProtocol(if (state.protocol == com.playerlab.sportsstreaming.core.StreamProtocol.HLS)
                     com.playerlab.sportsstreaming.core.StreamProtocol.DASH else com.playerlab.sportsstreaming.core.StreamProtocol.HLS) },
-                    enabled = state.acceptsPlaybackCommands, modifier = Modifier.heightIn(min = 48.dp).focusProperties {
-                        if (catalogFocus != null) right = catalogFocus
+                    enabled = state.acceptsPlaybackCommands, modifier = Modifier.heightIn(min = 48.dp).onFocusChanged {
+                        surface.focusCatalog = if (it.isFocused && catalogFocus != null) ({ catalogFocus.requestFocus() }) else null
                     }) { Text(state.protocol.name) }
             }
         }
         Box(if (expanded || boundedHeight) Modifier.weight(1f).fillMaxWidth().background(Color.Black)
             else Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black)) {
-            AndroidView(factory = {
+            if (!surface.context.isTelevision || state.activeAssetId != null || session.player.source != null) AndroidView(factory = {
                 (surface.parent as? ViewGroup)?.removeView(surface)
                 surface
             }, update = { it.showUi(state.sportsUi) }, modifier = Modifier.fillMaxSize())

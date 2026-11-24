@@ -25,6 +25,7 @@ class PlayerSurfaceHost(context: Context, private val player: Player, private va
     var sportsUi = false
         private set
     val attachedPlayerViewCount get() = if (playerView?.player === player) 1 else 0
+    var focusCatalog: (() -> Unit)? = null
 
     init {
         (subtitles.parent as? ViewGroup)?.removeView(subtitles)
