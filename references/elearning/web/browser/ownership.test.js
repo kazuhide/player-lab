@@ -197,13 +197,13 @@ test(
       await second.locator('#resume').click();
       await second.selectOption('#mode', 'custom');
       await pause(second);
-      for (const [action, seconds] of [
-        ['forward', 20],
-        ['rewind', 10],
-        ['keyboard', 11]
+      for (const [action, seconds, otherPosition] of [
+        ['forward', 20, 25],
+        ['rewind', 10, 26],
+        ['keyboard', 11, 27]
       ]) {
-        await seek(second, 25);
-        await savedAt(second, 25);
+        await seek(second, otherPosition);
+        await savedAt(second, otherPosition);
         await first.locator('#player').hover();
         if (action === 'keyboard') await first.locator('#player .bmpui-ui-seekbar').press('ArrowRight');
         else
