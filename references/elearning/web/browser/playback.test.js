@@ -251,3 +251,52 @@ test(
     }
   }
 );
+
+test(
+  'completion in a second tab leaves the most recent learner checkpoint intact',
+  { timeout: 65000 },
+  async () => {
+    const browser = await launch();
+    try {
+      const context = await browser.newContext({ locale: 'en-US' });
+      const key = 'reference.elearning.resume.a/EDU-FX-03';
+      const openSummary = async () => {
+        const page = await context.newPage();
+        await page.goto(process.env.APP_URL || 'http://localhost:5181');
+        await page.locator('#lessons button[data-id="EDU-FX-03"]').click();
+        if (await page.locator('#choices').isVisible()) await page.locator('#restart').click();
+        await page.selectOption('#mode', 'custom');
+        await page.waitForFunction(() => document.querySelector('#play').textContent === 'Pause');
+        await page.locator('#play').click();
+        return page;
+      };
+      const seek = async (page, seconds) => {
+        await page.locator('#seek').evaluate((i, s) => {
+          i.value = s;
+          i.dispatchEvent(new Event('change'));
+        }, seconds);
+        await page.waitForFunction(
+          ([k, s]) => Math.abs(JSON.parse(localStorage.getItem(k))?.seconds - s) < 0.25,
+          [key, seconds]
+        );
+      };
+      const finishing = await openSummary();
+      const paused = await openSummary();
+      await seek(finishing, 4);
+      await finishing.locator('#play').click();
+      await seek(paused, 2);
+      await finishing.waitForFunction(
+        () => document.querySelector('#message').textContent === 'Lesson finished.'
+      );
+      await paused.close();
+      assert.ok(
+        await finishing.evaluate(
+          (k) => Math.abs(JSON.parse(localStorage.getItem(k))?.seconds - 2) < 0.25,
+          key
+        )
+      );
+    } finally {
+      await browser.close();
+    }
+  }
+);

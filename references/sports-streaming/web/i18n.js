@@ -1,5 +1,7 @@
 const japanese = navigator.language.toLowerCase().startsWith('ja');
 const strings = {
+  'This video has finished. Choose Play to replay it.':
+    '再生が終了しました。もう一度見るには再生を選んでください。',
   'The previous position is unavailable. Choose Play to watch this video.':
     '元の視聴位置を確認できません。「再生」を選ぶと映像が始まります。',
   'The saved DVR position has expired. You can keep watching this clip.':

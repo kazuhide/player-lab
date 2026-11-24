@@ -57,7 +57,8 @@ struct ReferenceScreen: View {
             Text("Saved position is outside the current lesson.")
             Button("Start over") { session.open(lesson, resume: false) }
         } else if session.problem != nil {
-            Button("Retry") { session.open(lesson, resume: session.saved(lesson) != nil) }
+            Button("Retry") { session.retry() }
+            Button("Start over") { session.open(lesson, resume: false) }
         } else {
             HStack {
                 Button("Previous lesson") { move(-1) }.disabled(session.lessons.first?.id == lesson.id)

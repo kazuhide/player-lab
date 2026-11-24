@@ -21,10 +21,10 @@ export class HandoffLedger {
     };
     if (this.entries.length === 200) this.entries.shift();
     this.entries.push(row);
-    return { row, first: null };
+    return { row, first: null, retired: false };
   }
-  observe(ticket, videoId, positionMs, playing, paused) {
-    if (!ticket) return false;
+  observe(ticket, videoId, positionMs, playing, paused, uptime = performance.now(), speed = 1) {
+    if (!ticket || ticket.retired) return false;
     const { row } = ticket;
     if (row.confirmed || row.failure) return Boolean(row.confirmed);
     const requested = row.requested;
@@ -35,9 +35,30 @@ export class HandoffLedger {
       row.confirmed = { videoId, positionMs, playWhenReady: false, positionAdvanced: false };
     } else {
       if (!playing || paused) return false;
-      if (ticket.first === null && matches) ticket.first = positionMs;
-      else if (ticket.first !== null && positionMs > ticket.first) {
-        row.confirmed = { videoId, positionMs: ticket.first, playWhenReady: true, positionAdvanced: true };
+      if (!Number.isFinite(uptime) || !(speed > 0 && Number.isFinite(speed))) return false;
+      if (ticket.first === null && matches) {
+        ticket.first = { positionMs, uptime, speed };
+      } else if (ticket.first !== null) {
+        const elapsed = uptime - ticket.first.uptime;
+        const advanced = positionMs - ticket.first.positionMs;
+        // The SDK may round presentation time to a frame. A seek, a rate
+        // discontinuity or a delayed observation cannot prove normal playback.
+        if (
+          elapsed < 0 ||
+          elapsed > 5000 ||
+          speed !== ticket.first.speed ||
+          advanced < 0 ||
+          advanced > elapsed * speed + 150
+        )
+          ticket.retired = true;
+        else if (elapsed > 0 && advanced > 0) {
+          row.confirmed = {
+            videoId,
+            positionMs: ticket.first.positionMs,
+            playWhenReady: true,
+            positionAdvanced: true
+          };
+        }
       }
     }
     return Boolean(row.confirmed);

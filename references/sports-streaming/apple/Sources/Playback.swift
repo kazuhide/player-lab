@@ -48,10 +48,13 @@ class Playback: NSObject, ObservableObject {
         bind(player.events.on(SubtitleChangedEvent.self), player: player) { session, event, sender in
             if session.ready, session.owns(sender) {
                 session.clearCaptions()
-                guard session.waitingForCaption == nil,
-                      event.subtitleTrackNew?.language == sender.subtitle.language else { return }
-                if let language = event.subtitleTrackNew?.language { session.captionLanguage = language }
-                else if !sender.availableSubtitles.isEmpty { session.captionLanguage = "" }
+                guard event.subtitleTrackNew?.language == sender.subtitle.language else { return }
+                if let language = event.subtitleTrackNew?.language {
+                    session.waitingForCaption = nil
+                    session.captionLanguage = language
+                } else if session.waitingForCaption == nil && !sender.availableSubtitles.isEmpty {
+                    session.captionLanguage = ""
+                }
             }
         }
         bind(player.events.on(SubtitleAddedEvent.self), player: player) { session, event, sender in

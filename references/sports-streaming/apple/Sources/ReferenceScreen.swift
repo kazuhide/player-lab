@@ -33,11 +33,19 @@ struct ReferenceScreen: View {
                         if session.statusPollingFinished || session.statusError {
                             Button("Refresh event status") { refreshCount += 1 }
                         }
-                        if session.statusError { Text("Event status unavailable. Retrying…") }
+                        if session.statusError {
+                            Text(session.readinessRetriesExhausted ? LocalizedStringKey("Event status unavailable.")
+                                : LocalizedStringKey("Event status unavailable. Retrying…"))
+                        }
                         if let asset = session.asset {
                             Text(asset.displayTitle).font(.headline)
                             PlaybackControls(session: session, modeName: "Sports controls", showsExternalCaptions: true)
-                            if session.problem != nil { Button("Retry") { session.retry() } }
+                            if session.problem != nil {
+                                Button("Retry") { session.retry() }
+                                if asset.kind == "archive" {
+                                    Button("Start archive from beginning") { session.open(asset) }
+                                }
+                            }
                             if let notice = session.notice { Text(LocalizedStringKey(notice)) }
                             if session.ready {
                                 HStack {

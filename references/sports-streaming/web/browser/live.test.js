@@ -53,21 +53,46 @@ test(
       );
       // A status change between polling and dispatch must leave the clip untouched.
       const clip = await page.locator('video').elementHandle();
+      let releaseOld,
+        sawOld,
+        requests = 0;
+      const held = new Promise((resolve) => {
+        releaseOld = resolve;
+      });
+      const requested = new Promise((resolve) => {
+        sawOld = resolve;
+      });
       const expiryRoute = async (route) => {
+        const ordinal = ++requests;
         const res = await route.fetch();
         const latest = await res.json();
-        await route.fulfill({
-          response: res,
-          json: { ...latest, seekableUtcStartMs: Math.floor(saved * 1000) + 2000 }
-        });
+        if (ordinal === 1) {
+          sawOld();
+          await held;
+          await route.fulfill({ response: res, json: latest });
+        } else {
+          await route.fulfill({
+            response: res,
+            json: { ...latest, seekableUtcStartMs: Math.floor(saved * 1000) + 2000 }
+          });
+        }
       };
       await page.route('**/api/events/SP-EVENT-S', expiryRoute);
       await page.locator('#earlier').click();
-      await page.waitForFunction(() =>
-        document.querySelector('#message').textContent.includes('keep watching this clip')
+      await requested;
+      await page.locator('#refresh').click();
+      await page.waitForFunction(() => document.querySelector('#earlier').hidden);
+      const oldResponse = page.waitForResponse((r) =>
+        new URL(r.url()).pathname.endsWith('/api/events/SP-EVENT-S')
       );
+      releaseOld();
+      await (await oldResponse).finished();
+      await page.waitForFunction(() => document.querySelector('#earlier').hidden);
       assert.ok(await clip.evaluate((v) => v === document.querySelector('video')));
-      assert.equal(await page.locator('#earlier').isVisible(), false);
+      assert.equal(
+        await page.locator('#assets button[aria-current=true]').getAttribute('data-id'),
+        'SP-CLIP-A'
+      );
       await page.unroute('**/api/events/SP-EVENT-S', expiryRoute);
       await page.locator('#return').click();
       await page.waitForFunction(

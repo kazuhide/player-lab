@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   archivePosition,
+  finalizedPosition,
   canReturnToUtc,
   sourceUtc,
   liveReturnOffset,
@@ -63,4 +64,21 @@ test('offer saved DVR return only within the published half-open live window', (
   for (const utc of [null, 199, 300]) assert.equal(canReturnToUtc(status, utc), false);
   assert.equal(canReturnToUtc({ ...status, status: 'ended' }, 201), false);
   assert.equal(canReturnToUtc({ ...status, seekableUtcStartMs: null }, 201), false);
+});
+
+test('finalized positions use the actual retained segments and reject gaps, EOF and unknown anchors', () => {
+  const segments = {
+    'video/mp4': {
+      0: [
+        { url: 'first', startTime: 0, duration: 2 },
+        { url: 'third', startTime: 4, duration: 2 }
+      ]
+    }
+  };
+  const anchor = { url: 'first', utcSeconds: 1700000000, playbackTime: 120 };
+  assert.equal(finalizedPosition(segments, anchor, 1700000004.5), 124.5);
+  for (const t of [1699999999, 1700000002, 1700000006])
+    assert.equal(finalizedPosition(segments, anchor, t), null);
+  assert.equal(finalizedPosition(segments, { ...anchor, url: 'foreign' }, 1700000001), null);
+  assert.equal(finalizedPosition(null, anchor, 1700000001), null);
 });

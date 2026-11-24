@@ -33,12 +33,17 @@ class LessonScreen(
     private var lessonKey: Pair<Catalog?, String?>? = null
     private var layoutState: Pair<Boolean, Boolean>? = null
     private var searching = false
-    private val wide = resources.configuration.screenWidthDp >= 760
+    private val wide = context.isTelevision || resources.configuration.screenWidthDp >= 760
 
     init {
         orientation = VERTICAL
         isFocusableInTouchMode = true
         requestFocus()
+        if (context.isTelevision) {
+            lessonTab.id = View.generateViewId()
+            transcriptTab.id = View.generateViewId()
+            lessonTab.nextFocusRightId = transcriptTab.id
+        }
         setPadding(context.dp(12), context.dp(8), context.dp(12), context.dp(8))
         modes.weighted(default); modes.weighted(learning)
         playerPane.addView(modes)
@@ -96,12 +101,13 @@ class LessonScreen(
         if (key != lessonKey) {
             lessonKey = key
             lessons.removeAllViews()
-            catalog?.course(session.courseId)?.lessonIds?.forEach { lessonId ->
+            catalog?.course(session.courseId)?.lessonIds?.forEachIndexed { index, lessonId ->
                 val item = catalog.lesson(lessonId)
                 lessons.addView(context.action("${item.localizedTitle(context)}\n${formatTime(item.durationMs)}") {
                     if (lessonId != session.activeItem?.lesson?.id) openLesson(lessonId)
                 }.apply {
                     styleSelection(this, lessonId == id)
+                    if (context.isTelevision && index == 0) nextFocusUpId = lessonTab.id
                     layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply { topMargin = context.dp(6) }
                 })
             }

@@ -231,7 +231,7 @@ function onEvent(type, event) {
   controls.paint();
   if (type === 'TimeChanged') {
     updateActiveCue();
-    if (Date.now() - lastSave >= 5000) save(document.hidden || !session.player.isPlaying());
+    if (Date.now() - lastSave >= 5000) save();
   }
   if (type === 'Seeked') updateActiveCue();
   if (type === 'Paused' || type === 'Seeked') save(type !== 'Seeked' || document.hidden);
@@ -243,7 +243,11 @@ function onEvent(type, event) {
   if (type === 'PlaybackFinished') {
     finished = true;
     try {
-      localStorage.removeItem(resumeKey(learner, lesson.id));
+      const key = resumeKey(learner, lesson.id);
+      if (localStorage.getItem(key) === storedCheckpoint) {
+        localStorage.removeItem(key);
+        storedCheckpoint = null;
+      }
     } catch {
       /* Storage unavailable. */
     }

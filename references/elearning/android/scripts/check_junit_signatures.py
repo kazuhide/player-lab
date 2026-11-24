@@ -10,13 +10,14 @@ import shutil
 import subprocess
 
 EXPECTED_TEST_COUNTS = {
-    "TelevisionRemoteTest": 1,
     "CoreLearningTest": 6,
+    "CourseSelectionTest": 1,
     "GuideScreenshotTest": 1,
     "MandatoryBehaviorTest": 6,
     "ProcessDeathCheckpointTest": 1,
     "ReviewRegressionTest": 7,
     "SharedCaptionTest": 2,
+    "TelevisionRemoteTest": 2,
     "UiOwnershipTest": 3,
 }
 

@@ -16,16 +16,27 @@ final class SportsSession: Playback {
     }
     @Published var autoContinue = false { didSet { maybeContinue() } }
     @Published var statusError = false
+    @Published private(set) var readinessRetriesExhausted = false
     @Published var notice: String?
     private(set) var handoffs = HandoffLedger()
     private var pendingHandoff: UUID?
+    private struct ArchiveSeek {
+        let target: Double
+        let issued: TimeInterval
+        var started = false
+    }
+    private var positioning: ArchiveSeek?
+    private var established = false
+    private let seekArchive: (Player, Double) -> Void
     private var observation: Task<Void, Never>?
     private var seekSubscriptions = Set<AnyCancellable>()
+    private var positionChanges: AnyCancellable?
 
     private func stopObservation() {
         seekSubscriptions.removeAll()
         observation?.cancel()
         observation = nil
+        positioning = nil
         pendingHandoff = nil
     }
 
@@ -55,12 +66,13 @@ final class SportsSession: Playback {
               let end = update?.seekableUtcEndMs, start <= end else { return false }
         return (start..<end).contains(utc)
     }
-    var statusPollingFinished: Bool { !statusError && update?.pollingFinished == true }
+    var statusPollingFinished: Bool { readinessRetriesExhausted || (!statusError && update?.pollingFinished == true) }
     var status: String? { update?.status ?? event?.status }
     var archiveReady: Bool { (update?.archiveStatus ?? event?.archiveStatus) == "ready" }
     var assets: [SportAsset] { catalog?.assets.filter { $0.eventId == event?.id } ?? [] }
 
-    override init() {
+    init(seekArchive: @escaping (Player, Double) -> Void = { $0.seek(time: $1) }) {
+        self.seekArchive = seekArchive
         super.init()
         replacePlayer()
     }
@@ -76,6 +88,7 @@ final class SportsSession: Playback {
 
     func chooseEvent(_ next: Event) {
         stopObservation()
+        positionChanges = nil
         resetSelection()
         player?.unload()
         generation = UUID()
@@ -85,16 +98,21 @@ final class SportsSession: Playback {
         archiveTargetID = next.archiveAssetId
         savedLive = nil
         currentRequest = nil
+        established = false
         returnToUTC = nil
         pendingSeek = nil
         notice = nil
         statusError = false
+        readinessRetriesExhausted = false
     }
 
     func poll(fetch: (String) async throws -> EventUpdate = { try await Media.fetch($0, as: EventUpdate.self) },
-              interval: UInt64 = 2_000_000_000) async {
+              interval: UInt64 = 2_000_000_000,
+              endedRetryDelays: [UInt64] = [2_000_000_000, 5_000_000_000, 10_000_000_000]) async {
         guard let event, let path = event.statusUrl else { return }
         let token = generation
+        readinessRetriesExhausted = false
+        var endedAttempt = 0
         while !Task.isCancelled && token == generation {
             do {
                 let fresh = try await fetch(path)
@@ -106,7 +124,16 @@ final class SportsSession: Playback {
                 maybeContinue()
                 if fresh.pollingFinished { return }
             } catch { if !Task.isCancelled && token == generation { statusError = true } }
-            do { try await Task.sleep(nanoseconds: interval) } catch { return }
+            var delay = interval
+            if status == "ended" {
+                guard endedAttempt < endedRetryDelays.count else {
+                    readinessRetriesExhausted = true
+                    return
+                }
+                delay = endedRetryDelays[endedAttempt]
+                endedAttempt += 1
+            }
+            do { try await Task.sleep(nanoseconds: delay) } catch { return }
         }
     }
 
@@ -116,6 +143,15 @@ final class SportsSession: Playback {
         return clock.read(absolute: player.currentTime(.absoluteTime), relative: player.currentTime(.relativeTime),
                           live: player.isLive, origin: origin, end: update?.presentationEndMs,
                           uptime: ProcessInfo.processInfo.systemUptime, speed: Double(player.playbackSpeed))
+    }
+
+    override func observe(_ player: Player) {
+        super.observe(player)
+        positionChanges = player.events.on(SeekedEvent.self).receive(on: DispatchQueue.main).sink { [weak self, weak player] _ in
+            guard let self, let player, self.established, self.ready, self.owns(player) else { return }
+            let seconds = player.currentTime(.relativeTime)
+            if seconds.isFinite, seconds >= 0 { self.position = seconds }
+        }
     }
 
     override func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
@@ -139,7 +175,7 @@ final class SportsSession: Playback {
 
     override func setBackgrounded(_ backgrounded: Bool) {
         super.setBackgrounded(backgrounded)
-        if backgrounded { stopObservation() } else { maybeContinue() }
+        if backgrounded { pendingHandoff = nil } else { maybeContinue() }
     }
 
     func continueAtViewedPosition() {
@@ -182,6 +218,7 @@ final class SportsSession: Playback {
         }
         resetSelection()
         currentRequest = request
+        established = false
         clock = PresentationClock()
         asset = next
         pendingSeek = request.seek
@@ -207,6 +244,7 @@ final class SportsSession: Playback {
     }
 
     override func prepared(_ player: Player) {
+        guard problem == nil else { return }
         if let target = returnToUTC {
             returnToUTC = nil
             guard player.isLive, let current = utc() else {
@@ -224,16 +262,15 @@ final class SportsSession: Playback {
         }
         if let seconds = pendingSeek {
             pendingSeek = nil
-            guard seconds >= 0, seconds < player.duration else {
-                notice = "This position is outside the archive."
-                player.pause()
+            guard seconds >= 0, seconds < player.duration, let source = activeSource else {
+                rejectPosition(player, mismatch: true)
                 return
             }
-            if let request = pendingHandoff, let source = activeSource, let asset {
-                observeHandoff(request, player: player, source: source, videoId: asset.videoId, target: seconds)
-            }
-            player.seek(time: seconds)
+            positionArchive(player, source: source, target: seconds)
+            return
         }
+        guard positioning == nil else { return }
+        established = true
         super.prepared(player)
         maybeContinue()
     }
@@ -244,51 +281,107 @@ final class SportsSession: Playback {
         return Int((time * 1000).rounded())
     }
 
-    private func observeHandoff(_ request: UUID, player: Player, source: Source, videoId: String, target: Double) {
+    private func positionArchive(_ player: Player, source: Source, target: Double) {
         let issued = ProcessInfo.processInfo.systemUptime
-        handoffs.seekIssued(request, uptime: issued)
-        var started = false
-        player.events.on(SeekEvent.self).receive(on: DispatchQueue.main).sink { [weak self, weak source] event in
-            guard let self, let source, self.pendingHandoff == request, self.activeSource === source else { return }
-            guard !started, event.to.source === source, abs(event.to.time - target) <= 0.001 else {
-                self.stopObservation()
-                return
-            }
-            started = true
+        positioning = ArchiveSeek(target: target, issued: issued)
+        if let request = pendingHandoff { handoffs.seekIssued(request, uptime: issued) }
+        player.events.on(SeekEvent.self).receive(on: DispatchQueue.main).sink { [weak self, weak player, weak source] event in
+            guard let self, let player, let source, self.owns(player), self.activeSource === source,
+                  event.to.source === source else { return }
+            self.archiveSeekStarted(event, player: player)
         }.store(in: &seekSubscriptions)
         player.events.on(SeekedEvent.self).receive(on: DispatchQueue.main).sink { [weak self, weak player, weak source] _ in
-            guard let self, let player, let source, self.pendingHandoff == request, self.owns(player),
-                  self.activeSource === source else { return }
-            guard started, self.handoffs.seekCompleted(request, videoId: videoId, positionMs: self.observedPosition(player),
-                                                      uptime: ProcessInfo.processInfo.systemUptime) else {
-                self.stopObservation()
-                return
-            }
+            guard let self, let player, let source, self.activeSource === source, self.owns(player) else { return }
+            self.archiveSeekCompleted(player, seconds: player.currentTime(.relativeTime))
         }.store(in: &seekSubscriptions)
         observation = Task { [weak self, weak source] in
             while !Task.isCancelled {
-                guard let self, let source, self.pendingHandoff == request, self.activeSource === source,
-                      let player = self.player, self.ready, player.source === source else { return }
+                guard let self, let source, self.activeSource === source, let player = self.player,
+                      self.ready, player.source === source else { return }
                 let now = ProcessInfo.processInfo.systemUptime
-                if self.isBackgrounded || !self.onLocalRoute || now - issued > HandoffLedger.confirmationWindow ||
-                    self.desiredPlayback != self.currentRequest?.play {
-                    self.stopObservation()
+                if now - issued > HandoffLedger.confirmationWindow {
+                    if self.positioning != nil { self.rejectPosition(player, mismatch: false) }
+                    else { self.stopObservation() }
                     return
                 }
-                if self.handoffs.observe(request, videoId: videoId, positionMs: self.observedPosition(player),
-                                         isPlaying: player.isPlaying, isPaused: player.isPaused,
-                                         readyStopped: !self.desiredPlayback && !player.isPlaying,
-                                         uptime: now) {
-                    self.stopObservation()
-                    return
+                if self.positioning == nil {
+                    guard let request = self.pendingHandoff, let asset = self.asset, self.onLocalRoute,
+                          !self.isBackgrounded, self.desiredPlayback == self.currentRequest?.play else {
+                        self.stopObservation()
+                        return
+                    }
+                    if self.handoffs.observe(request, videoId: asset.videoId, positionMs: self.observedPosition(player),
+                                             isPlaying: player.isPlaying, isPaused: player.isPaused,
+                                             readyStopped: !self.desiredPlayback && !player.isPlaying, uptime: now) {
+                        self.stopObservation()
+                        return
+                    }
                 }
                 do { try await Task.sleep(nanoseconds: 200_000_000) } catch { return }
             }
         }
+        seekArchive(player, target)
+    }
+
+    func archiveSeekStarted(_ event: SeekEvent, player: Player) {
+        guard owns(player), event.to.source === activeSource else { return }
+        guard let attempt = positioning else { stopObservation(); return }
+        guard !attempt.started, abs(event.to.time - attempt.target) <= 0.001 else {
+            rejectPosition(player, mismatch: true)
+            return
+        }
+        positioning?.started = true
+    }
+
+    func archiveSeekCompleted(_ player: Player, seconds: Double) {
+        guard owns(player), let attempt = positioning else { return }
+        let now = ProcessInfo.processInfo.systemUptime
+        guard now - attempt.issued <= HandoffLedger.confirmationWindow else {
+            rejectPosition(player, mismatch: false)
+            return
+        }
+        guard attempt.started, seconds.isFinite, seconds >= 0, abs(seconds - attempt.target) <= 1 else {
+            rejectPosition(player, mismatch: true)
+            return
+        }
+        if let request = pendingHandoff, let asset, onLocalRoute {
+            _ = handoffs.seekCompleted(request, videoId: asset.videoId, positionMs: observedPosition(player), uptime: now)
+        } else { pendingHandoff = nil }
+        positioning = nil
+        position = seconds
+        established = true
+        super.prepared(player)
+    }
+
+    private func rejectPosition(_ player: Player, mismatch: Bool) {
+        if mismatch, let request = pendingHandoff { handoffs.fail(request, reason: .position) }
+        stopObservation()
+        player.pause()
+        super.failed("The viewed position is unavailable in this archive.")
+    }
+
+    override func onPlaying(_ event: PlayingEvent, player: Player) {
+        guard owns(player) else { return }
+        if problem != nil || (!established && currentRequest?.seek != nil) {
+            player.pause()
+            return
+        }
+        super.onPlaying(event, player: player)
+    }
+
+    override func onPaused(_ event: PausedEvent, player: Player) {
+        guard established else { return }
+        super.onPaused(event, player: player)
     }
 
     override func failed(_ reason: String) {
+        if established, let request = currentRequest, request.asset.kind == "archive" {
+            let seconds = position ?? request.seek
+            currentRequest = OpenRequest(asset: request.asset, seek: seconds, play: desiredPlayback,
+                                         restoreUTC: nil, archiveHandoff: false)
+        }
         if let request = pendingHandoff { handoffs.fail(request) }
+        established = false
         stopObservation()
         super.failed(reason)
     }

@@ -18,6 +18,7 @@
 "Use embedded HLS subtitles" = "Use embedded HLS subtitles";
 "Saved at %@" = "Saved at %@";
 "Continue this lesson?" = "Continue this lesson?";
+"Could not reach the requested lesson position." = "Could not reach the requested lesson position.";
 "Start over" = "Start over";
 "Resume" = "Resume";
 "Back to course" = "Back to course";

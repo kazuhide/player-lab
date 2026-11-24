@@ -27,10 +27,10 @@ test('paused archive observation needs matching source, position and state', () 
 test('playing confirmation needs a second advancing observation from same source', () => {
   const ledger = new HandoffLedger();
   const ticket = ledger.begin('event', 'archive', 22000, true);
-  assert.equal(ledger.observe(ticket, 'archive', 22000, true, false), false);
+  assert.equal(ledger.observe(ticket, 'archive', 22000, true, false, 1000), false);
   assert.equal(ledger.observe(ticket, 'wrong', 22100, true, false), false);
-  assert.equal(ledger.observe(ticket, 'archive', 22000, true, false), false);
-  assert.equal(ledger.observe(ticket, 'archive', 23100, true, false), true);
+  assert.equal(ledger.observe(ticket, 'archive', 22000, true, false, 1000), false);
+  assert.equal(ledger.observe(ticket, 'archive', 23100, true, false, 2150), true);
   assert.equal(ticket.row.confirmed.positionMs, 22000);
   assert.equal(ticket.row.confirmed.positionAdvanced, true);
 });
@@ -46,4 +46,20 @@ test('bounded local export preserves unknown and failed receipts', () => {
   assert.equal(data.records.at(-1).confirmed, null);
   assert.equal(data.records.at(-1).failure, 'load-failed');
   assert.ok(data.records.every((r) => r.receiverQoe === null));
+});
+
+test('clock jumps and late reads retire a playing receipt without confirmation', () => {
+  for (const [time, position, speed] of [
+    [1300, 46000, 1],
+    [9100, 31100, 1],
+    [950, 30110, 1],
+    [1250, 30500, 2]
+  ]) {
+    const ledger = new HandoffLedger();
+    const t = ledger.begin('e', 'archive', 30000, true);
+    assert.equal(ledger.observe(t, 'archive', 30000, true, false, 1000, 1), false);
+    assert.equal(ledger.observe(t, 'archive', position, true, false, time, speed), false);
+    assert.equal(ledger.observe(t, 'archive', 30100, true, false, 1600, 1), false);
+    assert.equal(t.row.confirmed, null);
+  }
 });

@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 import BitmovinPlayer
 #if os(iOS)
 @testable import Learning_iOS
@@ -129,6 +130,157 @@ final class PlayerTests: XCTestCase {
         try await waitFor("Seeking the replayed summary should save its new position") {
             abs((session.saved(lesson)?.seconds ?? -1) - 3) < 0.1
         }
+    }
+
+    func testRetryPreservesStartOverAndZeroWithoutRestoringOldPreferences() async throws {
+        let session = LearningSession()
+        let player = try XCTUnwrap(session.player)
+        await session.fetchCatalog()
+        let lesson = try XCTUnwrap(session.lessons.first)
+        let key = Progress.key(learner: "A", lesson: lesson.id)
+        let previous = UserDefaults.standard.data(forKey: key)
+        defer {
+            session.closeLesson()
+            player.destroy()
+            UserDefaults.standard.set(previous, forKey: key)
+        }
+        for savedPosition in [15.0, 0.0] {
+            session.closeLesson()
+            let old = Progress(seconds: savedPosition, speed: 0.5, language: "ja", standard: true)
+            UserDefaults.standard.set(try JSONEncoder().encode(old), forKey: key)
+            session.standardControls = false
+            session.captionLanguage = ""
+            session.speed = 1.5
+            session.open(lesson, resume: false)
+            session.failed("Fixture failure before Ready")
+            session.retry()
+            try await waitFor("Start over must retry from the beginning") { session.playing }
+            XCTAssertFalse(session.invalidResume)
+            XCTAssertLessThan(player.currentTime, 5)
+            XCTAssertEqual(session.speed, 1.5)
+            XCTAssertFalse(session.standardControls)
+            XCTAssertEqual(session.captionLanguage, "")
+        }
+    }
+
+    func testRetryOfEstablishedLessonUsesLatestPositionPreferencesAndPause() async throws {
+        let session = LearningSession()
+        let player = try XCTUnwrap(session.player)
+        await session.fetchCatalog()
+        let lesson = try XCTUnwrap(session.lessons.first)
+        let key = Progress.key(learner: "A", lesson: lesson.id)
+        let previous = UserDefaults.standard.data(forKey: key)
+        defer {
+            session.closeLesson()
+            player.destroy()
+            UserDefaults.standard.set(previous, forKey: key)
+        }
+        session.open(lesson, resume: false)
+        try await waitFor("Initial lesson playback") { session.playing }
+        session.standardControls = false
+        session.setCaptions("")
+        session.setSpeed(1.5)
+        player.pause()
+        try await waitFor("Lesson paused") { !session.playing }
+        player.seek(time: 12)
+        try await waitFor("Current source observed a paused 12-second seek") { abs((session.position ?? 0) - 12) < 0.5 }
+        session.failed("Fixture later source failure")
+        session.retry()
+        try await waitFor("Retry must restore the current paused lesson") {
+            session.ready && !player.isPlaying && abs(player.currentTime - 12) < 0.5
+        }
+        XCTAssertEqual(session.speed, 1.5)
+        XCTAssertFalse(session.standardControls)
+        XCTAssertEqual(session.captionLanguage, "")
+    }
+
+    func testNewSeekDuringResumeSavesItsActualLanding() async throws {
+        // Model a transcript seek superseding the 12-second request before it completes.
+        let session = LearningSession(seekResume: { player, _ in player.seek(time: 20) })
+        let player = try XCTUnwrap(session.player)
+        await session.fetchCatalog()
+        let lesson = try XCTUnwrap(session.lessons.first)
+        let key = Progress.key(learner: "A", lesson: lesson.id)
+        let previous = UserDefaults.standard.data(forKey: key)
+        defer {
+            session.closeLesson()
+            player.destroy()
+            UserDefaults.standard.set(previous, forKey: key)
+        }
+        let old = Progress(seconds: 12, speed: 1, language: "", standard: false)
+        UserDefaults.standard.set(try JSONEncoder().encode(old), forKey: key)
+        session.open(lesson, resume: true)
+        try await waitFor("The superseding native seek should permit playback and checkpointing at 20 seconds") {
+            session.playing && (session.saved(lesson)?.seconds ?? 0) >= 19
+        }
+        player.pause()
+        try await waitFor("Pause must finish at the new cue") { !session.playing }
+        session.closeLesson()
+        XCTAssertGreaterThanOrEqual(try XCTUnwrap(session.saved(lesson)?.seconds), 19)
+    }
+
+    func testUnacknowledgedResumeStopsAndCanRetryItsOriginalCheckpoint() async throws {
+        var allowSeek = false
+        let session = LearningSession(seekResume: { player, seconds in
+            if allowSeek { player.seek(time: seconds) }
+        })
+        let player = try XCTUnwrap(session.player)
+        await session.fetchCatalog()
+        let lesson = try XCTUnwrap(session.lessons.first)
+        let key = Progress.key(learner: "A", lesson: lesson.id)
+        let previous = UserDefaults.standard.data(forKey: key)
+        defer {
+            session.closeLesson()
+            player.destroy()
+            UserDefaults.standard.set(previous, forKey: key)
+        }
+        let checkpoint = Progress(seconds: 12, speed: 1.5, language: "", standard: false)
+        UserDefaults.standard.set(try JSONEncoder().encode(checkpoint), forKey: key)
+        session.open(lesson, resume: true)
+        try await waitFor("Resume must report an unacknowledged seek") { session.problem != nil }
+        XCTAssertFalse(player.isPlaying)
+        XCTAssertEqual(session.saved(lesson)?.seconds, 12)
+        allowSeek = true
+        session.retry()
+        try await waitFor("Retry must reach the original resume checkpoint") {
+            session.playing && abs(player.currentTime - 12) < 1
+        }
+        XCTAssertEqual(session.speed, 1.5)
+        XCTAssertFalse(session.standardControls)
+    }
+
+    func testClosingAtNativeZeroBeforeQueuedSeekedSavesRealRewind() async throws {
+        let session = LearningSession()
+        let player = try XCTUnwrap(session.player)
+        await session.fetchCatalog()
+        let lesson = try XCTUnwrap(session.lessons.first)
+        let key = Progress.key(learner: "A", lesson: lesson.id)
+        let previous = UserDefaults.standard.data(forKey: key)
+        defer {
+            session.closeLesson()
+            player.destroy()
+            UserDefaults.standard.set(previous, forKey: key)
+        }
+        let old = Progress(seconds: 12, speed: 1, language: "", standard: false)
+        UserDefaults.standard.set(try JSONEncoder().encode(old), forKey: key)
+        var closing = false
+        // The SDK emits on the main thread; the session dispatches its handler
+        // asynchronously. Close synchronously between those two steps.
+        let event = player.events.on(SeekedEvent.self).sink { _ in
+            guard closing, player.currentTime == 0 else { return }
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertGreaterThan(session.saved(lesson)?.seconds ?? 0, 0)
+            session.closeLesson()
+        }
+        defer { event.cancel() }
+        session.open(lesson, resume: true)
+        try await waitFor("Established positive source position") { session.playing && (session.position ?? 0) >= 11 }
+        player.pause()
+        try await waitFor("Pause before rewind") { !session.playing }
+        closing = true
+        player.seek(time: 0)
+        try await waitFor("Back must close the lesson") { session.lesson == nil }
+        XCTAssertEqual(session.saved(lesson)?.seconds, 0)
     }
 
     func testCourseSelectionBelongsToEachLearner() async throws {

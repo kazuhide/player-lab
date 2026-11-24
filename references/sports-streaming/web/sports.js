@@ -121,3 +121,35 @@ export function canReturnToUtc(status, utc) {
     utc < status.seekableUtcEndMs
   );
 }
+
+// SDK manifest segment times start at the retained window. The decoded
+// segment identifies the corresponding position on the SDK seek timeline.
+export function finalizedPosition(segments, anchor, utcSeconds) {
+  if (
+    !segments ||
+    typeof anchor?.url !== 'string' ||
+    !anchor.url ||
+    ![anchor.utcSeconds, anchor.playbackTime, utcSeconds].every(Number.isFinite)
+  )
+    return null;
+  const position = anchor.playbackTime + (utcSeconds - anchor.utcSeconds);
+  for (const [type, representations] of Object.entries(segments)) {
+    if (!type.startsWith('video/')) continue;
+    for (const parts of Object.values(representations)) {
+      const current = parts.find((part) => part.url === anchor.url);
+      if (!current || !Number.isFinite(current.startTime)) continue;
+      const target = current.startTime + (utcSeconds - anchor.utcSeconds);
+      if (
+        parts.some(
+          (part) =>
+            Number.isFinite(part.startTime) &&
+            Number.isFinite(part.duration) &&
+            target >= part.startTime &&
+            target < part.startTime + part.duration
+        )
+      )
+        return position;
+    }
+  }
+  return null;
+}

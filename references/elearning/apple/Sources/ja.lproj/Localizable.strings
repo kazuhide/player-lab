@@ -18,6 +18,7 @@
 "Use embedded HLS subtitles" = "HLS に登録した字幕を使う";
 "Saved at %@" = "再開位置 %@";
 "Continue this lesson?" = "続きから再生しますか？";
+"Could not reach the requested lesson position." = "指定した位置に移動できませんでした。";
 "Start over" = "最初から再生";
 "Resume" = "続きから再生";
 "Back to course" = "教材一覧に戻る";

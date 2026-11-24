@@ -1,3 +1,4 @@
+import { finalizedPosition } from './sports.js';
 import { DashClock } from './dash-clock.js';
 import { locale, titleOf } from './i18n.js';
 import { UI_JA } from './ui-ja.js';
@@ -51,6 +52,7 @@ export class Session {
     this.host.replaceChildren(mount);
     const clock = asset.kind === 'live' && format === 'dash' ? new DashClock(asset.utcStartMs) : null;
     this.dashClock = clock;
+    this.finalizedAnchor = null;
     const player = (this.player = new Player(mount, {
       key,
       ui: false,
@@ -68,7 +70,18 @@ export class Session {
       playback: { autoplay: false },
       adaptation: { preload: true }
     }));
-    if (clock) player.on(PlayerEvent.SegmentPlayback, (event) => clock.observe(event));
+    if (asset.kind === 'live')
+      player.on(PlayerEvent.SegmentPlayback, (event) => {
+        if (this.player !== player || !event.mimeType?.startsWith('video/')) return;
+        clock?.observe(event);
+        if (!player.isLive()) {
+          const utcSeconds = clock ? clock.utc(event.playbackTime) : Date.parse(event.dateTime) / 1000;
+          this.finalizedAnchor =
+            Number.isFinite(utcSeconds) && Number.isFinite(event.playbackTime)
+              ? { utcSeconds, playbackTime: event.playbackTime, url: event.url }
+              : null;
+        }
+      });
     const record = (type, code) => recordEvent(asset.id, type, code);
     record('Load');
     this.ui = UIFactory.buildUI(player, {
@@ -83,6 +96,11 @@ export class Session {
       'Paused',
       'TimeChanged',
       'PlaybackFinished',
+      'Seek',
+      'TimeShift',
+      'CastStart',
+      'CastStarted',
+      'AirplayChanged',
       'Seeked',
       'TimeShifted',
       'SubtitleAdded',
@@ -121,7 +139,12 @@ export class Session {
   }
   utcSeconds() {
     const seconds = this.player.getCurrentTime('absolutetime');
+    if (this.finalizedAnchor && !this.player.isLive())
+      return this.finalizedAnchor.utcSeconds + (seconds - this.finalizedAnchor.playbackTime);
     return this.dashClock ? this.dashClock.utc(seconds) : seconds;
+  }
+  finalizedPosition(utcSeconds) {
+    return finalizedPosition(this.player.getAvailableSegments(), this.finalizedAnchor, utcSeconds);
   }
   setCaption(language) {
     const player = this.player;

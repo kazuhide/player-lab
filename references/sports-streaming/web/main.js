@@ -49,14 +49,33 @@ let interactive = false,
 function seek(target) {
   const p = session.player;
   if (!interactive || !p) return;
+  if (pendingHandoff?.observing) pendingHandoff = null;
   if (p.isLive()) p.timeShift(Math.max(p.getMaxTimeShift(), Math.min(0, target)), 'reference');
   else {
     const r = p.getSeekableRange();
     if (r.end > r.start) p.seek(Math.max(r.start, Math.min(r.end - 0.05, target)), 'reference');
   }
 }
+function intendsPlay() {
+  const video = session.host.querySelector('video');
+  return video ? !video.paused : session.player.isPlaying();
+}
 function liveUtc() {
   return interactive && session.ready ? sourceUtc(asset, session.utcSeconds()) : null;
+}
+function checkpoint(type) {
+  if (!['TimeChanged', 'Seeked', 'Playing', 'Paused'].includes(type)) return;
+  if (pendingHandoff?.observing) return;
+  const player = session.player;
+  if (player.getSource()?.metadata?.videoId !== asset.videoId) return;
+  const play = type === 'Playing' ? true : type === 'Paused' ? false : (intent?.play ?? player.isPlaying());
+  const utc = asset.kind === 'live' ? liveUtc() : null;
+  if (utc !== null) intent = { utc, play };
+  else if (asset.kind !== 'live') {
+    const seconds = player.getCurrentTime('relativetime');
+    if (Number.isFinite(seconds) && seconds >= 0 && seconds < player.getDuration())
+      intent = { seconds, play };
+  }
 }
 function onEvent(type, eventInfo) {
   if (type === 'Error') {
@@ -79,7 +98,15 @@ function onEvent(type, eventInfo) {
   if (type === 'PlaybackSpeedChanged') controls.reflectSpeed();
   controls.paint();
   if (interactive) {
+    if (
+      pendingHandoff?.observing &&
+      (['Seek', 'TimeShift', 'CastStart', 'CastStarted', 'AirplayChanged'].includes(type) ||
+        session.player.isCasting() ||
+        session.player.isAirplayActive())
+    )
+      pendingHandoff = null;
     observeHandoff();
+    checkpoint(type);
     actions();
     if (type === 'PlaybackFinished' && asset.kind === 'clip' && status?.status === 'live')
       el('return').click();
@@ -138,6 +165,7 @@ async function poll() {
       (update.status === 'ended' && !['ready', 'failed'].includes(update.archiveStatus) && ++waiting < 12)
     )
       timer = setTimeout(poll, 5000);
+    return update;
   } catch {
     if (token !== statusRequest) return;
     status = null;
@@ -179,7 +207,7 @@ async function open(item, options = {}) {
   const token = ++generation;
   if (asset?.kind === 'live' && item.kind === 'clip') {
     savedUtc = liveUtc();
-    savedPlay = interactive && !session.player.isPaused();
+    savedPlay = interactive && intendsPlay();
   }
   autoClaimed = false;
   interactive = false;
@@ -210,8 +238,12 @@ async function open(item, options = {}) {
       if (token !== generation) return;
       let offset = null;
       const inPublisherWindow = canReturnToUtc(latest, options.utc);
-      if (p.isLive() && inPublisherWindow) {
-        offset = await decodedReturnOffset(p, seconds);
+      const live = p.isLive();
+      if (
+        (live && inPublisherWindow) ||
+        (!live && latest.status === 'ended' && sourceUtc(item, seconds) !== null)
+      ) {
+        offset = await decodedReturnPosition(p, seconds, live);
         if (token !== generation) return;
       }
       if (offset === null) {
@@ -226,7 +258,10 @@ async function open(item, options = {}) {
         );
         return;
       }
-      if (!(await timeShiftTo(p, seconds, offset))) throw Error();
+      const positioned = live ? await timeShiftTo(p, seconds, offset) : await session.seekTo(offset);
+      if (token !== generation) return;
+      const observed = session.utcSeconds();
+      if (!positioned || !Number.isFinite(observed) || Math.abs(observed - seconds) > 1.5) throw Error();
     } else if (options.seconds != null && !(await session.seekTo(options.seconds))) {
       ledger.fail(ticket, 'position-mismatch');
       throw Error();
@@ -237,12 +272,15 @@ async function open(item, options = {}) {
     controls.enable(true);
     actions();
     message(
-      options.unknownPosition
-        ? 'The previous position is unavailable. Choose Play to watch this video.'
-        : ''
+      options.completed
+        ? 'This video has finished. Choose Play to replay it.'
+        : options.unknownPosition
+          ? 'The previous position is unavailable. Choose Play to watch this video.'
+          : ''
     );
     if (pendingHandoff?.ticket === ticket && ticket) {
       pendingHandoff.observing = true;
+      pendingHandoff.deadline = performance.now() + 5000;
       observeHandoff();
       for (const delay of [250, 750, 1500, 3000]) {
         setTimeout(() => {
@@ -268,7 +306,11 @@ async function open(item, options = {}) {
     );
   }
 }
-async function decodedReturnOffset(player, target) {
+async function decodedReturnPosition(player, target, live) {
+  const readPosition = () =>
+    live
+      ? liveReturnOffset(target, session.utcSeconds(), player.getTimeShift(), player.getMaxTimeShift())
+      : session.finalizedPosition(target);
   // On MSE the initial live clock can point at the first available segment
   // until the first frame decodes, with no seekable range yet. Decode muted
   // behind the loading state before computing a fresh live-edge offset.
@@ -285,7 +327,7 @@ async function decodedReturnOffset(player, target) {
     // previous player by a fraction of one segment.
     while (session.player === player && performance.now() < deadline) {
       const current = session.utcSeconds();
-      const offset = liveReturnOffset(target, current, player.getTimeShift(), player.getMaxTimeShift());
+      const offset = readPosition();
       if (
         video &&
         video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
@@ -294,12 +336,7 @@ async function decodedReturnOffset(player, target) {
         offset !== null
       ) {
         player.pause('positioning');
-        return liveReturnOffset(
-          target,
-          session.utcSeconds(),
-          player.getTimeShift(),
-          player.getMaxTimeShift()
-        );
+        return readPosition();
       }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -334,17 +371,19 @@ function timeShiftTo(player, utcSeconds, offset) {
 function observeHandoff() {
   const pending = pendingHandoff,
     player = session.player;
-  if (
-    !pending?.observing ||
-    pending.token !== generation ||
-    !interactive ||
-    !session.ready ||
-    !player ||
-    player.isCasting() ||
-    player.isAirplayActive()
-  )
+  if (!pending?.observing || pending.token !== generation || !interactive || !session.ready || !player)
     return;
+  const now = performance.now();
+  if (now > pending.deadline || pending.ticket.retired || player.isCasting() || player.isAirplayActive()) {
+    pendingHandoff = null;
+    return;
+  }
   const video = session.host.querySelector('video');
+  if (video?.seeking) {
+    // SDK Seeked can precede decoding the initial handoff frame.
+    if (pending.ticket.first !== null) pendingHandoff = null;
+    return;
+  }
   if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
   const seconds = player.getCurrentTime('relativetime');
   if (!Number.isFinite(seconds) || seconds < 0) return;
@@ -355,11 +394,14 @@ function observeHandoff() {
       player.getSource()?.metadata?.videoId,
       positionMs,
       player.isPlaying(),
-      video.paused
+      video.paused,
+      now,
+      player.getPlaybackSpeed()
     )
   ) {
     recordEvent(asset.id, 'HandoffConfirmed');
     pendingHandoff = null;
+    intent = { seconds, play: pending.ticket.row.requested.playWhenReady };
   }
 }
 el('export').onclick = () => {
@@ -384,7 +426,7 @@ function handoff(target) {
     message(t(position.reason) + ' · ' + t('Select the archive under Watch to start from its beginning.'));
     return;
   }
-  void open(target, { seconds: position.seconds, play: !session.player.isPaused(), handoff: true });
+  void open(target, { seconds: position.seconds, play: intendsPlay(), handoff: true });
 }
 function maybeContinue() {
   if (
@@ -431,23 +473,18 @@ el('earlier').onclick = async () => {
   if (!interactive || asset?.kind !== 'clip' || !canReturnToUtc(status, savedUtc)) return;
   const token = generation,
     selectedEvent = event;
-  try {
-    const latest = validateStatus(await jsonAt(selectedEvent.statusUrl, base), selectedEvent);
-    if (token !== generation) return;
-    applyStatus(latest);
-    if (!canReturnToUtc(latest, savedUtc)) {
-      el('earlier').hidden = true;
-      savedUtc = null;
-      message('The saved DVR position has expired. You can keep watching this clip.');
-      return;
-    }
-    void open(
-      catalog.assets.find((a) => a.id === selectedEvent.liveAssetId),
-      { utc: savedUtc, play: savedPlay }
-    );
-  } catch {
-    if (token === generation) message('Event status unavailable. Refresh to retry.');
+  const latest = await poll();
+  if (token !== generation || !latest || latest !== status) return;
+  if (!canReturnToUtc(latest, savedUtc)) {
+    savedUtc = null;
+    actions();
+    message('The saved DVR position has expired. You can keep watching this clip.');
+    return;
   }
+  void open(
+    catalog.assets.find((a) => a.id === selectedEvent.liveAssetId),
+    { utc: savedUtc, play: savedPlay }
+  );
 };
 el('edge').onclick = () => {
   seek(0);
@@ -471,12 +508,17 @@ el('format').onchange = () => {
     return;
   }
   const video = session.host.querySelector('video');
-  const play = video ? !video.paused : player.isPlaying();
+  const play = intendsPlay();
   if (asset.kind === 'live') {
     const utc = liveUtc();
     void open(asset, utc === null ? { unknownPosition: true, play: false } : { utc, play });
   } else {
     const seconds = player.getCurrentTime('relativetime');
+    const range = player.getSeekableRange();
+    if (video?.ended || (range.end > range.start && seconds >= range.end)) {
+      void open(asset, { completed: true, play: false });
+      return;
+    }
     void open(
       asset,
       Number.isFinite(seconds) && seconds >= 0 ? { seconds, play } : { unknownPosition: true, play: false }

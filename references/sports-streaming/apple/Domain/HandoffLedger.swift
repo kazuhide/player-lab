@@ -9,6 +9,8 @@ struct HandoffLedger {
         let positionMs: Int
         let uptime: TimeInterval
     }
+    enum Failure: String { case load = "load-failed", position = "position-mismatch" }
+
     private struct Record {
         let id: UUID
         let at: Date
@@ -19,7 +21,7 @@ struct HandoffLedger {
         var seekIssuedAt: TimeInterval?
         var landing: Observation?
         var confirmedMs: Int?
-        var failed = false
+        var failure: Failure?
     }
 
     private var records: [Record] = []
@@ -33,9 +35,9 @@ struct HandoffLedger {
         return id
     }
 
-    mutating func fail(_ id: UUID) {
+    mutating func fail(_ id: UUID, reason: Failure = .load) {
         guard let index = records.firstIndex(where: { $0.id == id }), records[index].confirmedMs == nil else { return }
-        records[index].failed = true
+        records[index].failure = reason
     }
 
     mutating func seekIssued(_ id: UUID, uptime: TimeInterval) {
@@ -46,7 +48,7 @@ struct HandoffLedger {
     mutating func seekCompleted(_ id: UUID, videoId: String, positionMs: Int?, uptime: TimeInterval) -> Bool {
         guard let index = records.firstIndex(where: { $0.id == id }) else { return false }
         let record = records[index]
-        guard !record.failed, record.videoId == videoId, let issued = record.seekIssuedAt else { return false }
+        guard record.failure == nil, record.videoId == videoId, let issued = record.seekIssuedAt else { return false }
         // Consume the single completion even when the SDK landed short. Later
         // playback or another seek cannot establish where this request landed.
         records[index].seekIssuedAt = nil
@@ -61,7 +63,7 @@ struct HandoffLedger {
                           isPaused: Bool, readyStopped: Bool, uptime: TimeInterval) -> Bool {
         guard let index = records.firstIndex(where: { $0.id == id }) else { return false }
         let record = records[index]
-        guard !record.failed, videoId == record.videoId, let landing = record.landing,
+        guard record.failure == nil, videoId == record.videoId, let landing = record.landing,
               let positionMs, positionMs >= 0 else { return false }
         if record.confirmedMs != nil { return true }
         let elapsed = uptime - landing.uptime
@@ -89,7 +91,7 @@ struct HandoffLedger {
             }
             return ["requestId": record.id.uuidString, "requestedAt": dates.string(from: record.at),
                     "eventId": record.eventId, "transition": "live-to-archive", "requested": requested,
-                    "confirmed": confirmed as Any, "failure": (record.failed ? "load-failed" : nil) as Any,
+                    "confirmed": confirmed as Any, "failure": record.failure?.rawValue as Any,
                     "receiverQoe": NSNull()]
         }
         let start = records.map(\.at).min() ?? now
