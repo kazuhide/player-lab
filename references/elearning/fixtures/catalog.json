@@ -20,7 +20,7 @@
       "titleJa": "数直線の基本",
       "durationMs": 180000,
       "streams": {
-        "hls": "EDU-FX-01/hls/media.m3u8",
+        "hls": "EDU-FX-01/hls/external.m3u8",
         "dash": "EDU-FX-01/dash/manifest.mpd",
         "hlsWithSubtitles": "EDU-FX-01/hls/master.m3u8"
       },
@@ -52,7 +52,7 @@
       "titleJa": "数直線の練習",
       "durationMs": 780000,
       "streams": {
-        "hls": "EDU-FX-02/hls/media.m3u8",
+        "hls": "EDU-FX-02/hls/external.m3u8",
         "dash": "EDU-FX-02/dash/manifest.mpd",
         "hlsWithSubtitles": "EDU-FX-02/hls/master.m3u8"
       },
@@ -89,7 +89,7 @@
       "titleJa": "まとめ",
       "durationMs": 8000,
       "streams": {
-        "hls": "EDU-FX-03/hls/media.m3u8",
+        "hls": "EDU-FX-03/hls/external.m3u8",
         "dash": "EDU-FX-03/dash/manifest.mpd",
         "hlsWithSubtitles": "EDU-FX-03/hls/master.m3u8"
       },

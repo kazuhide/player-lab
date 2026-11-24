@@ -119,6 +119,16 @@ class HttpPublicationTests(unittest.TestCase):
         finally:
             connection.close()
 
+    def test_external_caption_variant_has_no_inband_or_manifest_captions(self):
+        status, _, body = self.get('/LIVE/hls/external.m3u8')
+        self.assertEqual(status, 200)
+        self.assertIn(b'CLOSED-CAPTIONS=NONE', body)
+        self.assertNotIn(b'TYPE=SUBTITLES', body)
+        self.assertTrue(body.endswith(b'media.m3u8\n'))
+        embedded = media.hls_master(['en', 'ja'])
+        self.assertIn('CLOSED-CAPTIONS=NONE', embedded)
+        self.assertEqual(embedded.count('TYPE=SUBTITLES'), 2)
+
     def test_live_mpegts_segment_uses_transport_stream_mime_type(self):
         hls = self.folder / 'hls'
         (hls / 'media.m3u8').write_text('#EXTM3U\n#EXTINF:2,\nseg-00000.ts\n')

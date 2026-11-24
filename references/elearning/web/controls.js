@@ -20,6 +20,7 @@ export function mountControls(session, preferences, move, seekBar, range) {
     const p = session.player;
     if (!session.ready || !p) return;
     el('play').textContent = p.isPlaying() ? t('Pause') : t('Play');
+    el('pip').hidden = !p.isViewModeAvailable('pictureinpicture');
     el('airplay').hidden = !p.isAirplayAvailable();
     const bounds = range(p);
     el('seek').disabled = !bounds || !(bounds.end > bounds.start);
@@ -54,6 +55,11 @@ export function mountControls(session, preferences, move, seekBar, range) {
   el('fullscreen').onclick = () => {
     if (document.fullscreenElement) void document.exitFullscreen();
     else void el('stage').requestFullscreen();
+  };
+  el('pip').onclick = () => {
+    const player = session.player;
+    if (player)
+      player.setViewMode(player.getViewMode() === 'pictureinpicture' ? 'inline' : 'pictureinpicture');
   };
   el('airplay').onclick = () => session.player?.showAirplayTargetPicker();
   el('play').onclick = () =>

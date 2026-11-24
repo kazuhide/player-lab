@@ -23,10 +23,13 @@ final class CatalogTests: XCTestCase {
         XCTAssertTrue(asset.waitForExistence(timeout: 15))
         try XCTSkipUnless(asset.isEnabled, "Configure the reference Player license to run playback.")
         activate(asset, in: app)
-        if app.alerts.firstMatch.exists { activate(app.buttons["Start over"], in: app) }
+        if app.alerts.firstMatch.exists { activate(app.alerts.buttons["Start over"].firstMatch, in: app) }
         let controls = app.buttons["Learning controls"]
-        XCTAssertTrue(controls.waitForExistence(timeout: 10))
-        activate(controls, in: app)
+        let standard = app.buttons["Standard controls"]
+        if !standard.exists {
+            XCTAssertTrue(controls.waitForExistence(timeout: 10))
+            activate(controls, in: app)
+        }
         let pause = app.buttons["Pause"].firstMatch
         XCTAssertTrue(pause.waitForExistence(timeout: 20), "The fixture should enter playback")
         activate(pause, in: app)
@@ -36,7 +39,7 @@ final class CatalogTests: XCTestCase {
     private func activate(_ target: XCUIElement, in app: XCUIApplication) {
         #if os(tvOS)
         for _ in 0..<20 {
-            if target.hasFocus {
+            if target.hasFocus || target.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).count > 0 {
                 XCUIRemote.shared.press(.select)
                 return
             }

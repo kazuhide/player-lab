@@ -1,11 +1,14 @@
 import { t, titleOf } from './i18n.js';
 import './style.css';
+import { HandoffLedger } from './handoffs.js';
 import { button, jsonAt } from './media.js';
-import { Session } from './session.js';
+import { recordEvent, Session } from './session.js';
 import { el, message, mountControls } from './controls.js';
-import { archivePosition, sourceUtc, validateCatalog, validateStatus } from './sports.js';
+import { archivePosition, sourceUtc, liveReturnOffset, validateCatalog, validateStatus } from './sports.js';
 
 const base = import.meta.env.VITE_MEDIA_BASE_URL || 'http://127.0.0.1:8622/';
+const ledger = new HandoffLedger();
+let pendingHandoff = null;
 const preferences = { speed: 1, caption: 'off' };
 const session = new Session(el('player'), base, onEvent);
 const controls = mountControls(
@@ -51,6 +54,7 @@ function liveUtc() {
 }
 function onEvent(type, eventInfo) {
   if (type === 'Error') {
+    ledger.fail(pendingHandoff?.ticket, 'load-failed');
     interactive = false;
     controls.enable(false);
     el('retry').hidden = false;
@@ -69,6 +73,7 @@ function onEvent(type, eventInfo) {
   if (type === 'PlaybackSpeedChanged') controls.reflectSpeed();
   controls.paint();
   if (interactive) {
+    observeHandoff();
     actions();
     if (type === 'PlaybackFinished' && asset.kind === 'clip' && status?.status === 'live')
       el('return').click();
@@ -139,7 +144,14 @@ function chooseEvent(item) {
   interactive = false;
   controls.enable(false);
   void session.close();
+  pendingHandoff = null;
   event = item;
+  el('archiveTarget').replaceChildren(
+    ...catalog.assets
+      .filter((a) => a.eventId === item.id && a.kind === 'archive')
+      .map((a) => new Option(titleOf(a), a.id))
+  );
+  el('archiveTarget').value = item.archiveAssetId;
   status = null;
   asset = null;
   savedUtc = null;
@@ -163,6 +175,11 @@ async function open(item, options = {}) {
   autoClaimed = false;
   interactive = false;
   controls.enable(false);
+  const ticket = options.handoff
+    ? ledger.begin(item.eventId, item.videoId, Math.round(options.seconds * 1000), options.play)
+    : null;
+  pendingHandoff = ticket ? { ticket, token, observing: false } : null;
+  if (ticket) el('export').disabled = false;
   intent = options;
   asset = item;
   el('title').textContent = titleOf(asset);
@@ -181,14 +198,19 @@ async function open(item, options = {}) {
       // time after the seek instead of interpreting a sentinel as a range.
       const latest = validateStatus(await jsonAt(event.statusUrl, base), event);
       if (token !== generation) return;
+      let offset = null;
       if (
-        !p.isLive() ||
-        latest.status !== 'live' ||
-        !Number.isFinite(latest.seekableUtcStartMs) ||
-        !Number.isFinite(latest.seekableUtcEndMs) ||
-        options.utc < latest.seekableUtcStartMs ||
-        options.utc >= latest.seekableUtcEndMs
+        p.isLive() &&
+        latest.status === 'live' &&
+        Number.isFinite(latest.seekableUtcStartMs) &&
+        Number.isFinite(latest.seekableUtcEndMs) &&
+        options.utc >= latest.seekableUtcStartMs &&
+        options.utc < latest.seekableUtcEndMs
       ) {
+        offset = await decodedReturnOffset(p, seconds);
+        if (token !== generation) return;
+      }
+      if (offset === null) {
         // Keep this source paused; only an explicit choice can fall back to its edge.
         interactive = true;
         controls.enable(true);
@@ -196,17 +218,33 @@ async function open(item, options = {}) {
         message('Saved position left the DVR window. Choose Live edge to continue.');
         return;
       }
-      if (!(await timeShiftTo(p, seconds))) throw Error();
-    } else if (options.seconds != null && !(await session.seekTo(options.seconds))) throw Error();
+      if (!(await timeShiftTo(p, seconds, offset))) throw Error();
+    } else if (options.seconds != null && !(await session.seekTo(options.seconds))) {
+      ledger.fail(ticket, 'position-mismatch');
+      throw Error();
+    }
     if (token !== generation) return;
     if (!session.ready) throw Error();
     interactive = true;
     controls.enable(true);
     actions();
     message('');
+    if (pendingHandoff?.ticket === ticket && ticket) {
+      pendingHandoff.observing = true;
+      observeHandoff();
+      for (const delay of [250, 750, 1500, 3000]) {
+        setTimeout(() => {
+          if (generation === token) observeHandoff();
+        }, delay);
+      }
+      setTimeout(() => {
+        if (generation === token) pendingHandoff = null;
+      }, 5000);
+    }
     if (options.play !== false) await session.play();
   } catch {
     if (token !== generation) return;
+    ledger.fail(ticket, 'load-failed');
     interactive = false;
     controls.enable(false);
     actions();
@@ -218,7 +256,34 @@ async function open(item, options = {}) {
     );
   }
 }
-function timeShiftTo(player, utcSeconds) {
+async function decodedReturnOffset(player, target) {
+  // On MSE the initial live clock can point at the first available segment
+  // until the first frame decodes, with no seekable range yet. Decode muted
+  // behind the loading state before computing a fresh live-edge offset.
+  const host = session.host.firstElementChild;
+  const muted = player.isMuted();
+  host.style.visibility = 'hidden';
+  player.mute('positioning');
+  try {
+    await player.play('positioning');
+    if (session.player !== player) return null;
+    player.pause('positioning');
+    return liveReturnOffset(
+      target,
+      player.getCurrentTime('absolutetime'),
+      player.getTimeShift(),
+      player.getMaxTimeShift()
+    );
+  } finally {
+    host.style.visibility = '';
+    if (session.player === player) {
+      player.pause('positioning');
+      if (!muted) player.unmute('positioning');
+    }
+  }
+}
+function timeShiftTo(player, utcSeconds, offset) {
+  if (Math.abs(player.getCurrentTime('absolutetime') - utcSeconds) < 0.1) return Promise.resolve(true);
   return new Promise((resolve) => {
     const finish = (value) => {
       clearTimeout(timeout);
@@ -232,12 +297,49 @@ function timeShiftTo(player, utcSeconds) {
     const timeout = setTimeout(() => finish(false), 5000);
     player.on('timeshifted', check);
     try {
-      player.timeShift(utcSeconds, 'reference');
+      player.timeShift(offset, 'reference');
     } catch {
       finish(false);
     }
   });
 }
+function observeHandoff() {
+  const pending = pendingHandoff,
+    player = session.player;
+  if (
+    !pending?.observing ||
+    pending.token !== generation ||
+    !interactive ||
+    !session.ready ||
+    !player ||
+    player.isCasting() ||
+    player.isAirplayActive()
+  )
+    return;
+  const video = session.host.querySelector('video');
+  if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+  const positionMs = Math.round(player.getCurrentTime('relativetime') * 1000);
+  if (
+    ledger.observe(
+      pending.ticket,
+      player.getSource()?.metadata?.videoId,
+      positionMs,
+      player.isPlaying(),
+      video.paused
+    )
+  ) {
+    recordEvent(asset.id, 'HandoffConfirmed');
+    pendingHandoff = null;
+  }
+}
+el('export').onclick = () => {
+  const blob = new Blob([JSON.stringify(ledger.snapshot(), null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'sports-handoffs.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+};
 function handoff(target) {
   if (
     status?.archiveStatus !== 'ready' ||
@@ -252,7 +354,7 @@ function handoff(target) {
     message(t(position.reason) + ' · ' + t('Select the archive under Watch to start from its beginning.'));
     return;
   }
-  void open(target, { seconds: position.seconds, play: !session.player.isPaused() });
+  void open(target, { seconds: position.seconds, play: !session.player.isPaused(), handoff: true });
 }
 function maybeContinue() {
   if (
@@ -264,12 +366,13 @@ function maybeContinue() {
     status.archiveStatus !== 'ready'
   )
     return;
-  const target = catalog.assets.find((a) => a.id === event.archiveAssetId);
-  if (!target || archivePosition(status.archiveMapping, liveUtc()).seconds == null) return;
+  const target = catalog.assets.find((a) => a.eventId === event.id && a.id === el('archiveTarget').value);
+  const mapping = target?.id === event.archiveAssetId ? status.archiveMapping : target;
+  if (!target || archivePosition(mapping, liveUtc()).seconds == null) return;
   autoClaimed = true;
   handoff(target);
 }
-el('auto').onchange = maybeContinue;
+el('archiveTarget').onchange = el('auto').onchange = maybeContinue;
 async function loadCatalog() {
   try {
     catalog = validateCatalog(await jsonAt('catalog.json', base));

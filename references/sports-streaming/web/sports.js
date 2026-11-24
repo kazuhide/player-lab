@@ -4,6 +4,13 @@ export function validateCatalog(catalog) {
     throw Error('Invalid catalog');
   const events = new Set(catalog.events.map((e) => e.id));
   const ids = new Set(catalog.assets.map((a) => a.id));
+  const validId = (id) => typeof id === 'string' && /^[A-Za-z0-9_.:-]{1,100}$/.test(id);
+  if (
+    !catalog.events.every((e) => validId(e.id)) ||
+    !catalog.assets.every((a) => validId(a.id) && validId(a.videoId)) ||
+    new Set(catalog.assets.map((a) => a.videoId)).size !== catalog.assets.length
+  )
+    throw Error('Invalid catalog identity');
   if (events.size !== catalog.events.length || ids.size !== catalog.assets.length)
     throw Error('Duplicate identifier');
   for (const a of catalog.assets) {
@@ -90,4 +97,16 @@ export function sourceUtc(asset, seconds) {
     return null;
   if (millis(asset.expectedDurationMs) && utc > asset.utcStartMs + asset.expectedDurationMs) return null;
   return utc;
+}
+
+export function liveReturnOffset(target, currentUtc, currentShift, maxShift) {
+  if (
+    ![target, currentUtc, currentShift, maxShift].every(Number.isFinite) ||
+    currentUtc <= 0 ||
+    currentShift > 0 ||
+    maxShift > 0
+  )
+    return null;
+  const offset = target - (currentUtc - currentShift);
+  return offset >= maxShift && offset <= 0 ? offset : null;
 }

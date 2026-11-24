@@ -36,3 +36,6 @@
 "−15 s" = "−15 s";
 "+15 s" = "+15 s";
 "Media warning (%@)" = "Media warning (%@)";
+"Handoff records" = "Handoff records";
+"Share JSON" = "Share JSON";
+"Could not export handoff records." = "Could not export handoff records.";

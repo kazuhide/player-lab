@@ -4,7 +4,7 @@
 
 Xcode と XcodeGen を用意し、[このアプリの起動手順](../README.ja.md)に従って素材サーバーを起動してください。iOS と tvOS は同じカタログから HLS 素材を読み込みます。
 
-このディレクトリに `Local.xcconfig` を作成してください。Player ライセンスでは `com.playerlab.elearning.ios` と `com.playerlab.elearning.tvos` を許可します。Analytics ライセンスを追加すると、統合コレクターがカタログの映像 ID を使って計測します。どちらのライセンスもビルドしたアプリに含まれるため、デモ用のものを使ってください。
+このディレクトリの `Local.xcconfig.example` を `Local.xcconfig` にコピーしてください。ファイルがない場合は XcodeGen が生成します。Player ライセンスでは `com.playerlab.elearning.ios` と `com.playerlab.elearning.tvos` を許可します。Analytics ライセンスを追加すると、統合コレクターがカタログの映像 ID を使って計測します。どちらのライセンスもビルドしたアプリに含まれるため、デモ用のものを使ってください。
 
 ```xcconfig
 BITMOVIN_PLAYER_LICENSE_KEY = your-player-license

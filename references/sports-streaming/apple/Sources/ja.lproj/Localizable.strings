@@ -36,3 +36,6 @@
 "−15 s" = "15秒戻る";
 "+15 s" = "15秒進む";
 "Media warning (%@)" = "メディアの警告（%@）";
+"Handoff records" = "録画への引き継ぎ記録";
+"Share JSON" = "JSON を共有";
+"Could not export handoff records." = "引き継ぎ記録を書き出せませんでした。";

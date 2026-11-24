@@ -31,7 +31,7 @@
       "titleJa": "練習試合の録画",
       "kind": "archive",
       "streams": {
-        "hls": "SP-ARCH-S/hls/media.m3u8",
+        "hls": "SP-ARCH-S/hls/external.m3u8",
         "dash": "SP-ARCH-S/dash/manifest.mpd"
       },
       "subtitleTracks": [
@@ -65,7 +65,7 @@
       "titleJa": "試合の録画",
       "kind": "archive",
       "streams": {
-        "hls": "SP-ARCH-EVENT/hls/media.m3u8",
+        "hls": "SP-ARCH-EVENT/hls/external.m3u8",
         "dash": "SP-ARCH-EVENT/dash/manifest.mpd"
       },
       "subtitleTracks": [
@@ -99,7 +99,7 @@
       "titleJa": "序盤のクリップ",
       "kind": "clip",
       "streams": {
-        "hls": "SP-CLIP-A/hls/media.m3u8",
+        "hls": "SP-CLIP-A/hls/external.m3u8",
         "dash": "SP-CLIP-A/dash/manifest.mpd"
       },
       "subtitleTracks": [
@@ -133,7 +133,7 @@
       "titleJa": "別の場面のクリップ",
       "kind": "clip",
       "streams": {
-        "hls": "SP-CLIP-B/hls/media.m3u8",
+        "hls": "SP-CLIP-B/hls/external.m3u8",
         "dash": "SP-CLIP-B/dash/manifest.mpd"
       },
       "subtitleTracks": [
@@ -167,7 +167,7 @@
       "titleJa": "編集済みの録画",
       "kind": "archive",
       "streams": {
-        "hls": "SP-ARCH-E/hls/media.m3u8",
+        "hls": "SP-ARCH-E/hls/external.m3u8",
         "dash": "SP-ARCH-E/dash/manifest.mpd"
       },
       "subtitleTracks": [
@@ -201,7 +201,7 @@
       "titleJa": "短い練習試合",
       "kind": "live",
       "streams": {
-        "hls": "SP-LIVE-S/hls/media.m3u8",
+        "hls": "SP-LIVE-S/hls/external.m3u8",
         "dash": "SP-LIVE-S/dash/manifest.mpd"
       },
       "subtitleTracks": [
@@ -233,7 +233,7 @@
       "titleJa": "試合のライブ配信",
       "kind": "live",
       "streams": {
-        "hls": "SP-LIVE-EVENT/hls/media.m3u8",
+        "hls": "SP-LIVE-EVENT/hls/external.m3u8",
         "dash": "SP-LIVE-EVENT/dash/manifest.mpd"
       },
       "subtitleTracks": [

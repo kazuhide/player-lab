@@ -180,6 +180,12 @@ async function open(seconds, origin) {
   }
 }
 function onEvent(type, event) {
+  if (type === 'Warning' && event.code === 1402) {
+    save();
+    el('retry').hidden = false;
+    message('Captions could not be loaded. Retry playback or return to the course.');
+    return;
+  }
   if (type === 'Error') {
     watching = false;
     controls.enable(false);
@@ -279,7 +285,7 @@ el('learner').onchange = () => {
 el('language').onchange = el('query').oninput = renderTranscript;
 window.addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && watching) {
+  if (document.hidden && watching && session.player?.getViewMode() !== 'pictureinpicture') {
     save();
     session.player.pause('reference');
   }

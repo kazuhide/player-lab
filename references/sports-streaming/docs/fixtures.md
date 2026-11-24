@@ -73,7 +73,7 @@ real-time endurance test.
 and live aliases. [`catalog.json`](../fixtures/catalog.json) defines events,
 asset kinds, stable `sports:SP-*` video IDs, delivery paths and subtitle tracks.
 English/Japanese WebVTT derives from each asset's canonical transcript cues.
-Sports HLS uses `media.m3u8` with external tracks to avoid registering the same
+Sports HLS uses `external.m3u8` with external tracks to avoid registering the same
 captions twice; DASH also uses the external tracks.
 
 The checked-in catalog contains expected durations. The publisher's

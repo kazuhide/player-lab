@@ -28,3 +28,7 @@ Choose the iOS or tvOS scheme and a simulator in Xcode, then press Run. For devi
 Select an event and a clip, live stream or available archive. Use **Sports controls** for play, pause and 15-second skips, or **Live edge** to rejoin the live stream. A clip can return to its original DVR position while the position remains in range. Choose **Continue at viewed position** when the source clock and archive mapping cover the viewed frame. An archive can also be started from the beginning. Automatic continuation requires an ended event, a ready archive, a valid mapping and viewer opt-in.
 
 The standard iOS presentation uses the SDK Web UI. Apple TV uses system controls and the Siri Remote. Each target can switch to its app controls during playback. Side-loaded captions in app controls and the tvOS system presentation use SDK cue events. iOS exposes the system AirPlay route picker. The Apple targets use HLS.
+
+**Handoff records** exports up to 200 mapped live-to-archive requests from the current app session. A confirmed row includes the observed source, position and playback intent. Playing requests require evidence that the position advanced. An unconfirmed request has a null confirmation. Receiver QoE is always null. On iOS, use **Share JSON** to save the file for local inspection. Apple TV displays the same JSON on screen.
+
+The iOS system route picker supports AirPlay. Physical receiver handoff and picture-in-picture depend on the device and system presentation. The reference has no dedicated picture-in-picture command.

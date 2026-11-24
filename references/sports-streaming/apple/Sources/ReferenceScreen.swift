@@ -2,12 +2,21 @@ import SwiftUI
 
 struct ReferenceScreen: View {
     @StateObject private var session = SportsSession()
+    private struct Export: Identifiable {
+        let id = UUID()
+        let data: Data
+    }
+    @State private var export: Export?
     @Environment(\.scenePhase) private var phase
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Sports streaming").font(.largeTitle.bold())
+                Button("Handoff records") {
+                    do { export = Export(data: try session.handoffs.export()) }
+                    catch { session.problem = "Could not export handoff records." }
+                }
                 if let catalog = session.catalog {
                     Text("Events").font(.headline)
                     ForEach(catalog.events) { event in
@@ -78,6 +87,7 @@ struct ReferenceScreen: View {
             .padding()
             .frame(maxWidth: .infinity)
         }
+        .sheet(item: $export) { HandoffRecords(data: $0.data) }
         .task { if session.catalog == nil { await session.fetchCatalog() } }
         .task(id: session.event?.id) { await session.poll() }
         .onChange(of: phase) { if $0 == .background { session.player?.pause() } }

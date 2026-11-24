@@ -4,7 +4,13 @@ export function courseLessons(catalog) {
   const lessons = course.lessonIds.map((id) => catalog.lessons.find((item) => item.id === id));
   if (
     lessons.some(
-      (item) => !item?.videoId || !item.title || !item.streams || !Array.isArray(item.subtitleTracks)
+      (item) =>
+        !item ||
+        !/^EDU-FX-[0-9]{2}$/.test(item.id) ||
+        item.id !== item.videoId ||
+        !item.title ||
+        !item.streams ||
+        !Array.isArray(item.subtitleTracks)
     ) ||
     new Set(lessons).size !== lessons.length
   )

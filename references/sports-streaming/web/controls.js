@@ -20,6 +20,7 @@ export function mountControls(session, preferences, move, seekBar, range) {
     const p = session.player;
     if (!session.ready || !p) return;
     el('play').textContent = p.isPlaying() ? t('Pause') : t('Play');
+    el('pip').hidden = !p.isViewModeAvailable('pictureinpicture');
     el('airplay').hidden = !p.isAirplayAvailable();
     const bounds = range(p);
     el('seek').disabled = !bounds || !(bounds.end > bounds.start);
@@ -45,8 +46,8 @@ export function mountControls(session, preferences, move, seekBar, range) {
     const rate = session.player.getPlaybackSpeed();
     if (Number.isFinite(rate) && rate > 0) {
       preferences.speed = rate;
-      if (![...el('speed').options].some((option) => Number(option.value) === rate))
-        el('speed').add(new Option(String(rate), String(rate)));
+      // A rate chosen in SDK controls may be outside the four sports presets.
+      // Leave the selector blank in that case and retain the actual SDK rate.
       el('speed').value = String(rate);
     }
   }
@@ -54,6 +55,11 @@ export function mountControls(session, preferences, move, seekBar, range) {
   el('fullscreen').onclick = () => {
     if (document.fullscreenElement) void document.exitFullscreen();
     else void el('stage').requestFullscreen();
+  };
+  el('pip').onclick = () => {
+    const player = session.player;
+    if (player)
+      player.setViewMode(player.getViewMode() === 'pictureinpicture' ? 'inline' : 'pictureinpicture');
   };
   el('airplay').onclick = () => session.player?.showAirplayTargetPicker();
   el('play').onclick = () =>

@@ -1,5 +1,6 @@
 import SwiftUI
 import BitmovinPlayer
+import AVFAudio
 
 @MainActor
 final class SportsSession: Playback {
@@ -10,6 +11,24 @@ final class SportsSession: Playback {
     @Published var autoContinue = false
     @Published var statusError = false
     @Published var notice: String?
+    private(set) var handoffs = HandoffLedger()
+    private var pendingHandoff: UUID?
+    private var observation: Task<Void, Never>?
+
+    private func stopObservation() {
+        observation?.cancel()
+        observation = nil
+        pendingHandoff = nil
+    }
+
+    private var onLocalRoute: Bool {
+        #if os(iOS)
+        return !AVAudioSession.sharedInstance().currentRoute.outputs.contains { $0.portType == .airPlay }
+        #else
+        return true
+        #endif
+    }
+
     private var clock = PresentationClock()
     private var generation = UUID()
     private var pendingSeek: Double?
@@ -39,6 +58,7 @@ final class SportsSession: Playback {
     }
 
     func chooseEvent(_ next: Event) {
+        stopObservation()
         resetSelection()
         player?.unload()
         generation = UUID()
@@ -97,6 +117,12 @@ final class SportsSession: Playback {
         if asset?.kind == "live", next.kind == "clip" {
             savedLive = utc().map { ($0, desiredPlayback) }
         }
+        stopObservation()
+        if asset?.kind == "live", next.kind == "archive", let seek, let event, onLocalRoute,
+           seek.isFinite, seek >= 0, seek < Double(Int.max) / 1000 {
+            pendingHandoff = handoffs.begin(eventId: event.id, videoId: next.videoId,
+                                            positionMs: Int((seek * 1000).rounded()), play: play)
+        }
         resetSelection()
         clock = PresentationClock()
         asset = next
@@ -148,6 +174,36 @@ final class SportsSession: Playback {
             player.seek(time: seconds)
         }
         super.prepared(player)
+        if let request = pendingHandoff, let source = activeSource, let asset {
+            observeHandoff(request, source: source, videoId: asset.videoId)
+        }
+    }
+
+    private func observeHandoff(_ request: UUID, source: Source, videoId: String) {
+        observation?.cancel()
+        observation = Task { [weak self, weak source] in
+            while !Task.isCancelled {
+                guard let self, let source, self.pendingHandoff == request, self.activeSource === source,
+                      let player = self.player, self.ready, player.source === source, self.onLocalRoute else { return }
+                let current = player.currentTime(.relativeTime)
+                let position = current.isFinite && current >= 0 && current < Double(Int.max) / 1000
+                    ? Int((current * 1000).rounded()) : nil
+                if self.handoffs.observe(request, videoId: videoId, positionMs: position,
+                                         isPlaying: player.isPlaying, isPaused: player.isPaused,
+                                         readyStopped: !self.desiredPlayback && !player.isPlaying,
+                                         uptime: ProcessInfo.processInfo.systemUptime) {
+                    self.pendingHandoff = nil
+                    return
+                }
+                do { try await Task.sleep(nanoseconds: 200_000_000) } catch { return }
+            }
+        }
+    }
+
+    override func failed(_ reason: String) {
+        if let request = pendingHandoff { handoffs.fail(request) }
+        stopObservation()
+        super.failed(reason)
     }
 
     override func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {

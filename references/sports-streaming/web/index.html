@@ -17,6 +17,10 @@
           <div class="row">
             <label><input type="checkbox" id="auto" />Automatically continue in the archive</label>
           </div>
+          <label
+            >Archive
+            <select id="archiveTarget"></select
+          ></label>
           <h2>Watch</h2>
           <nav id="assets" class="list" aria-label="Event video"></nav>
         </aside>
@@ -50,9 +54,7 @@
                   >Speed
                   <select id="speed">
                     <option>0.5</option>
-                    <option>0.75</option>
                     <option selected>1</option>
-                    <option>1.25</option>
                     <option>1.5</option>
                     <option>2</option>
                   </select></label
@@ -64,6 +66,7 @@
                   </select></label
                 >
                 <output id="clock"></output><button id="fullscreen">Fullscreen</button
+                ><button id="pip" hidden>Picture in picture</button
                 ><button id="airplay" hidden>AirPlay</button>
               </div>
             </fieldset>
@@ -79,6 +82,7 @@
           </section>
           <details>
             <summary>Diagnostics</summary>
+            <button id="export" disabled>Download handoff records</button>
             <ol id="log"></ol>
           </details>
         </section>

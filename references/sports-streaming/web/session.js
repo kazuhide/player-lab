@@ -7,6 +7,15 @@ import { mediaUrl } from './media.js';
 
 // A source change retires the old SDK owner. A controls-only change uses CSS and
 // keeps the same player, source, caption renderer and Analytics impression.
+export function recordEvent(assetId, type, code) {
+  const log = document.getElementById('log');
+  const item = document.createElement('li');
+  item.dataset.event = type;
+  item.textContent = assetId + ' · ' + type + (Number.isInteger(code) ? ' (' + code + ')' : '');
+  log.append(item);
+  while (log.children.length > 30) log.firstChild.remove();
+}
+
 export class Session {
   constructor(host, base, onEvent) {
     this.host = host;
@@ -48,14 +57,7 @@ export class Session {
       playback: { autoplay: false },
       adaptation: { preload: true }
     }));
-    const log = document.getElementById('log');
-    const record = (type, code) => {
-      if (!log) return;
-      const item = document.createElement('li');
-      item.textContent = asset.id + ' · ' + type + (Number.isInteger(code) ? ' (' + code + ')' : '');
-      log.append(item);
-      while (log.children.length > 30) log.firstChild.remove();
-    };
+    const record = (type, code) => recordEvent(asset.id, type, code);
     record('Load');
     this.ui = UIFactory.buildUI(player, {
       localization: {
@@ -85,7 +87,11 @@ export class Session {
       });
     }
     const path = embedded ? asset.streams.hlsWithSubtitles : asset.streams[format];
-    const source = { title: titleOf(asset), [format]: mediaUrl(path, this.base) };
+    const source = {
+      metadata: { videoId: asset.videoId },
+      title: titleOf(asset),
+      [format]: mediaUrl(path, this.base)
+    };
     if (!embedded)
       source.subtitleTracks = asset.subtitleTracks.map((track) => ({
         id: track.language,

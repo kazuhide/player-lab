@@ -83,7 +83,7 @@ The catalog exposes two HLS choices:
 
 | Field | Playlist | Caption delivery |
 | --- | --- | --- |
-| `streams.hls` | `<ID>/hls/media.m3u8` | The app attaches the catalog's external WebVTT tracks. |
+| `streams.hls` | `<ID>/hls/external.m3u8` | The app attaches the catalog's external WebVTT tracks. |
 | `streams.hlsWithSubtitles` | `<ID>/hls/master.m3u8` | The manifest registers the subtitle tracks; the app does not attach them again. |
 
 Choose caption delivery before opening the course. DASH uses the external

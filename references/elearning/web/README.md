@@ -27,7 +27,7 @@ Choose learner A or B, a delivery format, and whether to play subsequent lessons
 
 Choose **Learning** to use the external controls, including 10-second jumps. The course and searchable English/Japanese transcript remain available in either mode. Selecting a cue seeks to the original cue start even with captions off. HLS can use the catalog's manifest subtitles or external tracks. DASH uses external tracks. Use **Return to course** to change delivery or sequencing.
 
-Switching controls preserves the SDK player, source, caption renderer and Analytics session. The custom controls offer fullscreen where the browser supports it and an AirPlay picker when the SDK reports availability. Diagnostics list up to 30 local SDK events with asset IDs and numeric error codes.
+Switching controls preserves the SDK player, source, caption renderer and Analytics session. The custom controls offer picture in picture where supported by the SDK, fullscreen where the browser supports it and an AirPlay picker when the SDK reports availability. Diagnostics list up to 30 local SDK events with asset IDs and numeric error codes.
 
 ## Verify
 

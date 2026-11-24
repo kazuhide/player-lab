@@ -49,7 +49,7 @@ python3 tools/media/media.py serve --port 8622 --window 60 --archive-delay 6
 <a id="catalog-and-timing-contracts"></a>
 ## カタログと時刻の扱い
 
-[`media-spec.json`](../fixtures/media-spec.json)は、生成する素材、切り出す区間、ライブ用の別IDを定義します。[`catalog.json`](../fixtures/catalog.json)は、イベント、素材の種類、固定の`sports:SP-*`映像ID、配信パス、字幕トラックを定義します。日英のWebVTTは各素材の元となる本文の字幕キューから生成します。HLSでは同じ字幕を二重に登録しないように、`media.m3u8`と外部字幕トラックを使います。DASHでも外部字幕トラックを使います。
+[`media-spec.json`](../fixtures/media-spec.json)は、生成する素材、切り出す区間、ライブ用の別IDを定義します。[`catalog.json`](../fixtures/catalog.json)は、イベント、素材の種類、固定の`sports:SP-*`映像ID、配信パス、字幕トラックを定義します。日英のWebVTTは各素材の元となる本文の字幕キューから生成します。HLSでは同じ字幕を二重に登録しないように、`external.m3u8`と外部字幕トラックを使います。DASHでも外部字幕トラックを使います。
 
 Git管理しているカタログには指定尺を記載しています。配信サーバーの`/catalog.json`では`durationMs`を確認済みの映像尺へ置き換え、`expectedDurationMs`に指定尺を、`measuredDurationMs`にコンテナの尺を残します。ファイルの確認記録がない場合や、記録とファイルが一致しない場合、実際の時刻情報は不明のままです。
 

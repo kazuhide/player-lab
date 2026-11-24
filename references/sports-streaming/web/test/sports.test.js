@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { archivePosition, sourceUtc, validateCatalog, validateStatus } from '../sports.js';
+import {
+  archivePosition,
+  sourceUtc,
+  liveReturnOffset,
+  validateCatalog,
+  validateStatus
+} from '../sports.js';
 import { mediaUrl } from '../media.js';
 const utc = 1793224537000;
 const fixture = JSON.parse(readFileSync(new URL('../../fixtures/catalog.json', import.meta.url)));
@@ -42,4 +48,10 @@ test('source UTC requires source-bound absolute time and a verified origin', () 
 test('media URL stays within publisher base', () => {
   assert.throws(() => mediaUrl('//unexpected.invalid/x', 'https://media.example/'));
   assert.equal(mediaUrl('a/live', 'http://127.0.0.1:8622/'), 'http://127.0.0.1:8622/a/live');
+});
+
+test('saved DVR requests use the fresh SDK edge and cannot seek outside the moving window', () => {
+  assert.equal(liveReturnOffset(105, 110, -3, -20), -8);
+  assert.equal(liveReturnOffset(92, 110, -3, -20), null);
+  assert.equal(liveReturnOffset(114, 110, -3, -20), null);
 });

@@ -35,7 +35,7 @@ final class CatalogTests: XCTestCase {
     private func activate(_ target: XCUIElement, in app: XCUIApplication) {
         #if os(tvOS)
         for _ in 0..<20 {
-            if target.hasFocus {
+            if target.hasFocus || target.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).count > 0 {
                 XCUIRemote.shared.press(.select)
                 return
             }

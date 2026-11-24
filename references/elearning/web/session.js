@@ -74,6 +74,7 @@ export class Session {
       'SubtitleEnabled',
       'SubtitleDisabled',
       'PlaybackSpeedChanged',
+      'Warning',
       'Error'
     ]) {
       player.on(PlayerEvent[type], (event) => {
