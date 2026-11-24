@@ -22,6 +22,7 @@ final class LearningSession: Playback {
         let progress: Progress
         let play: Bool
         let origin: String
+        var isViewerSeek = false
     }
     private var currentRequest: OpenRequest?
     private var established = false
@@ -110,7 +111,12 @@ final class LearningSession: Playback {
     }
 
     func closeLesson() {
-        save(allowZero: established && observedPositivePosition)
+        if let player, ready, owns(player), let lesson, currentRequest?.isViewerSeek == true,
+           let target = pendingResume?.seconds, player.currentTime(.relativeTime) == target {
+            persist(lesson, position: target == player.duration ? 0 : target)
+        } else {
+            save(allowZero: established && observedPositivePosition)
+        }
         resumeDeadline?.cancel()
         seekStart = nil
         observedPositivePosition = false
@@ -137,7 +143,9 @@ final class LearningSession: Playback {
 
     func retry() {
         guard problem != nil, let request = currentRequest, request.lesson.id == lesson?.id else { return }
-        load(request)
+        let checkpoint = progress(at: request.progress.seconds)
+        load(OpenRequest(lesson: request.lesson, progress: checkpoint, play: request.play,
+                         origin: request.origin, isViewerSeek: request.isViewerSeek))
     }
 
     private func load(_ request: OpenRequest) {
@@ -193,13 +201,24 @@ final class LearningSession: Playback {
         }
     }
 
+    override func seek(by delta: Double) {
+        guard let player, player.duration.isFinite else { return }
+        seek(to: min(player.duration, max(0, player.currentTime(.relativeTime) + delta)))
+    }
+
+    func seek(to seconds: Double) {
+        guard let player, ready, owns(player), seconds.isFinite, seconds >= 0, seconds <= player.duration else { return }
+        replacePendingSeek(with: seconds)
+        player.seek(time: seconds)
+    }
+
     private func replacePendingSeek(with seconds: Double) {
         guard let pendingResume, resumeSeekPlaying != nil, abs(pendingResume.seconds - seconds) > 0.001,
-              let player, seconds.isFinite, seconds >= 0, seconds < player.duration, let request = currentRequest else { return }
+              let player, seconds.isFinite, seconds >= 0, seconds <= player.duration, let request = currentRequest else { return }
         let checkpoint = progress(at: seconds)
         self.pendingResume = checkpoint
         currentRequest = OpenRequest(lesson: request.lesson, progress: checkpoint,
-                                     play: desiredPlayback, origin: request.origin)
+                                     play: desiredPlayback, origin: request.origin, isViewerSeek: true)
         startResumeDeadline()
     }
 
@@ -216,7 +235,8 @@ final class LearningSession: Playback {
     override func prepared(_ player: Player) {
         guard problem == nil else { return }
         if let saved = pendingResume {
-            guard saved.canResume(duration: player.duration) else {
+            let requestedEnd = currentRequest?.isViewerSeek == true && saved.seconds == player.duration
+            guard saved.canResume(duration: player.duration) || requestedEnd else {
                 invalidResume = true
                 player.pause()
                 return
@@ -237,9 +257,7 @@ final class LearningSession: Playback {
                                          play: desiredPlayback, origin: request.origin)
         }
         established = false
-        resumeDeadline?.cancel()
-        pendingResume = nil
-        resumeSeekPlaying = nil
+        cancelPendingSeek()
         super.failed(reason)
     }
 
@@ -261,10 +279,12 @@ final class LearningSession: Playback {
         }
         guard let target = pendingResume, let play = resumeSeekPlaying,
               abs(seconds - target.seconds) < 1 else { return }
-        resumeDeadline?.cancel()
-        pendingResume = nil
-        resumeSeekPlaying = nil
+        cancelPendingSeek()
         established = true
+        if target.seconds == player.duration, seconds >= player.duration {
+            finishLesson()
+            return
+        }
         observedPositivePosition = seconds > 0
         save(allowZero: true)
         desiredPlayback = play
@@ -295,6 +315,7 @@ final class LearningSession: Playback {
     override func onPlaylistTransition(_ event: PlaylistTransitionEvent, player: Player) {
         guard player === self.player, player.source === event.to,
               let next = orderedSources.first(where: { $0.0 === event.to }) else { return }
+        cancelPendingSeek()
         if let previous = lesson { persist(previous, position: 0) }
         lesson = next.1
         activeSource = next.0
@@ -310,7 +331,20 @@ final class LearningSession: Playback {
     }
 
     override func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
-        guard owns(player), let lesson else { return }
+        guard owns(player) else { return }
+        finishLesson()
+    }
+
+    private func cancelPendingSeek() {
+        resumeDeadline?.cancel()
+        pendingResume = nil
+        resumeSeekPlaying = nil
+    }
+
+    private func finishLesson() {
+        guard let lesson, !finished else { return }
+        cancelPendingSeek()
+        established = true
         playing = false
         finished = true
         persist(lesson, position: 0)

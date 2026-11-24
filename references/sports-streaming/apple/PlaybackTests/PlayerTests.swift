@@ -240,6 +240,59 @@ final class PlayerTests: XCTestCase {
         XCTAssertNotNil(rows.first?["confirmed"] as? [String: Any])
     }
 
+    func testRetryFromArchiveEndAllowsReplayWithoutAnotherHandoff() async throws {
+        let session = SportsSession()
+        let player = try XCTUnwrap(session.player)
+        defer { player.destroy() }
+        _ = try await mappedOpen(session)
+        try await waitFor("Archive handoff is established") { (try? self.records(session).first?["confirmed"]) is [String: Any] }
+        player.seek(time: player.duration - 1)
+        try await waitFor("The archive should play through its final frame") { session.diagnostics.contains("Finished") }
+        session.failed("Fixture fault at EOF")
+        session.retry()
+        try await waitFor("The completed archive should reopen at its beginning") {
+            session.ready && session.problem == nil && player.currentTime < 5
+        }
+        player.play()
+        try await waitFor("The archive can be replayed") { session.playing && player.currentTime > 0 }
+        // Also exercise a final SDK position arriving before its Finished callback.
+        session.position = player.duration
+        session.failed("Fixture source error on the final frame")
+        session.retry()
+        try await waitFor("Retry must not seek to the exact duration") { session.playing && player.currentTime < 5 }
+        XCTAssertEqual(try records(session).count, 1)
+    }
+
+    func testExpiredDVRRestoreCanRejoinLiveEdgeAndPause() async throws {
+        let session = SportsSession()
+        let player = try XCTUnwrap(session.player)
+        defer { player.destroy() }
+        await session.fetchCatalog()
+        guard let event = session.catalog?.events.first(where: { $0.status == "live" }), let path = event.statusUrl else {
+            throw XCTSkip("Run while the fixture publisher has an active event to exercise the live DVR edge.")
+        }
+        session.chooseEvent(event)
+        let update = try await Media.fetch(path, as: EventUpdate.self)
+        session.update = update
+        let live = try XCTUnwrap(session.assets.first { $0.id == event.liveAssetId })
+        // Reproduce a timestamp that expired after the original Return transaction.
+        let expired = try XCTUnwrap(update.seekableUtcStartMs) - 300_000
+        session.open(live, play: false, restoreUTC: expired)
+        try await waitFor("The current native window must reject the saved frame") {
+            session.notice != nil && session.ready
+        }
+        XCTAssertFalse(player.isPlaying)
+        session.rejoinLiveEdge()
+        try await waitFor("The explicit Live edge choice should play") { session.playing && player.isPlaying }
+        XCTAssertNil(session.notice)
+        player.pause()
+        try await waitFor("The app’s pause state must agree with the native player") {
+            !session.playing && !session.desiredPlayback && !player.isPlaying
+        }
+        player.play()
+        try await waitFor("The same source remains playable after pausing") { session.playing && player.isPlaying }
+    }
+
     func testClipSeekAndPauseKeepSource() async throws {
         let session = SportsSession()
         let player = try XCTUnwrap(session.player, "Set the allowed Player license before running the Playback scheme.")

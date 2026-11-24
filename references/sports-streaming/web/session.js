@@ -137,13 +137,42 @@ export class Session {
     this.ready = true;
     return true;
   }
+  nativeFinalizedClock() {
+    const player = this.player;
+    if (player.getPlayerType() !== 'native' || player.getStreamType() !== 'hls' || player.isLive())
+      return null;
+    const video = player.getVideoElement();
+    if (
+      !video ||
+      video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
+      video.currentSrc !== player.getSource()?.hls ||
+      typeof video.getStartDate !== 'function'
+    )
+      return null;
+    const origin = video.getStartDate().getTime() / 1000;
+    return Number.isFinite(origin) && Number.isFinite(video.currentTime) ? { video, origin } : null;
+  }
   utcSeconds() {
+    const native = this.nativeFinalizedClock();
+    if (native) return native.origin + native.video.currentTime;
     const seconds = this.player.getCurrentTime('absolutetime');
     if (this.finalizedAnchor && !this.player.isLive())
       return this.finalizedAnchor.utcSeconds + (seconds - this.finalizedAnchor.playbackTime);
     return this.dashClock ? this.dashClock.utc(seconds) : seconds;
   }
   finalizedPosition(utcSeconds) {
+    const native = this.nativeFinalizedClock();
+    if (native) {
+      // Native HLS exposes program date via the active media element and
+      // retained ranges via TimeRanges. It has no SDK segment map.
+      const mediaTime = utcSeconds - native.origin;
+      const { seekable } = native.video;
+      for (let i = 0; i < seekable.length; i++) {
+        if (mediaTime >= seekable.start(i) && mediaTime < seekable.end(i))
+          return this.player.getCurrentTime('relativetime') + (mediaTime - native.video.currentTime);
+      }
+      return null;
+    }
     return finalizedPosition(this.player.getAvailableSegments(), this.finalizedAnchor, utcSeconds);
   }
   setCaption(language) {

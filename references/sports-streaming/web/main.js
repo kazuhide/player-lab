@@ -7,6 +7,7 @@ import { el, message, mountControls } from './controls.js';
 import {
   archivePosition,
   canReturnToUtc,
+  newerStatus,
   sourceUtc,
   liveReturnOffset,
   validateCatalog,
@@ -34,6 +35,7 @@ const controls = mountControls(
 let catalog,
   event,
   status,
+  lastPublishedStatus,
   asset,
   savedUtc = null,
   generation = 0,
@@ -65,7 +67,6 @@ function liveUtc() {
 }
 function checkpoint(type) {
   if (!['TimeChanged', 'Seeked', 'Playing', 'Paused'].includes(type)) return;
-  if (pendingHandoff?.observing) return;
   const player = session.player;
   if (player.getSource()?.metadata?.videoId !== asset.videoId) return;
   const play = type === 'Playing' ? true : type === 'Paused' ? false : (intent?.play ?? player.isPlaying());
@@ -79,7 +80,8 @@ function checkpoint(type) {
 }
 function onEvent(type, eventInfo) {
   if (type === 'Error') {
-    ledger.fail(pendingHandoff?.ticket, 'load-failed');
+    if (pendingHandoff?.observing) pendingHandoff = null;
+    else ledger.fail(pendingHandoff?.ticket, 'load-failed');
     interactive = false;
     controls.enable(false);
     el('retry').hidden = false;
@@ -101,6 +103,7 @@ function onEvent(type, eventInfo) {
     if (
       pendingHandoff?.observing &&
       (['Seek', 'TimeShift', 'CastStart', 'CastStarted', 'AirplayChanged'].includes(type) ||
+        (type === 'Paused' && pendingHandoff.ticket.row.requested.playWhenReady) ||
         session.player.isCasting() ||
         session.player.isAirplayActive())
     )
@@ -139,7 +142,7 @@ function showAssets() {
 }
 function applyStatus(update) {
   const changed = update.status !== status?.status || update.archiveStatus !== status?.archiveStatus;
-  status = update;
+  status = lastPublishedStatus = update;
   failedPolls = 0;
   el('status').textContent =
     t('Event') +
@@ -152,20 +155,35 @@ function applyStatus(update) {
   if (changed) showAssets();
   actions();
 }
-async function poll() {
+let statusReads = new Set();
+function poll() {
+  const reads = statusReads;
+  const request = readStatus(reads);
+  reads.add(request);
+  request.finally(() => reads.delete(request));
+  return request;
+}
+async function readStatus(reads) {
   clearTimeout(timer);
   const token = ++statusRequest;
   try {
     const update = validateStatus(await jsonAt(event.statusUrl, base), event);
-    if (token !== statusRequest) return;
-    applyStatus(update);
-    maybeContinue();
+    if (reads !== statusReads) return;
+    const current = newerStatus(lastPublishedStatus, update);
+    if (!status && current !== update) return;
+    if (current !== status) {
+      applyStatus(current);
+      maybeContinue();
+    }
     if (
-      ['live', 'scheduled'].includes(update.status) ||
-      (update.status === 'ended' && !['ready', 'failed'].includes(update.archiveStatus) && ++waiting < 12)
+      token === statusRequest &&
+      (['live', 'scheduled'].includes(current.status) ||
+        (current.status === 'ended' &&
+          !['ready', 'failed'].includes(current.archiveStatus) &&
+          ++waiting < 12))
     )
       timer = setTimeout(poll, 5000);
-    return update;
+    return current;
   } catch {
     if (token !== statusRequest) return;
     status = null;
@@ -177,6 +195,7 @@ async function poll() {
 function chooseEvent(item) {
   ++generation;
   ++statusRequest;
+  statusReads = new Set();
   clearTimeout(timer);
   interactive = false;
   controls.enable(false);
@@ -189,7 +208,7 @@ function chooseEvent(item) {
       .map((a) => new Option(titleOf(a), a.id))
   );
   el('archiveTarget').value = item.archiveAssetId;
-  status = null;
+  status = lastPublishedStatus = null;
   asset = null;
   savedUtc = null;
   intent = null;
@@ -234,8 +253,9 @@ async function open(item, options = {}) {
       // The Web SDK can return {-1,-1} for getSeekableRange on a live
       // manifest. Verify the publisher window, then confirm the SDK's actual
       // time after the seek instead of interpreting a sentinel as a range.
-      const latest = validateStatus(await jsonAt(event.statusUrl, base), event);
+      const latest = await poll();
       if (token !== generation) return;
+      if (!latest) throw Error();
       let offset = null;
       const inPublisherWindow = canReturnToUtc(latest, options.utc);
       const live = p.isLive();
@@ -279,6 +299,9 @@ async function open(item, options = {}) {
           : ''
     );
     if (pendingHandoff?.ticket === ticket && ticket) {
+      // Positioning is complete. Any later Retry belongs to this archive
+      // playback, independently of whether the local receipt is confirmed.
+      intent = { seconds: session.player.getCurrentTime('relativetime'), play: options.play };
       pendingHandoff.observing = true;
       pendingHandoff.deadline = performance.now() + 5000;
       observeHandoff();
@@ -401,7 +424,6 @@ function observeHandoff() {
   ) {
     recordEvent(asset.id, 'HandoffConfirmed');
     pendingHandoff = null;
-    intent = { seconds, play: pending.ticket.row.requested.playWhenReady };
   }
 }
 el('export').onclick = () => {
@@ -473,9 +495,12 @@ el('earlier').onclick = async () => {
   if (!interactive || asset?.kind !== 'clip' || !canReturnToUtc(status, savedUtc)) return;
   const token = generation,
     selectedEvent = event;
-  const latest = await poll();
-  if (token !== generation || !latest || latest !== status) return;
-  if (!canReturnToUtc(latest, savedUtc)) {
+  const request = poll();
+  // An earlier request can be processed later by the publisher. Include
+  // outstanding observations before deciding whether to leave this clip.
+  await Promise.all([...statusReads]);
+  if (token !== generation || !(await request) || !status) return;
+  if (!canReturnToUtc(status, savedUtc)) {
     savedUtc = null;
     actions();
     message('The saved DVR position has expired. You can keep watching this clip.');

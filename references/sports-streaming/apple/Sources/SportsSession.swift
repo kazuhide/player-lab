@@ -27,6 +27,8 @@ final class SportsSession: Playback {
     }
     private var positioning: ArchiveSeek?
     private var established = false
+    private var archiveDuration: Double?
+    private var archiveFinished = false
     private let seekArchive: (Player, Double) -> Void
     private var observation: Task<Void, Never>?
     private var seekSubscriptions = Set<AnyCancellable>()
@@ -150,7 +152,10 @@ final class SportsSession: Playback {
         positionChanges = player.events.on(SeekedEvent.self).receive(on: DispatchQueue.main).sink { [weak self, weak player] _ in
             guard let self, let player, self.established, self.ready, self.owns(player) else { return }
             let seconds = player.currentTime(.relativeTime)
-            if seconds.isFinite, seconds >= 0 { self.position = seconds }
+            if seconds.isFinite, seconds >= 0 {
+                self.position = seconds
+                if let end = self.archiveDuration, seconds < end { self.archiveFinished = false }
+            }
         }
     }
 
@@ -219,6 +224,8 @@ final class SportsSession: Playback {
         resetSelection()
         currentRequest = request
         established = false
+        archiveDuration = nil
+        archiveFinished = false
         clock = PresentationClock()
         asset = next
         pendingSeek = request.seek
@@ -243,8 +250,22 @@ final class SportsSession: Playback {
         } else { open(live) }
     }
 
+    func rejoinLiveEdge() {
+        guard let player, owns(player), ready, player.isLive, status == "live", let asset, asset.kind == "live" else { return }
+        returnToUTC = nil
+        notice = nil
+        currentRequest = OpenRequest(asset: asset, seek: nil, play: true, restoreUTC: nil, archiveHandoff: false)
+        established = true
+        desiredPlayback = true
+        player.timeShift = 0
+        super.prepared(player)
+    }
+
     override func prepared(_ player: Player) {
         guard problem == nil else { return }
+        if asset?.kind == "archive", player.duration.isFinite, player.duration > 0 {
+            archiveDuration = player.duration
+        }
         if let target = returnToUTC {
             returnToUTC = nil
             guard player.isLive, let current = utc() else {
@@ -366,6 +387,7 @@ final class SportsSession: Playback {
             player.pause()
             return
         }
+        archiveFinished = false
         super.onPlaying(event, player: player)
     }
 
@@ -376,7 +398,8 @@ final class SportsSession: Playback {
 
     override func failed(_ reason: String) {
         if established, let request = currentRequest, request.asset.kind == "archive" {
-            let seconds = position ?? request.seek
+            var seconds = archiveFinished ? nil : position ?? request.seek
+            if let end = archiveDuration, let current = seconds, current >= end { seconds = nil }
             currentRequest = OpenRequest(asset: request.asset, seek: seconds, play: desiredPlayback,
                                          restoreUTC: nil, archiveHandoff: false)
         }
@@ -389,6 +412,10 @@ final class SportsSession: Playback {
     override func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
         guard owns(player) else { return }
         playing = false
+        if asset?.kind == "archive" {
+            archiveFinished = true
+            position = archiveDuration ?? position
+        }
         clearCaptions()
         record("Finished")
         if asset?.kind == "clip", status == "live" { backToLive(restore: false) }

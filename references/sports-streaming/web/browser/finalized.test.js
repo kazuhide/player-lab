@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 
 test(
   'finalized DVR survives HLS/DASH switches and a later archive error keeps the current checkpoint',
@@ -139,6 +139,138 @@ test(
       assert.equal(data.records.length, 1);
       assert.equal(data.records[0].requested.playWhenReady, true);
       assert.equal(data.records[0].confirmed, null);
+    } finally {
+      await browser.close();
+    }
+  }
+);
+
+test(
+  'native WebKit HLS restores the same finalized DVR frame on retry and continues into the archive',
+  {
+    skip: process.env.RUN_FINALIZED !== '1' || process.env.BROWSER !== 'webkit',
+    timeout: 60000
+  },
+  async () => {
+    const browser = await webkit.launch();
+    try {
+      const page = await browser.newPage({ locale: 'en-US' });
+      let origin = null;
+      page.on('response', async (response) => {
+        if (new URL(response.url()).pathname === '/api/events/SP-EVENT-S' && response.ok())
+          origin = (await response.json()).utcStartMs;
+      });
+      await page.goto(process.env.APP_URL || 'http://localhost:5182');
+      await page.locator('#assets button[data-id="SP-LIVE-S"]').click();
+      await page.selectOption('#mode', 'custom');
+      await page.waitForFunction(() => document.querySelector('video')?.currentTime > 0.5);
+      await page.locator('#play').click();
+      await page.locator('#seek').evaluate((i) => {
+        i.value = 12;
+        i.dispatchEvent(new Event('change'));
+      });
+      await page.waitForFunction(
+        () =>
+          document.querySelector('#log [data-event=Seeked]') &&
+          !document.querySelector('video').seeking &&
+          Math.abs(document.querySelector('video').currentTime - 12) < 0.5
+      );
+      const expected = await page.locator('video').evaluate((v) => {
+        if (!v.currentSrc.startsWith('http')) throw Error('Expected native HLS');
+        return v.getStartDate().getTime() / 1000 + v.currentTime;
+      });
+      await page.locator('video').evaluate((v) => {
+        v.src = 'data:video/mp4;base64,AAAA';
+        v.load();
+      });
+      await page.locator('#retry').click();
+      await page.waitForFunction((utc) => {
+        const v = document.querySelector('video');
+        return (
+          v?.paused &&
+          v.readyState >= 2 &&
+          !document.querySelector('#controls').disabled &&
+          Math.abs(v.getStartDate().getTime() / 1000 + v.currentTime - utc) < 0.5
+        );
+      }, expected);
+      assert.equal(await page.locator('#message').textContent(), '');
+      await page.locator('#targets button').first().click();
+      assert.ok(Number.isSafeInteger(origin));
+      await page.waitForFunction(
+        (s) => {
+          const v = document.querySelector('video');
+          return (
+            document.querySelector('#title').textContent === 'Practice replay' &&
+            !document.querySelector('#controls').disabled &&
+            v?.paused &&
+            Math.abs(v.currentTime - s) < 0.6
+          );
+        },
+        expected - origin / 1000
+      );
+    } finally {
+      await browser.close();
+    }
+  }
+);
+
+test(
+  'pausing after the archive seek keeps a paused retry and a single local request',
+  {
+    skip: process.env.RUN_FINALIZED !== '1',
+    timeout: 60000
+  },
+  async () => {
+    const browser = await chromium.launch({ channel: 'chrome' });
+    try {
+      const page = await browser.newPage({ locale: 'en-US' });
+      await page.goto(process.env.APP_URL || 'http://localhost:5182');
+      await page.locator('#assets button[data-id="SP-LIVE-S"]').click();
+      await page.selectOption('#mode', 'custom');
+      await page.waitForFunction(() => document.querySelector('video')?.currentTime > 0.6);
+      await page.evaluate(() => {
+        const observer = new MutationObserver((records) => {
+          if (document.querySelector('#title').textContent !== 'Practice replay') return;
+          if (
+            records.some((record) => [...record.addedNodes].some((n) => n.dataset?.event === 'Playing'))
+          ) {
+            observer.disconnect();
+            document.querySelector('#play').click();
+          }
+        });
+        observer.observe(document.querySelector('#log'), { childList: true });
+      });
+      await page.locator('#targets button').first().click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector('#title').textContent === 'Practice replay' &&
+          !document.querySelector('#controls').disabled &&
+          document.querySelector('video')?.paused &&
+          document.querySelector('video').currentTime > 100
+      );
+      await page.waitForFunction(
+        () => document.querySelector('#log li:last-child')?.dataset.event === 'Paused'
+      );
+      const saved = await page.locator('video').evaluate((v) => v.currentTime);
+      await page.locator('video').evaluate((v) => {
+        v.src = 'data:video/mp4;base64,AAAA';
+        v.load();
+      });
+      await page.locator('#retry').click();
+      await page.waitForFunction(
+        (s) =>
+          !document.querySelector('#controls').disabled &&
+          document.querySelector('video')?.paused &&
+          Math.abs(document.querySelector('video').currentTime - s) < 1,
+        saved
+      );
+      await page.locator('summary').click();
+      const downloading = page.waitForEvent('download');
+      await page.locator('#export').click();
+      const data = JSON.parse(await readFile(await (await downloading).path(), 'utf8'));
+      assert.equal(data.records.length, 1);
+      assert.equal(data.records[0].confirmed, null);
+      assert.equal(data.records[0].failure, null);
     } finally {
       await browser.close();
     }

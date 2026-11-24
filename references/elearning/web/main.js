@@ -32,29 +32,33 @@ let generation = 0,
   checkpoint = 0,
   finished = false,
   autoplayGeneration = 0,
-  storedCheckpoint = null;
+  storedCheckpoint = null,
+  userRequestedPlay = false;
 function seek(value) {
   if (!watching) return;
   const range = session.player.getSeekableRange();
   if (range.end > range.start)
     session.player.seek(Math.max(range.start, Math.min(value, range.end - 0.05)), 'reference');
 }
-function save(passive = true) {
+function save(passive = true, reclaim = false) {
   if (!watching || finished || !session.ready) return;
   const seconds = session.player.getCurrentTime();
   if (!Number.isFinite(seconds) || seconds < 0) return;
   checkpoint = seconds;
   try {
     const key = resumeKey(learner, lesson.id);
+    const current = localStorage.getItem(key);
+    if (reclaim && current === storedCheckpoint) return;
     const serialized = JSON.stringify({
       seconds,
       ...preferences,
       mode: el('mode').value,
-      autoAdvance: advance
+      autoAdvance: advance,
+      revision: crypto.getRandomValues(new Uint32Array(4)).join('.')
     });
     // Cleanup callbacks in a paused tab can run after another tab saved or
     // finished the same lesson. Only fresh user activity can reclaim its key.
-    if (!passive || localStorage.getItem(key) === storedCheckpoint) {
+    if (!passive || current === storedCheckpoint) {
       localStorage.setItem(key, serialized);
       storedCheckpoint = serialized;
     }
@@ -65,6 +69,7 @@ function save(passive = true) {
 }
 function endSelection() {
   save();
+  userRequestedPlay = false;
   ++generation;
   watching = false;
   finished = false;
@@ -235,8 +240,14 @@ function onEvent(type, event) {
   }
   if (type === 'Seeked') updateActiveCue();
   if (type === 'Paused' || type === 'Seeked') save(type !== 'Seeked' || document.hidden);
+  if (type === 'Play') {
+    userRequestedPlay = !document.hidden && ['reference-user', 'ui'].includes(event.issuer);
+  }
+  if (type === 'Paused') userRequestedPlay = false;
   if (type === 'Playing') {
     finished = false;
+    if (userRequestedPlay && !document.hidden) save(false, true);
+    userRequestedPlay = false;
     if (document.hidden && session.player.getViewMode() !== 'pictureinpicture')
       session.player.pause('reference');
   }

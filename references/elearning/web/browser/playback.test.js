@@ -283,15 +283,23 @@ test(
       const finishing = await openSummary();
       const paused = await openSummary();
       await seek(finishing, 4);
+      const first = await finishing.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
+      assert.ok(first.revision);
       await finishing.locator('#play').click();
-      await seek(paused, 2);
+      await seek(paused, 4);
+      await paused.waitForFunction(
+        ([k, prev]) => JSON.parse(localStorage.getItem(k))?.revision !== prev,
+        [key, first.revision]
+      );
+      const second = await paused.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
+      assert.deepEqual({ ...first, revision: null }, { ...second, revision: null });
       await finishing.waitForFunction(
         () => document.querySelector('#message').textContent === 'Lesson finished.'
       );
       await paused.close();
       assert.ok(
         await finishing.evaluate(
-          (k) => Math.abs(JSON.parse(localStorage.getItem(k))?.seconds - 2) < 0.25,
+          (k) => Math.abs(JSON.parse(localStorage.getItem(k))?.seconds - 4) < 0.25,
           key
         )
       );
@@ -300,3 +308,59 @@ test(
     }
   }
 );
+
+for (const mode of ['custom', 'standard'])
+  test(
+    'explicit ' + mode + ' playback in a stale tab reclaims its learner checkpoint',
+    { timeout: 65000 },
+    async () => {
+      const browser = await launch();
+      try {
+        const context = await browser.newContext({ locale: 'en-US' });
+        const key = 'reference.elearning.resume.a/EDU-FX-01';
+        const open = async (saved) => {
+          const page = await context.newPage();
+          await page.goto(process.env.APP_URL || 'http://localhost:5181');
+          await page.locator('#lessons button[data-id="EDU-FX-01"]').click();
+          if (saved) await page.locator('#resume').click();
+          await page.selectOption('#mode', 'custom');
+          await page.waitForFunction(() => document.querySelector('#play').textContent === 'Pause');
+          await page.locator('#play').click();
+          return page;
+        };
+        const seek = async (page, s) => {
+          await page.locator('#seek').evaluate((i, t) => {
+            i.value = t;
+            i.dispatchEvent(new Event('change'));
+          }, s);
+          await page.waitForFunction(
+            ([k, t]) => Math.abs(JSON.parse(localStorage.getItem(k))?.seconds - t) < 0.3,
+            [key, s]
+          );
+        };
+        const older = await open(false);
+        await seek(older, 10);
+        await older.selectOption('#mode', mode);
+        const controls =
+          mode === 'custom'
+            ? older.locator('#play')
+            : older.locator('#player .bmpui-ui-playbacktogglebutton');
+        const newer = await open(true);
+        await seek(newer, 25);
+        await newer.close();
+        await older.bringToFront();
+        await controls.click({ force: true });
+        await older.waitForFunction(() => document.querySelector('video').currentTime > 11);
+        await controls.click({ force: true });
+        await older.waitForFunction((k) => {
+          const s = JSON.parse(localStorage.getItem(k))?.seconds;
+          return s > 11 && s < 20;
+        }, key);
+        await older.locator('#course').click();
+        await older.locator('#lessons button[data-id="EDU-FX-01"]').click();
+        assert.match(await older.locator('#resume').textContent(), /0:1[1-9]/);
+      } finally {
+        await browser.close();
+      }
+    }
+  );

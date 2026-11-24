@@ -63,7 +63,7 @@ export function mountControls(session, preferences, move, seekBar, range) {
   };
   el('airplay').onclick = () => session.player?.showAirplayTargetPicker();
   el('play').onclick = () =>
-    session.player?.isPlaying() ? session.player.pause('reference') : session.play();
+    session.player?.isPlaying() ? session.player.pause('reference') : session.play('reference-user');
   el('back').onclick = () => move(-10);
   el('forward').onclick = () => move(10);
   el('seek').onchange = () => seekBar(Number(el('seek').value));

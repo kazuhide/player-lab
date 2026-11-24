@@ -153,12 +153,13 @@ final class PlayerTests: XCTestCase {
             session.speed = 1.5
             session.open(lesson, resume: false)
             session.failed("Fixture failure before Ready")
+            session.standardControls = true
             session.retry()
             try await waitFor("Start over must retry from the beginning") { session.playing }
             XCTAssertFalse(session.invalidResume)
             XCTAssertLessThan(player.currentTime, 5)
             XCTAssertEqual(session.speed, 1.5)
-            XCTAssertFalse(session.standardControls)
+            XCTAssertTrue(session.standardControls)
             XCTAssertEqual(session.captionLanguage, "")
         }
     }
@@ -234,18 +235,24 @@ final class PlayerTests: XCTestCase {
             player.destroy()
             UserDefaults.standard.set(previous, forKey: key)
         }
-        let checkpoint = Progress(seconds: 12, speed: 1.5, language: "", standard: false)
+        let checkpoint = Progress(seconds: 12, speed: 1.5, language: "ja", standard: true)
         UserDefaults.standard.set(try JSONEncoder().encode(checkpoint), forKey: key)
         session.open(lesson, resume: true)
+        try await waitFor("Resume source ready for preference changes") { session.ready }
+        session.setSpeed(1.25)
+        session.setCaptions("")
         try await waitFor("Resume must report an unacknowledged seek") { session.problem != nil }
         XCTAssertFalse(player.isPlaying)
         XCTAssertEqual(session.saved(lesson)?.seconds, 12)
+        session.standardControls = false
         allowSeek = true
         session.retry()
         try await waitFor("Retry must reach the original resume checkpoint") {
             session.playing && abs(player.currentTime - 12) < 1
         }
-        XCTAssertEqual(session.speed, 1.5)
+        XCTAssertEqual(session.speed, 1.25)
+        XCTAssertEqual(session.captionLanguage, "")
+        XCTAssertNil(player.subtitle.language)
         XCTAssertFalse(session.standardControls)
     }
 
@@ -281,6 +288,63 @@ final class PlayerTests: XCTestCase {
         player.seek(time: 0)
         try await waitFor("Back must close the lesson") { session.lesson == nil }
         XCTAssertEqual(session.saved(lesson)?.seconds, 0)
+    }
+
+    func testExplicitZeroAndBackDuringResumePreservesOnlyChosenZero() async throws {
+        let session = LearningSession(seekResume: { _, _ in })
+        let player = try XCTUnwrap(session.player)
+        await session.fetchCatalog()
+        let lesson = try XCTUnwrap(session.lessons.first)
+        let key = Progress.key(learner: "A", lesson: lesson.id)
+        let previous = UserDefaults.standard.data(forKey: key)
+        defer {
+            session.closeLesson()
+            player.destroy()
+            UserDefaults.standard.set(previous, forKey: key)
+        }
+        let saved = Progress(seconds: 12, speed: 1, language: "", standard: false)
+        UserDefaults.standard.set(try JSONEncoder().encode(saved), forKey: key)
+        session.open(lesson, resume: true)
+        try await waitFor("Resume is waiting for its native seek") { session.ready }
+        XCTAssertEqual(player.currentTime, 0)
+        session.closeLesson()
+        XCTAssertEqual(session.saved(lesson)?.seconds, 12)
+
+        session.open(lesson, resume: true)
+        try await waitFor("Resume is ready for transcript navigation") { session.ready }
+        session.seek(to: 0)
+        XCTAssertEqual(player.currentTime, 0)
+        // Back runs on the same main-actor turn before any queued Seeked handler.
+        session.closeLesson()
+        XCTAssertEqual(session.saved(lesson)?.seconds, 0)
+    }
+
+    func testSkipToEndDuringResumeKeepsCompletedLessonReplayable() async throws {
+        let session = LearningSession(seekResume: { _, _ in })
+        let player = try XCTUnwrap(session.player)
+        await session.fetchCatalog()
+        let lesson = try XCTUnwrap(session.lessons.last)
+        let key = Progress.key(learner: "A", lesson: lesson.id)
+        let previous = UserDefaults.standard.data(forKey: key)
+        defer {
+            session.closeLesson()
+            player.destroy()
+            UserDefaults.standard.set(previous, forKey: key)
+        }
+        let saved = Progress(seconds: 3, speed: 1, language: "", standard: false)
+        UserDefaults.standard.set(try JSONEncoder().encode(saved), forKey: key)
+        session.open(lesson, resume: true)
+        try await waitFor("Eight-second Summary can receive a skip while resuming") { session.ready }
+        XCTAssertLessThanOrEqual(player.duration, 10)
+        session.seek(by: 10)
+        try await waitFor("The endpoint must complete the requested lesson") { session.saved(lesson)?.seconds == 0 }
+        // A completed replacement must retire the original five-second deadline.
+        try await Task.sleep(nanoseconds: 5_200_000_000)
+        XCTAssertNil(session.problem)
+        player.play()
+        try await waitFor("Play should replay Summary from the beginning") {
+            session.playing && player.currentTime > 0 && player.currentTime < player.duration / 2
+        }
     }
 
     func testCourseSelectionBelongsToEachLearner() async throws {

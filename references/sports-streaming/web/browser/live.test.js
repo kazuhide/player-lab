@@ -53,41 +53,57 @@ test(
       );
       // A status change between polling and dispatch must leave the clip untouched.
       const clip = await page.locator('video').elementHandle();
-      let releaseOld,
-        sawOld,
+      let releasePoll,
+        sawPoll,
+        releaseReturn,
+        sawReturn,
         requests = 0;
-      const held = new Promise((resolve) => {
-        releaseOld = resolve;
+      const holdPoll = new Promise((resolve) => {
+        releasePoll = resolve;
       });
-      const requested = new Promise((resolve) => {
-        sawOld = resolve;
+      const pollStarted = new Promise((resolve) => {
+        sawPoll = resolve;
+      });
+      const holdReturn = new Promise((resolve) => {
+        releaseReturn = resolve;
+      });
+      const returnObserved = new Promise((resolve) => {
+        sawReturn = resolve;
       });
       const expiryRoute = async (route) => {
-        const ordinal = ++requests;
-        const res = await route.fetch();
-        const latest = await res.json();
-        if (ordinal === 1) {
-          sawOld();
-          await held;
-          await route.fulfill({ response: res, json: latest });
-        } else {
+        if (++requests === 1) {
+          // The poll leaves the browser first, but the publisher processes it last.
+          sawPoll();
+          await holdPoll;
+          const response = await route.fetch();
+          const latest = await response.json();
           await route.fulfill({
-            response: res,
+            response,
             json: { ...latest, seekableUtcStartMs: Math.floor(saved * 1000) + 2000 }
           });
+        } else {
+          // The return read sees the older, still valid window. Delay its response.
+          const response = await route.fetch();
+          sawReturn();
+          await holdReturn;
+          await route.fulfill({ response });
         }
       };
       await page.route('**/api/events/SP-EVENT-S', expiryRoute);
-      await page.locator('#earlier').click();
-      await requested;
       await page.locator('#refresh').click();
+      await pollStarted;
+      await page.locator('#earlier').click();
+      await returnObserved;
+      releasePoll();
       await page.waitForFunction(() => document.querySelector('#earlier').hidden);
-      const oldResponse = page.waitForResponse((r) =>
+      const returned = page.waitForResponse((r) =>
         new URL(r.url()).pathname.endsWith('/api/events/SP-EVENT-S')
       );
-      releaseOld();
-      await (await oldResponse).finished();
-      await page.waitForFunction(() => document.querySelector('#earlier').hidden);
+      releaseReturn();
+      await (await returned).finished();
+      await page.waitForFunction(() =>
+        document.querySelector('#message').textContent.includes('keep watching this clip')
+      );
       assert.ok(await clip.evaluate((v) => v === document.querySelector('video')));
       assert.equal(
         await page.locator('#assets button[aria-current=true]').getAttribute('data-id'),

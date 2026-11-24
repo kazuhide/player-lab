@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.Button
 import android.widget.ListView
+import android.widget.TextView
 import androidx.core.view.descendants
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -43,13 +44,24 @@ class TelevisionRemoteTest : LearningPlaybackScenario() {
             input.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
             await(scenario, "D-pad should open the transcript") { it.viewState.panel == LessonPanel.TRANSCRIPT }
             scenario.onActivity { activity ->
-                val root = activity.window.decorView as ViewGroup
-                val cues = root.descendants.filterIsInstance<ListView>().first { it.isShown }
-                assertTrue("Transcript rows must be visible", cues.childCount > 0 && cues.getChildAt(0).getGlobalVisibleRect(Rect()))
-                assertTrue(cues.requestFocus())
-                cues.setSelection(0)
+                assertEquals(activity.getString(R.string.transcript), (activity.currentFocus as Button).text.toString())
             }
-            input.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+            // Traverse the search and follow/language controls just as a TV remote does.
+            var selected = -1
+            for (step in 1..5) {
+                input.sendKeyDownUpSync(if (selected > 1) KeyEvent.KEYCODE_DPAD_UP else KeyEvent.KEYCODE_DPAD_DOWN)
+                scenario.onActivity { selected = (it.currentFocus as? ListView)?.selectedItemPosition ?: -1 }
+                if (selected == 1) break
+            }
+            scenario.onActivity { activity ->
+                assertEquals("The remote should select the second cue", 1, selected)
+                val cues = activity.currentFocus as ListView
+                val cue = cues.selectedItem as TranscriptCue
+                val row = cues.selectedView as TextView
+                assertEquals(10_000L, cue.startMs)
+                assertTrue(row.text.contains(cue.text))
+                assertTrue("The selected transcript cue must be visible", row.getGlobalVisibleRect(Rect()))
+            }
             input.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
             await(scenario, "D-pad should seek to the second transcript cue") { it.positionMs in 9_000..11_000 }
         }

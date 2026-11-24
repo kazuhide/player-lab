@@ -64,11 +64,8 @@ struct ReferenceScreen: View {
                                     }
                                 }
                             }
-                            if session.player?.isLive == true {
-                                Button("Live edge") {
-                                    session.player?.timeShift = 0
-                                    session.player?.play()
-                                }
+                            if session.status == "live", session.player?.isLive == true {
+                                Button("Live edge") { session.rejoinLiveEdge() }
                             }
                             if asset.kind == "clip", session.status == "live" {
                                 Button("Return to live") { session.backToLive(restore: false) }

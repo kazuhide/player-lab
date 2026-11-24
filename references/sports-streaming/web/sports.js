@@ -122,6 +122,46 @@ export function canReturnToUtc(status, utc) {
   );
 }
 
+// Compare publisher observations for one selected event. Request order and
+// network delivery order do not identify which snapshot the publisher took last.
+export function newerStatus(current, incoming) {
+  if (!current) return incoming;
+  for (const [a, b] of [
+    [current.mediaUtcNow, incoming.mediaUtcNow],
+    [Date.parse(current.observedAt), Date.parse(incoming.observedAt)]
+  ]) {
+    if (Number.isFinite(a) && Number.isFinite(b) && a !== b) return b > a ? incoming : current;
+  }
+  // Snapshots can share a timestamp. The fixture's live window moves forward
+  // and finished events do not return to the live state.
+  if (current.status !== incoming.status) {
+    const rank = { scheduled: 0, live: 1, ended: 2, cancelled: 2 };
+    return rank[incoming.status] >= rank[current.status] ? incoming : current;
+  }
+  if (
+    current.status === 'live' &&
+    Number.isFinite(current.seekableUtcStartMs) &&
+    Number.isFinite(incoming.seekableUtcStartMs) &&
+    incoming.seekableUtcStartMs < current.seekableUtcStartMs
+  )
+    return current;
+  if (
+    current.status === 'live' &&
+    incoming.seekableUtcStartMs === current.seekableUtcStartMs &&
+    Number.isFinite(current.seekableUtcEndMs) &&
+    Number.isFinite(incoming.seekableUtcEndMs) &&
+    incoming.seekableUtcEndMs < current.seekableUtcEndMs
+  )
+    return current;
+  if (
+    current.status === 'ended' &&
+    ['ready', 'failed'].includes(current.archiveStatus) &&
+    !['ready', 'failed'].includes(incoming.archiveStatus)
+  )
+    return current;
+  return incoming;
+}
+
 // SDK manifest segment times start at the retained window. The decoded
 // segment identifies the corresponding position on the SDK seek timeline.
 export function finalizedPosition(segments, anchor, utcSeconds) {

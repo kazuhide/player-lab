@@ -64,6 +64,7 @@ export class Session {
       }
     });
     for (const type of [
+      'Play',
       'Playing',
       'Paused',
       'TimeChanged',
@@ -109,10 +110,10 @@ export class Session {
       else if (track.lang !== language && track.enabled) player.subtitles.disable(track.id);
     }
   }
-  async play() {
+  async play(issuer = 'reference') {
     if (!this.ready) return;
     try {
-      await this.player.play('reference');
+      await this.player.play(issuer);
     } catch {
       /* A browser can require another user gesture. Play stays available. */
     }

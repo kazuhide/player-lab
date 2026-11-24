@@ -63,7 +63,7 @@ struct TranscriptPanel: View {
     private func cueButton(_ row: Transcript.Row, active: Bool) -> some View {
         Button {
             follow = false
-            session.player?.seek(time: row.cue.startMs / 1000)
+            session.seek(to: row.cue.startMs / 1000)
         } label: {
             HStack(alignment: .firstTextBaseline) {
                 if active { Image(systemName: "play.fill").accessibilityHidden(true) }

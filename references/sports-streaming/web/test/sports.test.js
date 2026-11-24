@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   archivePosition,
   finalizedPosition,
+  newerStatus,
   canReturnToUtc,
   sourceUtc,
   liveReturnOffset,
@@ -81,4 +82,21 @@ test('finalized positions use the actual retained segments and reject gaps, EOF 
     assert.equal(finalizedPosition(segments, anchor, t), null);
   assert.equal(finalizedPosition(segments, { ...anchor, url: 'foreign' }, 1700000001), null);
   assert.equal(finalizedPosition(null, anchor, 1700000001), null);
+});
+
+test('publisher observation times order overlapping status reads regardless of delivery or issuance', () => {
+  const old = {
+    status: 'live',
+    mediaUtcNow: 5000,
+    observedAt: '2026-10-01T00:00:01Z',
+    seekableUtcStartMs: 1000
+  };
+  const fresh = { ...old, mediaUtcNow: 6000, observedAt: '2026-10-01T00:00:02Z', seekableUtcStartMs: 2000 };
+  assert.equal(newerStatus(fresh, old), fresh);
+  assert.equal(newerStatus(old, fresh), fresh);
+  const tie = { ...old, seekableUtcStartMs: 3000 };
+  assert.equal(newerStatus(tie, old), tie);
+  assert.equal(newerStatus(old, tie), tie);
+  const terminal = { ...old, status: 'ended' };
+  assert.equal(newerStatus(terminal, old), terminal);
 });
