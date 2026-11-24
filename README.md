@@ -65,7 +65,7 @@ actual playback on a simulator, emulator or physical device.
 
 ## Reference applications
 
-These Android applications demonstrate integrations in separate projects:
+Each reference includes a Web player, an Android app for mobile and TV, and native iOS and tvOS targets:
 
 - [Learning](references/elearning): lessons, timed transcript search and local resume.
 - [Sports streaming](references/sports-streaming): live events, clips, archives and Google Cast.

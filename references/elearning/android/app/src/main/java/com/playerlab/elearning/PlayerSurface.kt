@@ -47,7 +47,9 @@ class PlayerSurface(context: Context, private val player: Player, private val su
         detachPlayerView()
         this.mode = mode
         val config = PlayerViewConfig(
-            uiConfig = if (mode == UiMode.DEFAULT) UiConfig.WebUi(playbackSpeedSelectionEnabled = true, supplementalCssLocation = "file:///android_asset/shared-subtitles.css") else UiConfig.Disabled,
+            uiConfig = if (mode == UiMode.DEFAULT) UiConfig.WebUi(
+                variant = if (context.isTelevision) UiConfig.WebUi.Variant.TvUi else UiConfig.WebUi.Variant.SmallScreenUi,
+                playbackSpeedSelectionEnabled = true, supplementalCssLocation = "file:///android_asset/shared-subtitles.css") else UiConfig.Disabled,
             surfaceType = SurfaceType.TextureView,
         )
         val view = PlayerView(context, player, config)
@@ -92,7 +94,17 @@ class PlayerSurface(context: Context, private val player: Player, private val su
 
     override fun onInterceptTouchEvent(event: MotionEvent) = playbackBlocked || super.onInterceptTouchEvent(event)
     override fun onTouchEvent(event: MotionEvent) = playbackBlocked || super.onTouchEvent(event)
-    override fun dispatchKeyEvent(event: KeyEvent) = (playbackBlocked && event.keyCode != KeyEvent.KEYCODE_BACK) || super.dispatchKeyEvent(event)
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (!playbackBlocked || event.keyCode == KeyEvent.KEYCODE_BACK) return super.dispatchKeyEvent(event)
+        // While the source is unavailable, keep the surrounding TV controls reachable.
+        if (context.isTelevision && event.keyCode in navigationKeys) return false
+        return true
+    }
+
+    private companion object {
+        val navigationKeys = setOf(KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
+            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_ESCAPE)
+    }
 
     fun onStart() { started = true; playerView?.onStart() }
     fun onResume() { resumed = true; playerView?.onResume() }

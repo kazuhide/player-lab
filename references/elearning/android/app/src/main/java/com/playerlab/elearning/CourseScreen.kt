@@ -18,6 +18,7 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
         val key = listOf(session.catalog, session.catalogFailed, session.progressLoading, session.learner, session.resumes, session.autoAdvanceDraft, session.format, session.captionDelivery)
         if (key == lastKey) return
         lastKey = key
+        val focusedControl = if (context.isTelevision) findFocus()?.tag else null
         content.removeAllViews()
         val catalog = session.catalog
         if (catalog == null) {
@@ -32,6 +33,7 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
                 text = context.getString(R.string.auto_advance)
                 textSize = 16f
                 minHeight = context.dp(48)
+                tag = "autoAdvance"
                 isChecked = session.autoAdvanceDraft
                 setOnCheckedChangeListener { _, enabled -> session.setAutoAdvance(enabled) }
             })
@@ -39,6 +41,7 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
                 orientation = LinearLayout.HORIZONTAL
                 StreamFormat.entries.forEach { format ->
                     addView(RadioButton(context).apply {
+                        tag = format
                         id = android.view.View.generateViewId()
                         text = format.name
                         minHeight = context.dp(48)
@@ -52,8 +55,8 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
         if (session.format == StreamFormat.HLS && course.lessonIds.map(catalog::lesson).filter { it.subtitleTracks.isNotEmpty() }.all { it.hlsWithSubtitles != null }) {
             content.addView(context.label(context.getString(R.string.caption_source), 14f))
             content.addView(context.row().apply {
-                weighted(context.action(context.getString(R.string.external_captions), session.captionDelivery == CaptionDelivery.EXTERNAL) { session.setCaptionDelivery(CaptionDelivery.EXTERNAL) })
-                weighted(context.action(context.getString(R.string.manifest_captions), session.captionDelivery == CaptionDelivery.MANIFEST) { session.setCaptionDelivery(CaptionDelivery.MANIFEST) })
+                weighted(context.action(context.getString(R.string.external_captions), session.captionDelivery == CaptionDelivery.EXTERNAL) { session.setCaptionDelivery(CaptionDelivery.EXTERNAL) }.apply { tag = CaptionDelivery.EXTERNAL })
+                weighted(context.action(context.getString(R.string.manifest_captions), session.captionDelivery == CaptionDelivery.MANIFEST) { session.setCaptionDelivery(CaptionDelivery.MANIFEST) }.apply { tag = CaptionDelivery.MANIFEST })
             })
             content.addView(context.divider())
         }
@@ -62,7 +65,7 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
             content.addView(context.label(catalog.lesson(recent.lessonId).localizedTitle(context), 17f, true))
             content.addView(context.label(context.getString(R.string.saved_position, formatTime(recent.positionMs)), 14f))
             content.addView(context.action(context.getString(R.string.continue_lesson), primary = true) { session.startLesson(recent.lessonId, resume = true) }
-                .apply { isEnabled = !session.progressLoading })
+                .apply { tag = "continue"; isEnabled = !session.progressLoading })
             content.addView(context.divider())
         }
         content.addView(context.heading(context.getString(R.string.lessons), 18f))
@@ -75,6 +78,7 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
             val resumeText = saved?.takeIf { it.positionMs > 0 && it.canResume(lesson.durationMs) }
                 ?.let { "\n" + context.getString(R.string.saved_position, formatTime(it.positionMs)) }.orEmpty()
             content.addView(context.action("${index + 1}. ${lesson.localizedTitle(context)}\n$metadata$resumeText") { openLesson(id) }.apply {
+                tag = id
                 gravity = Gravity.START or Gravity.CENTER_VERTICAL
                 isEnabled = !session.progressLoading
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
@@ -84,5 +88,6 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
                 setPadding(context.dp(16), context.dp(14), context.dp(16), context.dp(14))
             })
         }
+        focusedControl?.let { content.findViewWithTag<android.view.View>(it)?.requestFocus() }
     }
 }

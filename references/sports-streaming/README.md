@@ -2,13 +2,22 @@
 
 [English](README.md) · [日本語](README.ja.md) · [Implementation guide](docs/implementation.md) · [Analytics Web](analytics-web/README.md)
 
-An independent Android example for live events, clips and recorded archives with
-Bitmovin Player. Compare the SDK's standard Web UI with native sports controls,
-return from a clip to the live stream, and continue into a prepared archive.
+Choose a live event, follow a clip and return to the live stream. When its archive is ready, continue at the corresponding position if the publisher has verified the time mapping.
 A finalized live Source does not necessarily acquire a zero-based clock.
 Web and Android also expose different time APIs. See the
 [clock comparison](docs/implementation.md#playback-position-and-unix-time)
 for Unix time, relative positions and archive handoff conditions.
+
+Follow the setup for [Web](web/README.md), [Android mobile](android/README.md), [Android TV](android/TV.md) or [iOS and tvOS](apple/README.md). All five targets use the same catalog and HLS fixtures.
+
+## Try the same event on each platform
+
+1. Start the fixture publisher and select **Practice match short** while it is live. Move back inside the DVR window and pause.
+2. Switch between standard and sports controls. Check the pause state and position. Play **Opening clip**, then return to the live event. Try both the live edge and a previous position while it is still available.
+3. Keep the event open through its end. The archive can still be processing after the live broadcast ends. Once ready, try continuing at the viewed position and compare it with starting the archive from its beginning.
+4. Repeat with the edited archive. Positions in a removed section have no corresponding archive time. Check the available choices at one of those positions.
+
+Use HLS for the cross-platform comparison. The short fixture runs in real time for three minutes. Restart the publisher to repeat the event.
 
 Google Cast uses the SDK's remote-control integration.
 

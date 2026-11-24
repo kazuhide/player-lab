@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Match centre</title>
+  </head>
+  <body>
+    <main>
+      <h1>Match centre</h1>
+      <div class="layout">
+        <aside>
+          <h2>Events</h2>
+          <nav id="events" class="list" aria-label="Events"></nav>
+          <p id="status" role="status"></p>
+          <button id="refresh">Refresh status</button>
+          <div class="row">
+            <label><input type="checkbox" id="auto" />Automatically continue in the archive</label>
+          </div>
+          <h2>Watch</h2>
+          <nav id="assets" class="list" aria-label="Event video"></nav>
+        </aside>
+        <section class="panel">
+          <div class="row">
+            <label
+              >Controls
+              <select id="mode">
+                <option value="standard">Standard</option>
+                <option value="custom">Sports</option>
+              </select></label
+            >
+            <label
+              >Delivery
+              <select id="format">
+                <option value="hls">HLS</option>
+                <option value="dash">DASH</option>
+              </select></label
+            >
+          </div>
+          <h2 id="title">Select a video</h2>
+          <div id="stage">
+            <div id="player" inert></div>
+            <p role="status" id="message"></p>
+            <fieldset disabled id="controls">
+              <div id="custom" class="row" hidden>
+                <button id="play">Play</button><button id="back">−15 s</button
+                ><button id="forward">+15 s</button>
+                <label>Seek <input type="range" id="seek" min="0" max="1" step="0.1" value="0" /></label>
+                <label
+                  >Speed
+                  <select id="speed">
+                    <option>0.5</option>
+                    <option>0.75</option>
+                    <option selected>1</option>
+                    <option>1.25</option>
+                    <option>1.5</option>
+                    <option>2</option>
+                  </select></label
+                >
+                <label
+                  >Captions
+                  <select id="captions">
+                    <option value="off">Off</option>
+                  </select></label
+                >
+                <output id="clock"></output><button id="fullscreen">Fullscreen</button
+                ><button id="airplay" hidden>AirPlay</button>
+              </div>
+            </fieldset>
+          </div>
+          <div class="row">
+            <button id="edge" disabled>Live edge</button><button id="return" hidden>Return to live</button>
+            <button id="earlier" hidden>Return to saved DVR position</button
+            ><button id="retry" hidden>Retry playback</button>
+          </div>
+          <section id="archives" class="panel" hidden>
+            <h2>Continue in archive</h2>
+            <div class="row" id="targets"></div>
+          </section>
+          <details>
+            <summary>Diagnostics</summary>
+            <ol id="log"></ol>
+          </details>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

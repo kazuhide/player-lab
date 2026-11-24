@@ -109,7 +109,7 @@ class DocumentationChecks(unittest.TestCase):
         self.assertIn('unclosed fence', self.errors())
 
     def test_ignored_generated_and_dependency_pages_are_not_scanned(self):
-        for directory in ['node_modules/pkg', 'android/build/output', '.gradle/caches', 'fixtures/generated', 'test-results/run', '__pycache__', '.env.private']:
+        for directory in ['node_modules/pkg', 'android/build/output', 'apple/.build/checkouts', 'apple/DerivedData', 'web/dist', '.gradle/caches', 'fixtures/generated', 'test-results/run', '__pycache__', '.env.private']:
             self.write(directory + '/unpaired.md', '[private](missing.md)')
         self.assertEqual(audit(self.root)['pages'], 2)
         self.assertEqual(self.errors(), '')

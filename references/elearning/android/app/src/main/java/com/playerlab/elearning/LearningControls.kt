@@ -5,7 +5,7 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 
 class LearningControls(context: Context, private val session: PlaybackSession, settings: () -> Unit, fullscreen: () -> Unit) : LinearLayout(context) {
-    private val play = context.iconAction(R.drawable.ic_play, R.string.play) { if (session.player.isPlaying) session.player.pause() else session.player.play() }.apply { id = R.id.learning_play }
+    private val play = context.iconAction(R.drawable.ic_play, R.string.play) { session.setPlaying(!session.player.isPlaying) }.apply { id = R.id.learning_play }
     private val time = context.label(size = 14f)
     private val slider = SeekBar(context).apply {
         id = R.id.learning_position
@@ -26,9 +26,9 @@ class LearningControls(context: Context, private val session: PlaybackSession, s
             addView(play)
         })
         addView(context.row().apply {
-            weighted(context.action("−10") { session.seek((session.positionMs - 10_000).coerceAtLeast(0)) }
+            weighted(context.action("−10") { session.seekBy(-10_000) }
                 .apply { id = R.id.learning_backward; contentDescription = context.getString(R.string.seek_backward) })
-            weighted(context.action("+10") { session.seek(session.positionMs + 10_000) }
+            weighted(context.action("+10") { session.seekBy(10_000) }
                 .apply { id = R.id.learning_forward; contentDescription = context.getString(R.string.seek_forward) })
             addView(context.iconAction(R.drawable.ic_settings, R.string.settings, onClick = settings).apply { id = R.id.learning_settings })
             addView(full)

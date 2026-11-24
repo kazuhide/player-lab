@@ -151,6 +151,12 @@ class PlaybackSession(application: Application) : AndroidViewModel(application),
         engine.saveCurrent()
         changed()
     }
+    fun setPlaying(playing: Boolean) {
+        if (screen != AppScreen.LESSON || !playbackReady) return
+        if (playing) player.play() else player.pause()
+    }
+    fun seekBy(offsetMs: Long) = seek((positionMs + offsetMs).coerceAtLeast(0))
+
     fun seek(positionMs: Long) = engine.seek(positionMs)
     fun returnToCourse() {
         viewState.fullscreen = false

@@ -1,3 +1,5 @@
+export const platforms = Object.freeze({ android: 'Android', web: 'Web', ios: 'iOS', tvos: 'tvOS' });
+
 export const metrics = Object.freeze([
   { id: 'plays', operation: 'count', dimension: 'IMPRESSION_ID', positive: 'VIDEO_STARTUPTIME', divisor: 1, unit: 'count', shapes: ['total', 'hourly', 'assets'] },
   { id: 'watchHours', operation: 'sum', dimension: 'PLAYED', positive: 'PLAYED', divisor: 3_600_000, unit: 'hours', shapes: ['total'] },
@@ -14,7 +16,7 @@ export function queryTasks() {
 export function queryBody(selection, metric, licenseKey, shape = 'total', offset = 0) {
   const body = {
     licenseKey, start: selection.start, end: selection.end, dimension: metric.dimension,
-    filters: [{ name: 'PLATFORM', operator: 'EQ', value: 'android' }, { name: 'VIDEO_ID', operator: 'IN', value: selection.assets }],
+    filters: [{ name: 'PLATFORM', operator: 'EQ', value: selection.platform }, { name: 'VIDEO_ID', operator: 'IN', value: selection.assets }],
     includeContext: false, limit: 200, offset,
   };
   if (metric.positive) body.filters.push({ name: metric.positive, operator: 'GT', value: 0 });
@@ -27,13 +29,13 @@ export function queryBody(selection, metric, licenseKey, shape = 'total', offset
 
 export function snapshotSelection(snapshot, config) {
   const { start, end } = snapshot?.period ?? {};
-  const { asset, origin, type } = snapshot?.filters ?? {};
+  const { asset, origin, type, platform = 'android' } = snapshot?.filters ?? {};
   for (const value of [start, end]) {
     if (typeof value !== 'string' || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value) throw new RangeError('Invalid snapshot period');
   }
   if (end <= start || Date.parse(end) - Date.parse(start) > 7 * 86_400_000) throw new RangeError('Invalid snapshot period');
-  if (type !== 'all' || (asset !== 'all' && !config.assets.some(item => item.id === asset)) || (origin !== 'all' && !config.origins.includes(origin))) throw new RangeError('Invalid snapshot filters');
-  return { start, end, asset, origin, type, assets: config.assets.filter(item => asset === 'all' || item.id === asset).map(item => item.id) };
+  if (!Object.hasOwn(platforms, platform) || type !== 'all' || (asset !== 'all' && !config.assets.some(item => item.id === asset)) || (origin !== 'all' && !config.origins.includes(origin))) throw new RangeError('Invalid snapshot filters');
+  return { start, end, asset, origin, type, platform, assets: config.assets.filter(item => asset === 'all' || item.id === asset).map(item => item.id) };
 }
 
 export function queryRecipe(snapshot, config, metricId, shape = 'total') {

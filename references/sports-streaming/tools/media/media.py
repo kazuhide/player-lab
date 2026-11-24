@@ -744,8 +744,8 @@ def generate_asset(asset):
     for protocol in ("hls", "dash"):
         (output / protocol).mkdir(exist_ok=True)
     ffmpeg("-i", mp4, "-c", "copy", "-f", "hls", "-hls_time", "2", "-hls_playlist_type", "vod",
-           "-hls_segment_type", "fmp4", "-hls_flags", "independent_segments", "-hls_segment_filename",
-           output / "hls/seg-%05d.m4s", output / "hls/media.m3u8")
+           "-muxdelay", "0", "-hls_segment_type", "mpegts", "-hls_flags", "independent_segments", "-hls_segment_filename",
+           output / "hls/seg-%05d.ts", output / "hls/media.m3u8")
     ffmpeg("-i", mp4, "-c", "copy", "-f", "dash", "-seg_duration", "2", "-use_template", "1", "-use_timeline", "1",
            output / "dash/manifest.mpd")
     subtitles = asset.get("subtitles", [])
@@ -996,7 +996,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_bytes(value.encode(), "application/dash+xml")
         if item and filename in allowed and not fragment_available(disk_id, protocol, filename, elapsed, state["window"], item["durationMs"] / 1000):
             return self.send_error(404)
-        content_type = {".m3u8": "application/vnd.apple.mpegurl", ".mpd": "application/dash+xml", ".vtt": "text/vtt; charset=utf-8"}.get(Path(filename).suffix, "video/mp4")
+        content_type = {".ts": "video/mp2t", ".m3u8": "application/vnd.apple.mpegurl", ".mpd": "application/dash+xml", ".vtt": "text/vtt; charset=utf-8"}.get(Path(filename).suffix, "video/mp4")
         return self.send_file(GENERATED, disk_id + "/" + suffix, content_type)
 
 

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Number lines</title>
+  </head>
+  <body>
+    <main>
+      <h1>Number lines</h1>
+      <div class="layout">
+        <aside>
+          <h2>Course</h2>
+          <label
+            >Learner
+            <select id="learner">
+              <option value="a">A</option>
+              <option value="b">B</option>
+            </select></label
+          >
+          <div class="row">
+            <label><input id="auto" type="checkbox" />Play next automatically</label>
+          </div>
+          <label
+            >Caption source
+            <select id="delivery">
+              <option value="external">External tracks</option>
+              <option value="embedded">HLS manifest</option>
+            </select></label
+          >
+          <nav id="lessons" class="list" aria-label="Lessons"></nav>
+          <button id="course" hidden>Return to course</button><button id="reload">Reload course</button>
+        </aside>
+        <section class="panel">
+          <div class="row">
+            <label
+              >Controls
+              <select id="mode">
+                <option value="standard">Standard</option>
+                <option value="custom">Learning</option>
+              </select></label
+            >
+            <label
+              >Delivery
+              <select id="format">
+                <option value="hls">HLS</option>
+                <option value="dash">DASH</option>
+              </select></label
+            >
+          </div>
+          <h2 id="title">Select a lesson</h2>
+          <div id="stage">
+            <div id="player" inert></div>
+            <p role="status" id="message"></p>
+            <fieldset disabled id="controls">
+              <div id="custom" class="row" hidden>
+                <button id="play">Play</button><button id="back">−10 s</button
+                ><button id="forward">+10 s</button>
+                <label>Seek <input type="range" id="seek" min="0" max="1" step="0.1" value="0" /></label>
+                <label
+                  >Speed
+                  <select id="speed">
+                    <option>0.5</option>
+                    <option>0.75</option>
+                    <option selected>1</option>
+                    <option>1.25</option>
+                    <option>1.5</option>
+                    <option>2</option>
+                  </select></label
+                >
+                <label
+                  >Captions
+                  <select id="captions">
+                    <option value="off">Off</option>
+                  </select></label
+                >
+                <output id="clock"></output><button id="fullscreen">Fullscreen</button
+                ><button id="airplay" hidden>AirPlay</button>
+              </div>
+            </fieldset>
+          </div>
+          <div class="row" id="choices" hidden>
+            <button id="resume">Resume</button><button id="restart">Start over</button
+            ><button id="cancel">Return to course</button>
+          </div>
+          <div class="row">
+            <button id="prev" disabled>Previous lesson</button
+            ><button id="next" disabled>Next lesson</button
+            ><button id="retry" hidden>Retry playback</button>
+          </div>
+          <section class="panel">
+            <h2>Transcript</h2>
+            <div class="row">
+              <label
+                >Language
+                <select id="language">
+                  <option value="en">English</option>
+                  <option value="ja">日本語</option>
+                </select></label
+              >
+              <label>Search <input id="query" type="search" /></label>
+            </div>
+            <p role="status" id="transcriptStatus"></p>
+            <div id="results"></div>
+          </section>
+          <details>
+            <summary>Diagnostics</summary>
+            <ol id="log"></ol>
+          </details>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

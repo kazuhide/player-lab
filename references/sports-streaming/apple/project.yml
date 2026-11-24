@@ -1,0 +1,110 @@
+name: Sports
+options:
+  disabledValidations: [missingConfigFiles]
+  preGenCommand: test -f Local.xcconfig || cp Local.xcconfig.example Local.xcconfig
+  deploymentTarget:
+    iOS: "16.0"
+    tvOS: "16.0"
+packages:
+  BitmovinAnalytics:
+    url: https://github.com/bitmovin/bitmovin-analytics-collector-ios.git
+    exactVersion: "3.30.0"
+  BitmovinPlayer:
+    url: https://github.com/bitmovin/player-ios.git
+    exactVersion: "3.128.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+configFiles:
+  Debug: Local.xcconfig
+  Release: Local.xcconfig
+targetTemplates:
+  Reference:
+    type: application
+    settings:
+      INFOPLIST_FILE: Info.plist
+    sources: [Sources, Domain]
+    dependencies:
+      - package: BitmovinPlayer
+targets:
+  Sports-iOS:
+    templates: [Reference]
+    platform: iOS
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.sportsstreaming.ios
+  Sports-tvOS:
+    templates: [Reference]
+    platform: tvOS
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.sportsstreaming.tvos
+  Sports-iOSUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: Sports-iOS
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.sportsstreaming.ios.uitests
+      TEST_TARGET_NAME: Sports-iOS
+  Sports-tvOSUITests:
+    type: bundle.ui-testing
+    platform: tvOS
+    sources: [UITests]
+    dependencies:
+      - target: Sports-tvOS
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.sportsstreaming.tvos.uitests
+      TEST_TARGET_NAME: Sports-tvOS
+  Sports-iOSPlaybackTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [PlaybackTests]
+    dependencies:
+      - target: Sports-iOS
+      - package: BitmovinPlayer
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.sportsstreaming.ios.playbacktests
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Sports-iOS.app/Sports-iOS
+      BUNDLE_LOADER: $(TEST_HOST)
+  Sports-tvOSPlaybackTests:
+    type: bundle.unit-test
+    platform: tvOS
+    sources: [PlaybackTests]
+    dependencies:
+      - target: Sports-tvOS
+      - package: BitmovinPlayer
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.sportsstreaming.tvos.playbacktests
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Sports-tvOS.app/Sports-tvOS
+      BUNDLE_LOADER: $(TEST_HOST)
+schemes:
+  Sports-iOS:
+    build:
+      targets:
+        Sports-iOS: all
+    test:
+      targets: [Sports-iOSUITests]
+  Sports-tvOS:
+    build:
+      targets:
+        Sports-tvOS: all
+    test:
+      targets: [Sports-tvOSUITests]
+  Sports-iOS-Playback:
+    build:
+      targets:
+        Sports-iOS: all
+    test:
+      targets: [Sports-iOSPlaybackTests]
+  Sports-tvOS-Playback:
+    build:
+      targets:
+        Sports-tvOS: all
+    test:
+      targets: [Sports-tvOSPlaybackTests]

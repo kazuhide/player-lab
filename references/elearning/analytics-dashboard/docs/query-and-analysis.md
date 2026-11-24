@@ -14,7 +14,7 @@ The panel shows the metric definition, output unit, API endpoint, JSON request a
 
 Opening the panel or copying code makes no account request. Running the copied code does query Analytics. The example handles pagination up to 800 rows, reports incomplete results, preserves null and converts units. Unlike the dashboard service, it does not coordinate simultaneous queries, limit response-body size or retry rate limits. For the full server behavior, see [Local server limits](../README.md#local-server-limits).
 
-If results are displayed, the example uses their actual period and filters. An earlier result keeps its original selection. Without results, the panel uses the current valid selection. The demo example uses its fixed fictional date and filters; those sessions do not exist in your Analytics account. **Measured data** uses Android and this sample's known lesson IDs, with playback entry stored in `CUSTOM_DATA_1`.
+If results are displayed, the example uses their actual period and filters. An earlier result keeps its original selection. Without results, the panel uses the current valid selection. The demo example uses its fixed fictional date and filters; those sessions do not exist in your Analytics account. **Measured data** uses the selected platform and this sample's known lesson IDs, with playback entry stored in `CUSTOM_DATA_1`.
 
 ![Metric definition and copyable query examples in English](screenshots/query-en.png)
 
@@ -26,7 +26,7 @@ Choose **Download JSON** or **Download CSV**. Downloads contain the currently di
 | --- | --- |
 | `schemaVersion` | Export format version. |
 | `dataSource`, `scenario` | `demo` or `measured`; the fictional scenario is present only for demo data. |
-| `period`, `filters` | The actual result's UTC period, lesson, playback entry and Android platform. |
+| `period`, `filters` | The actual result's UTC period, lesson, playback entry and selected platform. |
 | `requestedAt`, `fetchedAt`, `exportedAt` | Query start, API response receipt and export times. The first two are null for demo data. |
 | `latestSampleAt` | Null because these aggregates do not establish the latest collected event time. |
 | `dataStatus`, `viewStatus` | The result's status and the latest fetch outcome. A retained successful result can have `dataStatus: "ok"` and `viewStatus: "error"`. |

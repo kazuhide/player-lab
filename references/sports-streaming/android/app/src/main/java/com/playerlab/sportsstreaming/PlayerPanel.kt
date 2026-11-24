@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
@@ -20,7 +22,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun PlayerPanel(
     state: PlaybackUiState, session: PlaybackSession, surface: PlayerSurfaceHost, modifier: Modifier,
-    expanded: Boolean, pictureInPicture: Boolean, boundedHeight: Boolean, onFullscreen: () -> Unit, onPip: () -> Unit,
+    expanded: Boolean, pictureInPicture: Boolean, boundedHeight: Boolean, controlsFocus: FocusRequester, onFullscreen: () -> Unit, onPip: (() -> Unit)?,
     onCaptions: () -> Unit, onSpeed: () -> Unit,
 ) {
     val backLabel = stringResource(R.string.back_15)
@@ -33,7 +35,8 @@ import androidx.compose.ui.viewinterop.AndroidView
                 SingleChoiceSegmentedButtonRow(Modifier.weight(1f)) {
                     listOf(R.string.standard_ui, R.string.sports_ui).forEachIndexed { index, label ->
                         SegmentedButton(selected = state.sportsUi == (index == 1), onClick = { session.setSportsUi(index == 1) },
-                            modifier = Modifier.heightIn(min = 48.dp), shape = SegmentedButtonDefaults.itemShape(index, 2),
+                            modifier = (if (index == 0) Modifier.focusRequester(controlsFocus) else Modifier).heightIn(min = 48.dp),
+                            shape = SegmentedButtonDefaults.itemShape(index, 2),
                             label = { Text(stringResource(label), maxLines = 1) })
                     }
                 }
@@ -98,8 +101,8 @@ import androidx.compose.ui.viewinterop.AndroidView
     }
 }
 
-@Composable private fun PlaybackOptions(enabled: Boolean, onCaptions: () -> Unit, onSpeed: () -> Unit, onPip: () -> Unit) {
+@Composable private fun PlaybackOptions(enabled: Boolean, onCaptions: () -> Unit, onSpeed: () -> Unit, onPip: (() -> Unit)?) {
     TextButton(onClick = onCaptions, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.subtitles)) }
     TextButton(onClick = onSpeed, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.speed)) }
-    IconButton(onClick = onPip, enabled = enabled) { Icon(Icons.Outlined.PictureInPictureAlt, stringResource(R.string.pip)) }
+    if (onPip != null) IconButton(onClick = onPip, enabled = enabled) { Icon(Icons.Outlined.PictureInPictureAlt, stringResource(R.string.pip)) }
 }

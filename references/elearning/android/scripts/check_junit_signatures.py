@@ -10,6 +10,7 @@ import shutil
 import subprocess
 
 EXPECTED_TEST_COUNTS = {
+    "TelevisionRemoteTest": 1,
     "CoreLearningTest": 6,
     "GuideScreenshotTest": 1,
     "MandatoryBehaviorTest": 6,

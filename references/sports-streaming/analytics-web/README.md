@@ -50,7 +50,7 @@ The dashboard reads existing measurements. It does not start collection. Newly c
 
 ## Playback quality
 
-The server fixes the platform to Android and limits measured queries to the `sports:SP-*` video IDs declared in `config.mjs`. Media-type filters select those known IDs. No custom data fields are used. Sender measurements do not establish receiver playback quality.
+Select Android (including Android TV), Web, iOS or tvOS. The server limits measured queries to the `sports:SP-*` video IDs declared in `config.mjs`. Media-type filters select those known IDs. No custom data fields are used. Sender measurements do not establish receiver playback quality.
 
 | Metric | Query | Display |
 | --- | --- | --- |
@@ -73,7 +73,7 @@ Open **Query and server code** to read each metric's definition and units and co
 
 ## Server limits and checks
 
-The server binds to `127.0.0.1` and validates host/origin. Only fixed static files, `GET /api/config`, and `GET /api/qoe` are served. Clients cannot choose an upstream URL, license, account key, query dimension or platform. This unauthenticated local development server must not be exposed publicly.
+The server binds to `127.0.0.1` and validates host/origin. Only fixed static files, `GET /api/config`, and `GET /api/qoe` are served. Clients cannot choose an upstream URL, license, account key, or query dimension. This unauthenticated local development server must not be exposed publicly.
 
 Measured queries cover at most seven days with hourly plots, at most three concurrent upstream requests and a ten-second whole-batch deadline. At most two distinct batches run at a time. Completed results are not reused for a later fetch. Pages use 200 rows and `offset`, with bounded pagination and response sizes. Rate limits respect `Retry-After`, with at most one short retry within the deadline. Failed or missing values stay unavailable. Earlier successful values retained after a failed fetch are labeled as earlier results.
 

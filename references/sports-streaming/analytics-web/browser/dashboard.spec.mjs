@@ -19,7 +19,7 @@ function snapshot(request, { shape = 'ok', plays = 101 } = {}) {
     status: shape === 'zero' ? 'ok' : shape,
     source: 'Bitmovin Analytics Query API', requestedAt: fetchedAt, fetchedAt, latestSampleAt: null,
     period: { start, end, interval: 'HOUR' },
-    filters: { asset: params.get('asset'), origin: params.get('origin'), type: params.get('type'), platform: 'android' },
+    filters: { asset: params.get('asset'), origin: params.get('origin'), type: params.get('type'), platform: params.get('platform') ?? 'android' },
     metrics: Object.fromEntries(ids.map((id, i) => [id, { status: values[i] === null ? 'empty' : 'ok', value: values[i], unit: metrics[i].unit, rows: [{ value: values[i] }], fetchedAt }])),
     series: {}, comparison: {},
   };
@@ -322,4 +322,14 @@ test('measured exports keep partial and earlier provenance and never relabel old
   await page.locator('#asset').selectOption(config.assets[1].id);
   await expect(page.locator('#export-json')).toBeDisabled(); await expect(page.locator('#export-csv')).toBeDisabled();
   await expectUnfetched(dashboard); expect(dashboard.calls).toHaveLength(2);
+});
+
+test('measured queries and request examples use the selected collector', async ({ page, dashboard }) => {
+  await dashboard.open('#measured');
+  await page.locator('#collector').selectOption('tvos');
+  await dashboard.fetch.click();
+  await expect(dashboard.status).toHaveText(dashboard.t.ok);
+  expect(dashboard.calls[0].get('platform')).toBe('tvos');
+  const request = JSON.parse(await page.locator('#recipe-json').textContent());
+  expect(request.filters.find(filter => filter.name === 'PLATFORM').value).toBe('tvos');
 });

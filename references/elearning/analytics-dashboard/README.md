@@ -55,7 +55,7 @@ Playback collection and this read-only query server are separate: starting the d
 
 ## Available data
 
-Only Android data for `EDU-FX-01`, `EDU-FX-02`, and `EDU-FX-03` is queried. Playback entry filtering uses the app's `customData1`: `catalog` for selection or resume, and `playlist` for lesson transitions. Bookmark event collection and bookmark analysis are not part of this initial dashboard.
+Select Android (including Android TV), Web, iOS or tvOS to query data for `EDU-FX-01`, `EDU-FX-02`, and `EDU-FX-03`. Playback entry filtering uses the app's `customData1`: `catalog` for selection or resume, and `playlist` for lesson transitions. Bookmark event collection and bookmark analysis are not part of this initial dashboard.
 
 | Metric | Query | Display |
 | --- | --- | --- |
@@ -78,7 +78,7 @@ See [Query examples and result analysis](docs/query-and-analysis.md) for the exp
 
 ## Local server limits
 
-The server binds to `127.0.0.1` and accepts only its localhost host/origin. It serves fixed static files and `GET /api/config` and `GET /api/qoe`; it is not an arbitrary API proxy. Client parameters cannot change the upstream URL, account key, Analytics license, dimensions, or platform.
+The server binds to `127.0.0.1` and accepts only its localhost host/origin. It serves fixed static files and `GET /api/config` and `GET /api/qoe`; it is not an arbitrary API proxy. Client parameters cannot change the upstream URL, account key, Analytics license, or dimensions.
 
 Queries cover at most seven days with hourly plots, at most three simultaneous upstream requests, and a ten-second deadline for the whole batch. Completed results are not cached: each later fetch queries the API again. Identical requests already in progress share work, and at most two batches can be active. Each upstream page is limited to 200 rows and fetched using `offset`; incomplete pagination is reported as an error. Response sizes are bounded. Rate limits follow `Retry-After`, with at most one short retry within the deadline. A failed metric does not replace its value with zero or with demo data. If a fetch fails for the same selection, an earlier successful result is labeled as such.
 

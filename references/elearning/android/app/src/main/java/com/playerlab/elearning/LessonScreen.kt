@@ -65,8 +65,8 @@ class LessonScreen(
         addView(footer)
         surface.onFullscreenRequested = fullscreen
         transcript.onSearchFocusChanged = { focused ->
-            searching = focused
-            if (!focused) requestFocus()
+            searching = focused && !context.isTelevision
+            if (!focused && !context.isTelevision) requestFocus()
             update()
         }
         update()
@@ -101,7 +101,7 @@ class LessonScreen(
                 lessons.addView(context.action("${item.localizedTitle(context)}\n${formatTime(item.durationMs)}") {
                     if (lessonId != session.activeItem?.lesson?.id) openLesson(lessonId)
                 }.apply {
-                    if (lessonId == id) background = context.rounded(LearningColors.selected, LearningColors.primary)
+                    styleSelection(this, lessonId == id)
                     layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply { topMargin = context.dp(6) }
                 })
             }
@@ -131,12 +131,14 @@ class LessonScreen(
         button.tag = selected
         button.isSelected = selected
         button.setTextColor(if (selected) Color.WHITE else LearningColors.ink)
-        val states = android.graphics.drawable.StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_focused), context.rounded(if (selected) LearningColors.primary else LearningColors.selected, LearningColors.primary, 2))
-            addState(intArrayOf(), context.rounded(if (selected) LearningColors.primary else Color.WHITE, LearningColors.border))
-        }
-        button.background = android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(Color.argb(50, 23, 110, 145)), states, context.rounded(Color.WHITE))
+        button.background = context.buttonBackground(selected)
     }
+    fun leaveTelevisionControls(): Boolean {
+        if (!surface.leaveTelevisionPlayer()) return false
+        default.requestFocus()
+        return true
+    }
+
     fun release() = surface.release()
 }
 

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import androidx.core.net.toUri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var surface: PlayerSurfaceHost
     private var fullscreen by mutableStateOf(false)
     private var pictureInPicture by mutableStateOf(false)
+    private val controlsFocus = androidx.compose.ui.focus.FocusRequester()
     private var pipRequested = false
     private val export = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
@@ -57,10 +59,19 @@ class MainActivity : AppCompatActivity() {
             Configuration().apply { fontScale = scale }) else newBase
         super.attachBaseContext(context)
     }
+    private fun handleRemote(event: KeyEvent): Boolean =
+        isTelevision && ::playback.isInitialized && playback.handleTransportKey(event)
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
+        handleRemote(event) || super.onKeyDown(keyCode, event)
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
+        handleRemote(event) || super.onKeyUp(keyCode, event)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        BitmovinCastManager.getInstance().updateContext(this)
+        if (!isTelevision) BitmovinCastManager.getInstance().updateContext(this)
         playback = ViewModelProvider(this)[PlaybackSession::class.java]
         if (BuildConfig.DEBUG) intent.getStringExtra("mediaBaseUrl")?.let(playback::overrideMediaBaseForDebug)
         surface = PlayerSurfaceHost(this, playback.player, playback.subtitleRenderer)
@@ -85,16 +96,18 @@ class MainActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (fullscreen) applyFullscreen(false)
+                else if (surface.leaveTelevisionPlayer()) controlsFocus.requestFocus()
                 else { isEnabled = false; onBackPressedDispatcher.onBackPressed(); isEnabled = true }
             }
         })
         setContent {
             val state by playback.state.collectAsStateWithLifecycle()
             SportsTheme {
-                SportsScreen(state, playback, surface, fullscreen, pictureInPicture,
-                    onFullscreen = { applyFullscreen(!fullscreen) }, onPip = { surface.enterPictureInPicture() },
+                SportsScreen(state, playback, surface, fullscreen, pictureInPicture, controlsFocus,
+                    onFullscreen = { applyFullscreen(!fullscreen) },
+                    onPip = if (pip.isPictureInPictureAvailable) surface::enterPictureInPicture else null,
                     onCast = playback::toggleCasting,
-                    onExport = { export.launch("sports-handoff-records.json") },
+                    onExport = { withExternalActivity { export.launch("sports-handoff-records.json") } },
                     onAnalytics = { openUrl(BuildConfig.ANALYTICS_URL) },
                     onDashboard = { openUrl("https://dashboard.bitmovin.com/observability/home") },
                     onLanguage = { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(it)) })
@@ -115,7 +128,17 @@ class MainActivity : AppCompatActivity() {
     }
     private fun openUrl(url: String) {
         val parsed = url.toUri()
-        if (parsed.scheme in listOf("http", "https")) startActivity(Intent(Intent.ACTION_VIEW, parsed))
+        if (parsed.scheme in listOf("http", "https")) withExternalActivity {
+            startActivity(Intent(Intent.ACTION_VIEW, parsed))
+        }
+    }
+
+    private fun withExternalActivity(launch: () -> Unit) {
+        try {
+            launch()
+        } catch (_: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show()
+        }
     }
     fun playbackForTest() = playback
     fun switchUiForTest(sports: Boolean) { playback.setSportsUi(sports); surface.showUi(sports) }

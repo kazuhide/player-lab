@@ -44,6 +44,12 @@ jobs:
         run: |
           python3 -B -m unittest discover -s tools/media -p 'test_*.py'
           python3 -B -m unittest discover -s android/scripts/tests -p 'test_*.py'
+      - name: Test and build the playback Web app
+        working-directory: references/elearning/web
+        run: |
+          npm ci
+          npm test
+          npm run build
       - name: Test and check the independent analytics application
         working-directory: references/elearning/analytics-dashboard
         run: |
@@ -72,3 +78,27 @@ jobs:
         run: |
           ./gradlew --no-daemon --max-workers=2 :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
           python3 scripts/check_junit_signatures.py
+
+  apple:
+    name: Learning iOS and tvOS
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: references/elearning/apple
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          sparse-checkout: references/elearning
+      - name: Install XcodeGen 2.46.0
+        run: |
+          curl -fsSL https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip -o "$RUNNER_TEMP/xcodegen.zip"
+          printf '%s  %s\n' 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806 "$RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c -
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP/xcodegen-tool"
+          echo "$RUNNER_TEMP/xcodegen-tool/xcodegen/bin" >> "$GITHUB_PATH"
+      - name: Test playback rules and build simulator apps
+        run: |
+          swift test
+          xcodegen generate
+          xcodebuild -project Learning.xcodeproj -scheme Learning-iOS -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
+          xcodebuild -project Learning.xcodeproj -scheme Learning-tvOS -destination 'generic/platform=tvOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing

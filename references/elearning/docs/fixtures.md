@@ -34,8 +34,7 @@ python3 tools/media/media.py serve --port 8621
 `generate` creates the media under `fixtures/generated/`, which is excluded
 from Git. It uses at most two encoders, reduces that count on smaller CPUs, and
 caps each encoder at two codec threads. The picture size stays 640 × 360 at
-25 frames per second. Audio is AAC at 48 kHz; HLS and DASH use fragmented MP4
-with approximately two-second segments and a possible shorter final segment.
+25 frames per second. Audio is AAC at 48 kHz. HLS uses MPEG-TS segments so browsers using Media Source Extensions can play the same muxed audio and video as native clients. DASH uses fragmented MP4. Both use approximately two-second segments and a possible shorter final segment.
 
 `verify` checks sampled boundaries of edited assets. This course has no edited
 assets, so it reports zero checks; that is not a playback or full-media
@@ -134,3 +133,5 @@ The media CLI takes asset IDs and local publisher options, not account
 credentials. Keep tokens, private or signed URLs and storage credentials out
 of committed catalogs, receipts, commands and screenshots. Application license
 setup remains in the [Android instructions](../README.md#configure-and-run-android).
+
+If you generated an earlier HLS fixture with muxed fMP4, rerun `generate` and restart the publisher before comparing platforms.

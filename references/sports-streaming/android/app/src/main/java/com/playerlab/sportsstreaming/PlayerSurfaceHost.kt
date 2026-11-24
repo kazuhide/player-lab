@@ -49,6 +49,7 @@ class PlayerSurfaceHost(context: Context, private val player: Player, private va
         sportsUi = sports
         val view = PlayerView(context, null, PlayerViewConfig(
             uiConfig = if (sports) UiConfig.Disabled else UiConfig.WebUi(
+                variant = if (context.isTelevision) UiConfig.WebUi.Variant.TvUi else UiConfig.WebUi.Variant.SmallScreenUi,
                 supplementalCssLocation = "file:///android_asset/shared-subtitles.css"), enableComposeSurfaceSyncWorkaround = true))
         playerView = view
         addView(view, 0, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))

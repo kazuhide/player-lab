@@ -1,0 +1,309 @@
+import { t, titleOf } from './i18n.js';
+import './style.css';
+import { button, jsonAt } from './media.js';
+import { Session } from './session.js';
+import { el, message, mountControls } from './controls.js';
+import { archivePosition, sourceUtc, validateCatalog, validateStatus } from './sports.js';
+
+const base = import.meta.env.VITE_MEDIA_BASE_URL || 'http://127.0.0.1:8622/';
+const preferences = { speed: 1, caption: 'off' };
+const session = new Session(el('player'), base, onEvent);
+const controls = mountControls(
+  session,
+  preferences,
+  (delta) => {
+    const p = session.player;
+    seek((p.isLive() ? p.getTimeShift() : p.getCurrentTime()) + delta);
+  },
+  seek,
+  (p) =>
+    p.isLive()
+      ? { start: p.getMaxTimeShift(), end: 0, current: p.getTimeShift() }
+      : { ...p.getSeekableRange(), current: p.getCurrentTime() }
+);
+let catalog,
+  event,
+  status,
+  asset,
+  savedUtc = null,
+  generation = 0,
+  statusRequest = 0,
+  timer,
+  waiting = 0,
+  failedPolls = 0,
+  intent;
+let interactive = false,
+  savedPlay = true,
+  autoClaimed = false;
+function seek(target) {
+  const p = session.player;
+  if (!interactive || !p) return;
+  if (p.isLive()) p.timeShift(Math.max(p.getMaxTimeShift(), Math.min(0, target)), 'reference');
+  else {
+    const r = p.getSeekableRange();
+    if (r.end > r.start) p.seek(Math.max(r.start, Math.min(r.end - 0.05, target)), 'reference');
+  }
+}
+function liveUtc() {
+  return interactive && session.ready
+    ? sourceUtc(asset, session.player.getCurrentTime('absolutetime'))
+    : null;
+}
+function onEvent(type, eventInfo) {
+  if (type === 'Error') {
+    interactive = false;
+    controls.enable(false);
+    el('retry').hidden = false;
+    message(
+      t('Playback error') + (Number.isInteger(eventInfo.code) ? ' (' + eventInfo.code + ')' : '') + '.'
+    );
+    actions();
+    return;
+  }
+  if (!session.ready) return;
+  if (type === 'SubtitleAdded') session.setCaption(preferences.caption);
+  if (type.startsWith('Subtitle')) {
+    controls.captions();
+    if (interactive && type !== 'SubtitleAdded') preferences.caption = el('captions').value;
+  }
+  if (type === 'PlaybackSpeedChanged') controls.reflectSpeed();
+  controls.paint();
+  if (interactive) {
+    actions();
+    if (type === 'PlaybackFinished' && asset.kind === 'clip' && status?.status === 'live')
+      el('return').click();
+    else if (type === 'TimeChanged') maybeContinue();
+  }
+}
+function actions() {
+  const live = asset?.kind === 'live';
+  el('edge').disabled = !(live && interactive && session.player?.isLive());
+  el('return').hidden = !(asset?.kind === 'clip' && status?.status === 'live');
+  el('earlier').hidden = el('return').hidden || savedUtc === null;
+  el('archives').hidden = !(live && interactive && status?.archiveStatus === 'ready');
+}
+function showAssets() {
+  const items = catalog.assets.filter((a) => a.eventId === event.id);
+  const buttons = items.map((a) => {
+    const b = button(titleOf(a) + ' · ' + t(a.kind), () => open(a));
+    b.dataset.id = a.id;
+    b.setAttribute('aria-current', String(asset?.id === a.id));
+    b.disabled =
+      (a.kind === 'archive' && status?.archiveStatus !== 'ready') ||
+      (a.kind === 'live' && !['live', 'ended'].includes(status?.status));
+    return b;
+  });
+  el('assets').replaceChildren(...buttons);
+  el('targets').replaceChildren(
+    ...items.filter((a) => a.kind === 'archive').map((a) => button(titleOf(a), () => handoff(a)))
+  );
+  actions();
+}
+async function poll() {
+  clearTimeout(timer);
+  const token = ++statusRequest;
+  try {
+    const update = validateStatus(await jsonAt(event.statusUrl, base), event);
+    if (token !== statusRequest) return;
+    const changed = update.status !== status?.status || update.archiveStatus !== status?.archiveStatus;
+    status = update;
+    failedPolls = 0;
+    el('status').textContent =
+      t('Event') +
+      ' · ' +
+      t(update.status) +
+      ' / ' +
+      t('Archive') +
+      ' · ' +
+      t(update.archiveStatus.replaceAll('_', ' '));
+    if (changed) showAssets();
+    maybeContinue();
+    actions();
+    if (
+      ['live', 'scheduled'].includes(update.status) ||
+      (update.status === 'ended' && !['ready', 'failed'].includes(update.archiveStatus) && ++waiting < 12)
+    )
+      timer = setTimeout(poll, 5000);
+  } catch {
+    if (token !== statusRequest) return;
+    status = null;
+    showAssets();
+    el('status').textContent = t('Event status unavailable. Refresh to retry.');
+    if (++failedPolls < 3) timer = setTimeout(poll, 5000);
+  }
+}
+function chooseEvent(item) {
+  ++generation;
+  ++statusRequest;
+  clearTimeout(timer);
+  interactive = false;
+  controls.enable(false);
+  void session.close();
+  event = item;
+  status = null;
+  asset = null;
+  savedUtc = null;
+  intent = null;
+  waiting = 0;
+  failedPolls = 0;
+  for (const b of el('events').children) b.setAttribute('aria-current', String(b.dataset.id === item.id));
+  el('title').textContent = titleOf(item);
+  message('');
+  el('retry').hidden = true;
+  el('status').textContent = t('Checking event…');
+  showAssets();
+  void poll();
+}
+async function open(item, options = {}) {
+  const token = ++generation;
+  if (asset?.kind === 'live' && item.kind === 'clip') {
+    savedUtc = liveUtc();
+    savedPlay = interactive && !session.player.isPaused();
+  }
+  autoClaimed = false;
+  interactive = false;
+  controls.enable(false);
+  intent = options;
+  asset = item;
+  el('title').textContent = titleOf(asset);
+  for (const b of el('assets').children) b.setAttribute('aria-current', String(b.dataset.id === item.id));
+  el('retry').hidden = true;
+  actions();
+  message('Loading video…');
+  try {
+    if (!(await session.open(item, el('format').value, {})) || token !== generation) return;
+    controls.restore();
+    if (options.utc != null) {
+      const p = session.player,
+        seconds = options.utc / 1000;
+      // The Web SDK can return {-1,-1} for getSeekableRange on a live
+      // manifest. Verify the publisher window, then confirm the SDK's actual
+      // time after the seek instead of interpreting a sentinel as a range.
+      const latest = validateStatus(await jsonAt(event.statusUrl, base), event);
+      if (token !== generation) return;
+      if (
+        !p.isLive() ||
+        latest.status !== 'live' ||
+        !Number.isFinite(latest.seekableUtcStartMs) ||
+        !Number.isFinite(latest.seekableUtcEndMs) ||
+        options.utc < latest.seekableUtcStartMs ||
+        options.utc >= latest.seekableUtcEndMs
+      ) {
+        // Keep this source paused; only an explicit choice can fall back to its edge.
+        interactive = true;
+        controls.enable(true);
+        actions();
+        message('Saved position left the DVR window. Choose Live edge to continue.');
+        return;
+      }
+      if (!(await timeShiftTo(p, seconds))) throw Error();
+    } else if (options.seconds != null && !(await session.seekTo(options.seconds))) throw Error();
+    if (token !== generation) return;
+    if (!session.ready) throw Error();
+    interactive = true;
+    controls.enable(true);
+    actions();
+    message('');
+    if (options.play !== false) await session.play();
+  } catch {
+    if (token !== generation) return;
+    interactive = false;
+    controls.enable(false);
+    actions();
+    el('retry').hidden = false;
+    message(
+      import.meta.env.VITE_PUBLIC_PLAYER_LICENSE_KEY
+        ? 'Playback or positioning failed. Retry or select another video.'
+        : 'Set VITE_PUBLIC_PLAYER_LICENSE_KEY in .env.local and restart the app.'
+    );
+  }
+}
+function timeShiftTo(player, utcSeconds) {
+  return new Promise((resolve) => {
+    const finish = (value) => {
+      clearTimeout(timeout);
+      if (session.player === player) player.off('timeshifted', check);
+      resolve(value);
+    };
+    const check = () =>
+      finish(
+        session.player === player && Math.abs(player.getCurrentTime('absolutetime') - utcSeconds) <= 1.5
+      );
+    const timeout = setTimeout(() => finish(false), 5000);
+    player.on('timeshifted', check);
+    try {
+      player.timeShift(utcSeconds, 'reference');
+    } catch {
+      finish(false);
+    }
+  });
+}
+function handoff(target) {
+  if (
+    status?.archiveStatus !== 'ready' ||
+    !interactive ||
+    asset.kind !== 'live' ||
+    target.eventId !== event.id
+  )
+    return;
+  const mapping = target.id === event.archiveAssetId ? status.archiveMapping : target;
+  const position = archivePosition(mapping, liveUtc());
+  if (position.reason) {
+    message(t(position.reason) + ' · ' + t('Select the archive under Watch to start from its beginning.'));
+    return;
+  }
+  void open(target, { seconds: position.seconds, play: !session.player.isPaused() });
+}
+function maybeContinue() {
+  if (
+    !interactive ||
+    asset?.kind !== 'live' ||
+    !el('auto').checked ||
+    autoClaimed ||
+    status?.status !== 'ended' ||
+    status.archiveStatus !== 'ready'
+  )
+    return;
+  const target = catalog.assets.find((a) => a.id === event.archiveAssetId);
+  if (!target || archivePosition(status.archiveMapping, liveUtc()).seconds == null) return;
+  autoClaimed = true;
+  handoff(target);
+}
+el('auto').onchange = maybeContinue;
+async function loadCatalog() {
+  try {
+    catalog = validateCatalog(await jsonAt('catalog.json', base));
+    el('events').replaceChildren(
+      ...catalog.events.map((e) => {
+        const b = button(titleOf(e), () => chooseEvent(e));
+        b.dataset.id = e.id;
+        return b;
+      })
+    );
+    chooseEvent(catalog.events[0]);
+  } catch {
+    message('Catalog unavailable. Start the media publisher and refresh status.');
+  }
+}
+el('refresh').onclick = () => {
+  waiting = failedPolls = 0;
+  if (event) void poll();
+  else void loadCatalog();
+};
+el('retry').onclick = () => {
+  if (asset) void open(asset, intent);
+};
+el('return').onclick = () => open(catalog.assets.find((a) => a.id === event.liveAssetId));
+el('earlier').onclick = () =>
+  open(
+    catalog.assets.find((a) => a.id === event.liveAssetId),
+    { utc: savedUtc, play: savedPlay }
+  );
+el('edge').onclick = () => {
+  seek(0);
+  void session.play();
+};
+el('format').onchange = () => {
+  if (event) chooseEvent(event);
+};
+void loadCatalog();
