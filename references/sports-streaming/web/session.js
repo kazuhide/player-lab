@@ -1,3 +1,4 @@
+import { DashClock } from './dash-clock.js';
 import { locale, titleOf } from './i18n.js';
 import { UI_JA } from './ui-ja.js';
 import { Player, PlayerEvent } from 'bitmovin-player';
@@ -48,15 +49,26 @@ export class Session {
     const analyticsKey = import.meta.env.VITE_PUBLIC_ANALYTICS_LICENSE_KEY;
     const mount = document.createElement('div');
     this.host.replaceChildren(mount);
+    const clock = asset.kind === 'live' && format === 'dash' ? new DashClock(asset.utcStartMs) : null;
+    this.dashClock = clock;
     const player = (this.player = new Player(mount, {
       key,
       ui: false,
       analytics: analyticsKey
         ? { key: analyticsKey, ...analytics, videoId: asset.videoId, title: asset.title }
         : false,
+      network: clock
+        ? {
+            preprocessHttpResponse: async (type, response) => {
+              if (type === 'manifest/dash') clock.readManifest(response.body);
+              return response;
+            }
+          }
+        : undefined,
       playback: { autoplay: false },
       adaptation: { preload: true }
     }));
+    if (clock) player.on(PlayerEvent.SegmentPlayback, (event) => clock.observe(event));
     const record = (type, code) => recordEvent(asset.id, type, code);
     record('Load');
     this.ui = UIFactory.buildUI(player, {
@@ -106,6 +118,10 @@ export class Session {
     record('Loaded');
     this.ready = true;
     return true;
+  }
+  utcSeconds() {
+    const seconds = this.player.getCurrentTime('absolutetime');
+    return this.dashClock ? this.dashClock.utc(seconds) : seconds;
   }
   setCaption(language) {
     const player = this.player;

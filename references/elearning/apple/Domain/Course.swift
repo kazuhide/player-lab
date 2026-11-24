@@ -44,10 +44,32 @@ struct Transcript: Decodable {
         let text: String
         let language: String
     }
+    struct Row: Identifiable {
+        let id: Int
+        let cue: Cue
+    }
+
+    struct ViewState {
+        let rows: [Row]
+        let activeIDs: Set<Int>
+        let followID: Int?
+    }
+
     let cues: [Cue]
-    func search(_ query: String, in language: String) -> [Cue] {
+
+    func view(query: String, language: String, seconds: Double?, follow: Bool) -> ViewState {
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        return cues.filter { $0.language == language && (query.isEmpty || $0.text.localizedCaseInsensitiveContains(query)) }
+        let rows = cues.enumerated().compactMap { index, cue -> Row? in
+            guard cue.language == language, query.isEmpty || cue.text.localizedCaseInsensitiveContains(query) else { return nil }
+            return Row(id: index, cue: cue)
+        }
+        let now = seconds.map { $0 * 1000 }
+        let active = rows.filter { row in
+            guard let now, now.isFinite else { return false }
+            return row.cue.startMs <= now && now < row.cue.endMs
+        }
+        return ViewState(rows: rows, activeIDs: Set(active.map(\.id)),
+                         followID: query.isEmpty && follow ? active.first?.id : nil)
     }
 }
 

@@ -15,9 +15,16 @@ final class CourseTests: XCTestCase {
         let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .appendingPathComponent("../../fixtures/transcripts/EDU-FX-01.json")
         let transcript = try JSONDecoder().decode(Transcript.self, from: Data(contentsOf: fixture))
-        let results = transcript.search("compare", in: "en")
-        XCTAssertEqual(results.map(\.startMs), [10_000])
-        XCTAssertTrue(transcript.search("compare", in: "ja").isEmpty)
+        let results = transcript.view(query: "compare", language: "en", seconds: 10, follow: true)
+        XCTAssertEqual(results.rows.map { $0.cue.startMs }, [10_000])
+        XCTAssertEqual(results.activeIDs, Set(results.rows.map(\.id)))
+        XCTAssertNil(results.followID)
+        let following = transcript.view(query: "", language: "en", seconds: 10, follow: true)
+        XCTAssertEqual(following.followID, results.rows.first?.id)
+        XCTAssertNil(transcript.view(query: "", language: "en", seconds: 10, follow: false).followID)
+        XCTAssertTrue(transcript.view(query: "", language: "en", seconds: 15, follow: true).activeIDs.isEmpty)
+        XCTAssertNil(transcript.view(query: "", language: "en", seconds: nil, follow: true).followID)
+        XCTAssertTrue(transcript.view(query: "compare", language: "ja", seconds: 10, follow: true).rows.isEmpty)
     }
 
     func testResumeRejectsEndAndKeepsLearnersSeparate() {

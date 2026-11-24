@@ -38,20 +38,34 @@ final class CatalogTests: XCTestCase {
         XCTAssertTrue(pause.waitForExistence(timeout: 20), "The fixture should enter playback")
         activate(pause, in: app)
         XCTAssertTrue(app.buttons["Play"].firstMatch.waitForExistence(timeout: 5))
+
+        let cue = app.buttons["transcript.cue.1"]
+        XCTAssertTrue(cue.waitForExistence(timeout: 5))
+        #if os(iOS)
+        for _ in 0..<6 where !cue.isHittable { app.scrollViews.firstMatch.swipeUp() }
+        #endif
+        activate(cue, in: app)
+        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Current line"), object: cue)
+        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed)
+        let follow = app.descendants(matching: .any).matching(identifier: "transcript.follow").firstMatch
+        XCTAssertEqual(follow.value as? String, "0")
+
     }
 
     private func activate(_ target: XCUIElement, in app: XCUIApplication) {
         #if os(tvOS)
-        for _ in 0..<20 {
+        for _ in 0..<40 {
             if target.hasFocus || target.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).count > 0 {
                 XCUIRemote.shared.press(.select)
                 return
             }
             let focused = app.descendants(matching: .any)
                 .matching(NSPredicate(format: "hasFocus == true")).firstMatch
-            guard focused.exists else {
-                XCTFail("No focused control while selecting \(target.label)")
-                return
+            // Remote scrolling can briefly leave the accessibility tree without
+            // a focused element while the next scroll region becomes visible.
+            if !focused.exists && !focused.waitForExistence(timeout: 1) {
+                XCUIRemote.shared.press(.down)
+                continue
             }
             let deltaY = target.frame.midY - focused.frame.midY
             if abs(deltaY) > 12 {

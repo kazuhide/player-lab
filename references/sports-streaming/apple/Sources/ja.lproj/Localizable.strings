@@ -42,3 +42,4 @@
 "Archive for continuation" = "引き継ぎ先の録画";
 "The viewed position is unavailable in this archive." = "この録画では元の視聴位置から再生できません。";
 "Start archive from beginning" = "録画の最初から再生";
+"Refresh event status" = "試合の状態を更新";

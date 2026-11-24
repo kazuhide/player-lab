@@ -1,5 +1,6 @@
 import SwiftUI
 import BitmovinPlayer
+import Combine
 import AVFAudio
 
 @MainActor
@@ -8,19 +9,21 @@ final class SportsSession: Playback {
     @Published var event: Event?
     @Published var update: EventUpdate?
     @Published var asset: SportAsset?
-    @Published var archiveTargetID: String?
+    @Published var archiveTargetID: String? { didSet { maybeContinue() } }
     var targetArchive: SportAsset? {
         guard let event else { return nil }
         return catalog?.archive(for: event, selectedID: archiveTargetID)
     }
-    @Published var autoContinue = false
+    @Published var autoContinue = false { didSet { maybeContinue() } }
     @Published var statusError = false
     @Published var notice: String?
     private(set) var handoffs = HandoffLedger()
     private var pendingHandoff: UUID?
     private var observation: Task<Void, Never>?
+    private var seekSubscriptions = Set<AnyCancellable>()
 
     private func stopObservation() {
+        seekSubscriptions.removeAll()
         observation?.cancel()
         observation = nil
         pendingHandoff = nil
@@ -36,6 +39,14 @@ final class SportsSession: Playback {
 
     private var clock = PresentationClock()
     private var generation = UUID()
+    private struct OpenRequest {
+        let asset: SportAsset
+        let seek: Double?
+        let play: Bool
+        let restoreUTC: Double?
+        let archiveHandoff: Bool
+    }
+    private var currentRequest: OpenRequest?
     private var pendingSeek: Double?
     private var savedLive: (utc: Double, play: Bool)?
     private var returnToUTC: Double?
@@ -44,6 +55,7 @@ final class SportsSession: Playback {
               let end = update?.seekableUtcEndMs, start <= end else { return false }
         return (start..<end).contains(utc)
     }
+    var statusPollingFinished: Bool { !statusError && update?.pollingFinished == true }
     var status: String? { update?.status ?? event?.status }
     var archiveReady: Bool { (update?.archiveStatus ?? event?.archiveStatus) == "ready" }
     var assets: [SportAsset] { catalog?.assets.filter { $0.eventId == event?.id } ?? [] }
@@ -68,29 +80,33 @@ final class SportsSession: Playback {
         player?.unload()
         generation = UUID()
         event = next
-        archiveTargetID = next.archiveAssetId
         update = nil
         asset = nil
+        archiveTargetID = next.archiveAssetId
         savedLive = nil
+        currentRequest = nil
         returnToUTC = nil
         pendingSeek = nil
         notice = nil
         statusError = false
     }
 
-    func poll() async {
+    func poll(fetch: (String) async throws -> EventUpdate = { try await Media.fetch($0, as: EventUpdate.self) },
+              interval: UInt64 = 2_000_000_000) async {
         guard let event, let path = event.statusUrl else { return }
         let token = generation
         while !Task.isCancelled && token == generation {
             do {
-                let fresh = try await Media.fetch(path, as: EventUpdate.self)
+                let fresh = try await fetch(path)
                 guard !Task.isCancelled, token == generation else { return }
                 guard fresh.applies(to: event) else { throw URLError(.cannotDecodeContentData) }
                 update = fresh
                 statusError = false
-                if autoContinue && status == "ended" { continueAtViewedPosition() }
+                _ = utc()
+                maybeContinue()
+                if fresh.pollingFinished { return }
             } catch { if !Task.isCancelled && token == generation { statusError = true } }
-            do { try await Task.sleep(nanoseconds: 2_000_000_000) } catch { return }
+            do { try await Task.sleep(nanoseconds: interval) } catch { return }
         }
     }
 
@@ -104,7 +120,10 @@ final class SportsSession: Playback {
 
     override func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
         super.onTimeChanged(event, player: player)
-        if owns(player), asset?.kind == "live" { _ = utc() }
+        if owns(player), asset?.kind == "live" {
+            _ = utc()
+            maybeContinue()
+        }
     }
 
     func mappedPosition(for archive: SportAsset) -> Double? {
@@ -114,29 +133,60 @@ final class SportsSession: Playback {
                           utcMappings: archive.utcMappings).position(for: time)
     }
 
+    private func maybeContinue() {
+        if autoContinue, !isBackgrounded, status == "ended", asset?.kind == "live" { continueAtViewedPosition() }
+    }
+
+    override func setBackgrounded(_ backgrounded: Bool) {
+        super.setBackgrounded(backgrounded)
+        if backgrounded { stopObservation() } else { maybeContinue() }
+    }
+
     func continueAtViewedPosition() {
         guard let archive = targetArchive, let seconds = mappedPosition(for: archive) else { return }
         open(archive, seek: seconds, play: desiredPlayback)
     }
 
+    func canOpen(_ next: SportAsset) -> Bool {
+        guard next.eventId == event?.id else { return false }
+        switch next.kind {
+        case "archive": return archiveReady
+        case "live": return status == "live" || status == "ended"
+        case "clip": return true
+        default: return false
+        }
+    }
+
     func open(_ next: SportAsset, seek: Double? = nil, play: Bool = true, restoreUTC: Double? = nil) {
-        guard let player, next.eventId == event?.id,
-              next.kind != "archive" || archiveReady, next.kind != "live" || status == "live" else { return }
+        guard player != nil, canOpen(next) else { return }
         if asset?.kind == "live", next.kind == "clip" {
             savedLive = utc().map { ($0, desiredPlayback) }
         }
+        let handoff = asset?.kind == "live" && next.kind == "archive" && seek != nil
+        load(OpenRequest(asset: next, seek: seek, play: play, restoreUTC: restoreUTC, archiveHandoff: handoff))
+    }
+
+    func retry() {
+        guard problem != nil, let request = currentRequest, request.asset.id == asset?.id else { return }
+        load(request)
+    }
+
+    private func load(_ request: OpenRequest) {
+        let next = request.asset
+        guard let player, canOpen(next), request.restoreUTC == nil || status == "live" else { return }
         stopObservation()
-        if asset?.kind == "live", next.kind == "archive", let seek, let event, onLocalRoute,
+        if request.archiveHandoff, let seek = request.seek, onLocalRoute,
            seek.isFinite, seek >= 0, seek < Double(Int.max) / 1000 {
-            pendingHandoff = handoffs.begin(eventId: event.id, videoId: next.videoId,
-                                            positionMs: Int((seek * 1000).rounded()), play: play)
+            pendingHandoff = handoffs.begin(eventId: next.eventId, videoId: next.videoId,
+                                            positionMs: Int((seek * 1000).rounded()), play: request.play)
         }
         resetSelection()
+        currentRequest = request
         clock = PresentationClock()
         asset = next
-        pendingSeek = seek
-        returnToUTC = restoreUTC
-        desiredPlayback = play
+        pendingSeek = request.seek
+        returnToUTC = request.restoreUTC
+        desiredPlayback = request.play
         notice = nil
         do {
             let captions = next.subtitleTracks.map { Caption(url: $0.url, language: $0.language, label: $0.label) }
@@ -179,28 +229,57 @@ final class SportsSession: Playback {
                 player.pause()
                 return
             }
+            if let request = pendingHandoff, let source = activeSource, let asset {
+                observeHandoff(request, player: player, source: source, videoId: asset.videoId, target: seconds)
+            }
             player.seek(time: seconds)
         }
         super.prepared(player)
-        if let request = pendingHandoff, let source = activeSource, let asset {
-            observeHandoff(request, source: source, videoId: asset.videoId)
-        }
+        maybeContinue()
     }
 
-    private func observeHandoff(_ request: UUID, source: Source, videoId: String) {
-        observation?.cancel()
+    private func observedPosition(_ player: Player) -> Int? {
+        let time = player.currentTime(.relativeTime)
+        guard time.isFinite, time >= 0, time < Double(Int.max) / 1000 else { return nil }
+        return Int((time * 1000).rounded())
+    }
+
+    private func observeHandoff(_ request: UUID, player: Player, source: Source, videoId: String, target: Double) {
+        let issued = ProcessInfo.processInfo.systemUptime
+        handoffs.seekIssued(request, uptime: issued)
+        var started = false
+        player.events.on(SeekEvent.self).receive(on: DispatchQueue.main).sink { [weak self, weak source] event in
+            guard let self, let source, self.pendingHandoff == request, self.activeSource === source else { return }
+            guard !started, event.to.source === source, abs(event.to.time - target) <= 0.001 else {
+                self.stopObservation()
+                return
+            }
+            started = true
+        }.store(in: &seekSubscriptions)
+        player.events.on(SeekedEvent.self).receive(on: DispatchQueue.main).sink { [weak self, weak player, weak source] _ in
+            guard let self, let player, let source, self.pendingHandoff == request, self.owns(player),
+                  self.activeSource === source else { return }
+            guard started, self.handoffs.seekCompleted(request, videoId: videoId, positionMs: self.observedPosition(player),
+                                                      uptime: ProcessInfo.processInfo.systemUptime) else {
+                self.stopObservation()
+                return
+            }
+        }.store(in: &seekSubscriptions)
         observation = Task { [weak self, weak source] in
             while !Task.isCancelled {
                 guard let self, let source, self.pendingHandoff == request, self.activeSource === source,
-                      let player = self.player, self.ready, player.source === source, self.onLocalRoute else { return }
-                let current = player.currentTime(.relativeTime)
-                let position = current.isFinite && current >= 0 && current < Double(Int.max) / 1000
-                    ? Int((current * 1000).rounded()) : nil
-                if self.handoffs.observe(request, videoId: videoId, positionMs: position,
+                      let player = self.player, self.ready, player.source === source else { return }
+                let now = ProcessInfo.processInfo.systemUptime
+                if self.isBackgrounded || !self.onLocalRoute || now - issued > HandoffLedger.confirmationWindow ||
+                    self.desiredPlayback != self.currentRequest?.play {
+                    self.stopObservation()
+                    return
+                }
+                if self.handoffs.observe(request, videoId: videoId, positionMs: self.observedPosition(player),
                                          isPlaying: player.isPlaying, isPaused: player.isPaused,
                                          readyStopped: !self.desiredPlayback && !player.isPlaying,
-                                         uptime: ProcessInfo.processInfo.systemUptime) {
-                    self.pendingHandoff = nil
+                                         uptime: now) {
+                    self.stopObservation()
                     return
                 }
                 do { try await Task.sleep(nanoseconds: 200_000_000) } catch { return }
@@ -217,7 +296,7 @@ final class SportsSession: Playback {
     override func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
         guard owns(player) else { return }
         playing = false
-        captionText = nil
+        clearCaptions()
         record("Finished")
         if asset?.kind == "clip", status == "live" { backToLive(restore: false) }
     }

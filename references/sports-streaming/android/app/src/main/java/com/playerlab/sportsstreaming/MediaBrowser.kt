@@ -12,6 +12,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -20,14 +22,15 @@ import androidx.compose.ui.unit.dp
 import com.playerlab.sportsstreaming.core.*
 import java.util.Locale
 
-@Composable internal fun MediaBrowser(state: PlaybackUiState, session: PlaybackSession, japanese: Boolean, modifier: Modifier) {
+@Composable internal fun MediaBrowser(state: PlaybackUiState, session: PlaybackSession, japanese: Boolean, modifier: Modifier, catalogFocus: FocusRequester? = null) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val catalog = state.catalog
     val loadingLabel = stringResource(R.string.loading_catalog)
     Column(modifier) {
         TabRow(tab) {
             listOf(R.string.live, R.string.clips, R.string.archives).forEachIndexed { index, label ->
-                Tab(tab == index, onClick = { tab = index }, text = { Text(stringResource(label), maxLines = 1) })
+                val focus = if (index == 0 && catalogFocus != null) Modifier.focusRequester(catalogFocus) else Modifier
+                Tab(tab == index, onClick = { tab = index }, modifier = focus, text = { Text(stringResource(label), maxLines = 1) })
             }
         }
         if (state.loadingCatalog) LinearProgressIndicator(Modifier.fillMaxWidth().semantics { contentDescription = loadingLabel })

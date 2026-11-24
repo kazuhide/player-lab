@@ -19,6 +19,7 @@ class PlaybackSession(application: Application) : AndroidViewModel(application),
     private var media = MediaLocator(BuildConfig.MEDIA_BASE_URL)
     private var engine = newEngine(Learner.A)
     private var identityGeneration = 0L
+    private val selectedCourses = mutableMapOf<Learner, String>()
     private var closed = false
     private var lastPeriodicSaveMs = 0L
     private var spike = false
@@ -94,11 +95,35 @@ class PlaybackSession(application: Application) : AndroidViewModel(application),
         catalogFailed = false
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { runCatching { getApplication<Application>().assets.open("fixtures/catalog.json").bufferedReader().use { Catalog.parse(it.readText()) } } }
-            result.onSuccess { catalog = it; courseId = it.courses.first().id; loadProgress() }
+            result.onSuccess(::acceptCatalog)
                 .onFailure { catalogFailed = true; progressLoading = false }
             changed()
         }
     }
+    internal fun acceptCatalog(value: Catalog) {
+        catalog = value
+        restoreCourse(value)
+        loadProgress()
+    }
+
+    private fun restoreCourse(catalog: Catalog) {
+        val course = catalog.courses.firstOrNull { it.id == selectedCourses[learner] } ?: catalog.courses.first()
+        activateCourse(catalog, course)
+    }
+
+    private fun activateCourse(catalog: Catalog, course: Course) {
+        selectedCourses[learner] = course.id
+        courseId = course.id
+        if (!catalog.hasManifestCaptions(course)) captionDelivery = CaptionDelivery.EXTERNAL
+    }
+
+    fun selectCourse(id: String) {
+        check(screen == AppScreen.COURSE)
+        val catalog = requireNotNull(catalog)
+        activateCourse(catalog, catalog.course(id))
+        changed()
+    }
+
     private fun loadProgress() {
         val ids = catalog?.lessons?.map { it.id } ?: return
         val selectedLearner = learner
@@ -187,6 +212,7 @@ class PlaybackSession(application: Application) : AndroidViewModel(application),
         beforePlayerReplacement?.invoke()
         engine.close()
         learner = value
+        catalog?.let(::restoreCourse)
         engine = newEngine(value)
         captionIssue = null
         ownedFault = OwnedTestFault.NONE

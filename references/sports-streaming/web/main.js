@@ -4,7 +4,14 @@ import { HandoffLedger } from './handoffs.js';
 import { button, jsonAt } from './media.js';
 import { recordEvent, Session } from './session.js';
 import { el, message, mountControls } from './controls.js';
-import { archivePosition, sourceUtc, liveReturnOffset, validateCatalog, validateStatus } from './sports.js';
+import {
+  archivePosition,
+  canReturnToUtc,
+  sourceUtc,
+  liveReturnOffset,
+  validateCatalog,
+  validateStatus
+} from './sports.js';
 
 const base = import.meta.env.VITE_MEDIA_BASE_URL || 'http://127.0.0.1:8622/';
 const ledger = new HandoffLedger();
@@ -34,7 +41,8 @@ let catalog,
   timer,
   waiting = 0,
   failedPolls = 0,
-  intent;
+  intent,
+  activeFormat;
 let interactive = false,
   savedPlay = true,
   autoClaimed = false;
@@ -48,9 +56,7 @@ function seek(target) {
   }
 }
 function liveUtc() {
-  return interactive && session.ready
-    ? sourceUtc(asset, session.player.getCurrentTime('absolutetime'))
-    : null;
+  return interactive && session.ready ? sourceUtc(asset, session.utcSeconds()) : null;
 }
 function onEvent(type, eventInfo) {
   if (type === 'Error') {
@@ -84,7 +90,7 @@ function actions() {
   const live = asset?.kind === 'live';
   el('edge').disabled = !(live && interactive && session.player?.isLive());
   el('return').hidden = !(asset?.kind === 'clip' && status?.status === 'live');
-  el('earlier').hidden = el('return').hidden || savedUtc === null;
+  el('earlier').hidden = el('return').hidden || !canReturnToUtc(status, savedUtc);
   el('archives').hidden = !(live && interactive && status?.archiveStatus === 'ready');
 }
 function showAssets() {
@@ -104,26 +110,29 @@ function showAssets() {
   );
   actions();
 }
+function applyStatus(update) {
+  const changed = update.status !== status?.status || update.archiveStatus !== status?.archiveStatus;
+  status = update;
+  failedPolls = 0;
+  el('status').textContent =
+    t('Event') +
+    ' · ' +
+    t(update.status) +
+    ' / ' +
+    t('Archive') +
+    ' · ' +
+    t(update.archiveStatus.replaceAll('_', ' '));
+  if (changed) showAssets();
+  actions();
+}
 async function poll() {
   clearTimeout(timer);
   const token = ++statusRequest;
   try {
     const update = validateStatus(await jsonAt(event.statusUrl, base), event);
     if (token !== statusRequest) return;
-    const changed = update.status !== status?.status || update.archiveStatus !== status?.archiveStatus;
-    status = update;
-    failedPolls = 0;
-    el('status').textContent =
-      t('Event') +
-      ' · ' +
-      t(update.status) +
-      ' / ' +
-      t('Archive') +
-      ' · ' +
-      t(update.archiveStatus.replaceAll('_', ' '));
-    if (changed) showAssets();
+    applyStatus(update);
     maybeContinue();
-    actions();
     if (
       ['live', 'scheduled'].includes(update.status) ||
       (update.status === 'ended' && !['ready', 'failed'].includes(update.archiveStatus) && ++waiting < 12)
@@ -181,6 +190,7 @@ async function open(item, options = {}) {
   pendingHandoff = ticket ? { ticket, token, observing: false } : null;
   if (ticket) el('export').disabled = false;
   intent = options;
+  activeFormat = el('format').value;
   asset = item;
   el('title').textContent = titleOf(asset);
   for (const b of el('assets').children) b.setAttribute('aria-current', String(b.dataset.id === item.id));
@@ -188,7 +198,7 @@ async function open(item, options = {}) {
   actions();
   message('Loading video…');
   try {
-    if (!(await session.open(item, el('format').value, {})) || token !== generation) return;
+    if (!(await session.open(item, activeFormat, {})) || token !== generation) return;
     controls.restore();
     if (options.utc != null) {
       const p = session.player,
@@ -199,14 +209,8 @@ async function open(item, options = {}) {
       const latest = validateStatus(await jsonAt(event.statusUrl, base), event);
       if (token !== generation) return;
       let offset = null;
-      if (
-        p.isLive() &&
-        latest.status === 'live' &&
-        Number.isFinite(latest.seekableUtcStartMs) &&
-        Number.isFinite(latest.seekableUtcEndMs) &&
-        options.utc >= latest.seekableUtcStartMs &&
-        options.utc < latest.seekableUtcEndMs
-      ) {
+      const inPublisherWindow = canReturnToUtc(latest, options.utc);
+      if (p.isLive() && inPublisherWindow) {
         offset = await decodedReturnOffset(p, seconds);
         if (token !== generation) return;
       }
@@ -215,7 +219,11 @@ async function open(item, options = {}) {
         interactive = true;
         controls.enable(true);
         actions();
-        message('Saved position left the DVR window. Choose Live edge to continue.');
+        message(
+          p.isLive() && !inPublisherWindow
+            ? 'Saved position left the DVR window. Choose Live edge to continue.'
+            : 'The previous position is unavailable. Choose Play to watch this video.'
+        );
         return;
       }
       if (!(await timeShiftTo(p, seconds, offset))) throw Error();
@@ -228,7 +236,11 @@ async function open(item, options = {}) {
     interactive = true;
     controls.enable(true);
     actions();
-    message('');
+    message(
+      options.unknownPosition
+        ? 'The previous position is unavailable. Choose Play to watch this video.'
+        : ''
+    );
     if (pendingHandoff?.ticket === ticket && ticket) {
       pendingHandoff.observing = true;
       observeHandoff();
@@ -272,7 +284,7 @@ async function decodedReturnOffset(player, target) {
     // settled. In particular, an immediately reopened live edge can lag the
     // previous player by a fraction of one segment.
     while (session.player === player && performance.now() < deadline) {
-      const current = player.getCurrentTime('absolutetime');
+      const current = session.utcSeconds();
       const offset = liveReturnOffset(target, current, player.getTimeShift(), player.getMaxTimeShift());
       if (
         video &&
@@ -284,7 +296,7 @@ async function decodedReturnOffset(player, target) {
         player.pause('positioning');
         return liveReturnOffset(
           target,
-          player.getCurrentTime('absolutetime'),
+          session.utcSeconds(),
           player.getTimeShift(),
           player.getMaxTimeShift()
         );
@@ -301,7 +313,7 @@ async function decodedReturnOffset(player, target) {
   }
 }
 function timeShiftTo(player, utcSeconds, offset) {
-  if (Math.abs(player.getCurrentTime('absolutetime') - utcSeconds) < 0.1) return Promise.resolve(true);
+  if (Math.abs(session.utcSeconds() - utcSeconds) < 0.1) return Promise.resolve(true);
   return new Promise((resolve) => {
     const finish = (value) => {
       clearTimeout(timeout);
@@ -309,9 +321,7 @@ function timeShiftTo(player, utcSeconds, offset) {
       resolve(value);
     };
     const check = () =>
-      finish(
-        session.player === player && Math.abs(player.getCurrentTime('absolutetime') - utcSeconds) <= 1.5
-      );
+      finish(session.player === player && Math.abs(session.utcSeconds() - utcSeconds) <= 1.5);
     const timeout = setTimeout(() => finish(false), 5000);
     player.on('timeshifted', check);
     try {
@@ -417,16 +427,60 @@ el('retry').onclick = () => {
   if (asset) void open(asset, intent);
 };
 el('return').onclick = () => open(catalog.assets.find((a) => a.id === event.liveAssetId));
-el('earlier').onclick = () =>
-  open(
-    catalog.assets.find((a) => a.id === event.liveAssetId),
-    { utc: savedUtc, play: savedPlay }
-  );
+el('earlier').onclick = async () => {
+  if (!interactive || asset?.kind !== 'clip' || !canReturnToUtc(status, savedUtc)) return;
+  const token = generation,
+    selectedEvent = event;
+  try {
+    const latest = validateStatus(await jsonAt(selectedEvent.statusUrl, base), selectedEvent);
+    if (token !== generation) return;
+    applyStatus(latest);
+    if (!canReturnToUtc(latest, savedUtc)) {
+      el('earlier').hidden = true;
+      savedUtc = null;
+      message('The saved DVR position has expired. You can keep watching this clip.');
+      return;
+    }
+    void open(
+      catalog.assets.find((a) => a.id === selectedEvent.liveAssetId),
+      { utc: savedUtc, play: savedPlay }
+    );
+  } catch {
+    if (token === generation) message('Event status unavailable. Refresh to retry.');
+  }
+};
 el('edge').onclick = () => {
   seek(0);
   void session.play();
 };
 el('format').onchange = () => {
-  if (event) chooseEvent(event);
+  if (!asset) return;
+  const player = session.player;
+  const format = el('format').value;
+  if (
+    !asset.streams[format] ||
+    (session.ready && !player.getSupportedTech().some((tech) => tech.streaming === format))
+  ) {
+    el('format').value = activeFormat;
+    message('This delivery format is unavailable for the selected video.');
+    return;
+  }
+  if (!interactive || !session.ready || player.getSource()?.metadata?.videoId !== asset.videoId) {
+    // A second format change can arrive while the previous one is positioning.
+    void open(asset, { ...intent, handoff: false });
+    return;
+  }
+  const video = session.host.querySelector('video');
+  const play = video ? !video.paused : player.isPlaying();
+  if (asset.kind === 'live') {
+    const utc = liveUtc();
+    void open(asset, utc === null ? { unknownPosition: true, play: false } : { utc, play });
+  } else {
+    const seconds = player.getCurrentTime('relativetime');
+    void open(
+      asset,
+      Number.isFinite(seconds) && seconds >= 0 ? { seconds, play } : { unknownPosition: true, play: false }
+    );
+  }
 };
 void loadCatalog();

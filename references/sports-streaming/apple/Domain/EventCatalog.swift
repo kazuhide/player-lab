@@ -87,6 +87,10 @@ struct EventUpdate: Decodable {
     let seekableUtcEndMs: Double?
     let archiveMapping: ArchiveMap?
 
+    var pollingFinished: Bool {
+        status == "cancelled" || (status == "ended" && ["ready", "failed"].contains(archiveStatus))
+    }
+
     /// The fixture publisher removes the DVR window after ENDLIST. The full
     /// archive's measured duration still bounds a timestamp from this source.
     var presentationEndMs: Double? {

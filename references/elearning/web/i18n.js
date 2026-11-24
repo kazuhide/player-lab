@@ -1,5 +1,6 @@
 const japanese = navigator.language.toLowerCase().startsWith('ja');
 const strings = {
+  'Follow current line': '再生中の行を追う',
   'Picture in picture': 'ピクチャ・イン・ピクチャ',
   Controls: '操作画面',
   Standard: '標準',

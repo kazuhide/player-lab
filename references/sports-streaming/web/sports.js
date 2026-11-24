@@ -110,3 +110,14 @@ export function liveReturnOffset(target, currentUtc, currentShift, maxShift) {
   const offset = target - (currentUtc - currentShift);
   return offset >= maxShift && offset <= 0 ? offset : null;
 }
+
+export function canReturnToUtc(status, utc) {
+  return (
+    status?.status === 'live' &&
+    millis(utc) &&
+    millis(status.seekableUtcStartMs) &&
+    millis(status.seekableUtcEndMs) &&
+    utc >= status.seekableUtcStartMs &&
+    utc < status.seekableUtcEndMs
+  );
+}

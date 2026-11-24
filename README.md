@@ -65,10 +65,10 @@ actual playback on a simulator, emulator or physical device.
 
 ## Reference applications
 
-Each reference includes a Web player, an Android app for mobile and TV, and native iOS and tvOS targets:
+Both references run on Web, Android mobile, Android TV, iOS and tvOS.
 
-- [Learning](references/elearning): lessons, timed transcript search and local resume.
-- [Sports streaming](references/sports-streaming): live events, clips, archives and Google Cast.
+- [Learning](references/elearning) supports ordered lessons, timed transcript search and local resume for each learner.
+- [Sports streaming](references/sports-streaming) supports live DVR, clip playback and continuation into full or edited archives.
 
 Each includes its own media fixtures, configuration, build instructions and
 optional Analytics dashboard, and can be built independently.

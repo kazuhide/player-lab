@@ -36,7 +36,7 @@ export class HandoffLedger {
     } else {
       if (!playing || paused) return false;
       if (ticket.first === null && matches) ticket.first = positionMs;
-      else if (ticket.first !== null && positionMs > ticket.first && matches) {
+      else if (ticket.first !== null && positionMs > ticket.first) {
         row.confirmed = { videoId, positionMs: ticket.first, playWhenReady: true, positionAdvanced: true };
       }
     }

@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
@@ -22,7 +23,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun PlayerPanel(
     state: PlaybackUiState, session: PlaybackSession, surface: PlayerSurfaceHost, modifier: Modifier,
-    expanded: Boolean, pictureInPicture: Boolean, boundedHeight: Boolean, controlsFocus: FocusRequester, onFullscreen: () -> Unit, onPip: (() -> Unit)?,
+    expanded: Boolean, pictureInPicture: Boolean, boundedHeight: Boolean, controlsFocus: FocusRequester, catalogFocus: FocusRequester?,
+    onFullscreen: () -> Unit, onPip: (() -> Unit)?,
     onCaptions: () -> Unit, onSpeed: () -> Unit,
 ) {
     val backLabel = stringResource(R.string.back_15)
@@ -42,7 +44,9 @@ import androidx.compose.ui.viewinterop.AndroidView
                 }
                 TextButton(onClick = { session.setProtocol(if (state.protocol == com.playerlab.sportsstreaming.core.StreamProtocol.HLS)
                     com.playerlab.sportsstreaming.core.StreamProtocol.DASH else com.playerlab.sportsstreaming.core.StreamProtocol.HLS) },
-                    enabled = state.acceptsPlaybackCommands, modifier = Modifier.heightIn(min = 48.dp)) { Text(state.protocol.name) }
+                    enabled = state.acceptsPlaybackCommands, modifier = Modifier.heightIn(min = 48.dp).focusProperties {
+                        if (catalogFocus != null) right = catalogFocus
+                    }) { Text(state.protocol.name) }
             }
         }
         Box(if (expanded || boundedHeight) Modifier.weight(1f).fillMaxWidth().background(Color.Black)

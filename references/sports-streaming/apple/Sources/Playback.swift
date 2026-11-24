@@ -10,7 +10,10 @@ class Playback: NSObject, ObservableObject {
     @Published var ready = false
     @Published var playing = false
     @Published var position: Double?
-    @Published var captionText: String?
+    @Published private var activeCaptions = ActiveCaptions()
+    var captionText: String? { activeCaptions.text }
+    private var waitingForCaption: String?
+    private(set) var isBackgrounded = false
     @Published var problem: String?
     @Published var diagnostics: [String] = []
     private var subscriptions = Set<AnyCancellable>()
@@ -44,17 +47,24 @@ class Playback: NSObject, ObservableObject {
         }
         bind(player.events.on(SubtitleChangedEvent.self), player: player) { session, event, sender in
             if session.ready, session.owns(sender) {
-                session.captionText = nil
+                session.clearCaptions()
+                guard session.waitingForCaption == nil,
+                      event.subtitleTrackNew?.language == sender.subtitle.language else { return }
                 if let language = event.subtitleTrackNew?.language { session.captionLanguage = language }
                 else if !sender.availableSubtitles.isEmpty { session.captionLanguage = "" }
             }
         }
-        bind(player.events.on(SourceWarningEvent.self), player: player) { session, event, sender in
-            guard session.owns(sender) else { return }
-            let message = String(format: NSLocalizedString("Media warning (%@)", comment: ""), String(describing: event.code.rawValue))
-            session.problem = message
-            session.record(message)
+        bind(player.events.on(SubtitleAddedEvent.self), player: player) { session, event, sender in
+            if session.ready, session.owns(sender), let language = session.waitingForCaption,
+               event.subtitleTrack.language == language { session.applyCaption(sender) }
         }
+        bind(player.events.on(SeekEvent.self), player: player) { session, _, sender in
+            if session.owns(sender) { session.clearCaptions() }
+        }
+        bind(player.events.on(TimeShiftEvent.self), player: player) { session, _, sender in
+            if session.owns(sender) { session.clearCaptions() }
+        }
+        bind(player.events.on(SourceWarningEvent.self), player: player) { $0.onSourceWarning($1, player: $2) }
         bind(player.events.on(PlaybackFinishedEvent.self), player: player) { $0.onPlaybackFinished($1, player: $2) }
     }
 
@@ -74,7 +84,8 @@ class Playback: NSObject, ObservableObject {
         ready = false
         playing = false
         position = nil
-        captionText = nil
+        waitingForCaption = nil
+        clearCaptions()
         problem = nil
     }
 
@@ -89,9 +100,37 @@ class Playback: NSObject, ObservableObject {
 
     func applyPreferences(_ sender: Player) {
         if sender.canPlay(atPlaybackSpeed: speed) { sender.playbackSpeed = speed }
-        let track = sender.availableSubtitles.first { $0.language == captionLanguage }
-        sender.setSubtitle(trackIdentifier: track?.identifier)
-        captionText = nil
+        clearCaptions()
+        applyCaption(sender)
+    }
+
+    private func applyCaption(_ sender: Player) {
+        guard !captionLanguage.isEmpty else {
+            waitingForCaption = nil
+            sender.setSubtitle(trackIdentifier: nil)
+            return
+        }
+        guard let track = sender.availableSubtitles.first(where: { $0.language == captionLanguage }) else {
+            waitingForCaption = captionLanguage
+            if sender.subtitle.language != nil { sender.setSubtitle(trackIdentifier: nil) }
+            return
+        }
+        waitingForCaption = nil
+        sender.setSubtitle(trackIdentifier: track.identifier)
+    }
+
+    func clearCaptions() {
+        activeCaptions = ActiveCaptions()
+    }
+
+    func setBackgrounded(_ backgrounded: Bool) {
+        isBackgrounded = backgrounded
+        if backgrounded { suspendPlayback() }
+    }
+
+    func suspendPlayback() {
+        desiredPlayback = false
+        player?.pause()
     }
 
     func seek(by delta: Double) {
@@ -112,11 +151,12 @@ class Playback: NSObject, ObservableObject {
     }
 
     func prepared(_ player: Player) {
-        if desiredPlayback { player.play() } else { player.pause() }
+        if desiredPlayback && !isBackgrounded { player.play() } else { player.pause() }
     }
 
     func onPlaying(_ event: PlayingEvent, player: Player) {
         guard owns(player) else { return }
+        guard !isBackgrounded else { suspendPlayback(); return }
         playing = true
         desiredPlayback = true
         record("Playing")
@@ -143,19 +183,26 @@ class Playback: NSObject, ObservableObject {
         guard owns(player) else { return }
         failed(String(format: NSLocalizedString("Media error (%@)", comment: ""), String(describing: event.errorCode)))
     }
+    func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
+        guard owns(player) else { return }
+        // Store the SDK code only. Warning messages can include source URLs.
+        record(String(format: NSLocalizedString("Media warning (%@)", comment: ""),
+                      String(describing: event.code.rawValue)))
+    }
+
     func failed(_ reason: String) {
         ready = false
         playing = false
-        captionText = nil
+        clearCaptions()
         problem = reason
         record(reason)
     }
     func onCueEnter(_ event: CueEnterEvent, player: Player) {
         guard owns(player) else { return }
-        captionText = event.text
+        activeCaptions.enter(start: event.startTime, end: event.endTime, text: event.text)
     }
     func onCueExit(_ event: CueExitEvent, player: Player) {
-        guard owns(player), event.text == captionText else { return }
-        captionText = nil
+        guard owns(player) else { return }
+        activeCaptions.exit(start: event.startTime, end: event.endTime, text: event.text)
     }
 }

@@ -12,6 +12,9 @@ final class HandoffTests: XCTestCase {
     func testPlayingNeedsTargetSourceAndAdvancingPosition() throws {
         var ledger = HandoffLedger()
         let id = ledger.begin(eventId: "event", videoId: "archive", positionMs: 15000, play: true)
+        ledger.seekIssued(id, uptime: 1)
+        XCTAssertFalse(ledger.seekCompleted(id, videoId: "other", positionMs: 15001, uptime: 2))
+        XCTAssertTrue(ledger.seekCompleted(id, videoId: "archive", positionMs: 15001, uptime: 3))
         XCTAssertFalse(ledger.observe(id, videoId: "other", positionMs: 15000, isPlaying: true, isPaused: false, readyStopped: false, uptime: 1))
         XCTAssertFalse(ledger.observe(id, videoId: "archive", positionMs: 2000, isPlaying: true, isPaused: false, readyStopped: false, uptime: 2))
         XCTAssertFalse(ledger.observe(id, videoId: "archive", positionMs: 15001, isPlaying: true, isPaused: false, readyStopped: false, uptime: 3))
@@ -26,12 +29,38 @@ final class HandoffTests: XCTestCase {
     func testPausedAndReadyStoppedConfirmations() throws {
         var ledger = HandoffLedger()
         let id = ledger.begin(eventId: "e", videoId: "v", positionMs: 5000, play: false)
+        ledger.seekIssued(id, uptime: 0)
+        XCTAssertTrue(ledger.seekCompleted(id, videoId: "v", positionMs: 5000, uptime: 1))
         XCTAssertFalse(ledger.observe(id, videoId: "v", positionMs: 5000, isPlaying: false, isPaused: false, readyStopped: true, uptime: 1))
         XCTAssertFalse(ledger.observe(id, videoId: "v", positionMs: 5000, isPlaying: false, isPaused: false, readyStopped: true, uptime: 1.1))
         XCTAssertTrue(ledger.observe(id, videoId: "v", positionMs: 5000, isPlaying: false, isPaused: false, readyStopped: true, uptime: 1.3))
         let actual = try XCTUnwrap(try rows(ledger)[0]["confirmed"] as? [String: Any])
         XCTAssertEqual(actual["playWhenReady"] as? Bool, false)
         XCTAssertEqual(actual["positionAdvanced"] as? Bool, false)
+    }
+
+    func testMissingLateOrShortSeekCannotBeConfirmedByOrdinaryPlayback() throws {
+        var ledger = HandoffLedger()
+        for (landing, completedAt) in [(Double?.none, 1.0), (2, 1), (30, 12)] {
+            let id = ledger.begin(eventId: "e", videoId: "v", positionMs: 30000, play: true)
+            ledger.seekIssued(id, uptime: 0)
+            if let landing {
+                XCTAssertFalse(ledger.seekCompleted(id, videoId: "v", positionMs: Int(landing * 1000), uptime: completedAt))
+                XCTAssertFalse(ledger.seekCompleted(id, videoId: "v", positionMs: 30000, uptime: completedAt))
+            }
+            for position in [30000, 30200] {
+                XCTAssertFalse(ledger.observe(id, videoId: "v", positionMs: position, isPlaying: true,
+                                              isPaused: false, readyStopped: false, uptime: 31))
+            }
+        }
+        let id = ledger.begin(eventId: "e", videoId: "v", positionMs: 30000, play: true)
+        ledger.seekIssued(id, uptime: 0)
+        XCTAssertTrue(ledger.seekCompleted(id, videoId: "v", positionMs: 30000, uptime: 1))
+        XCTAssertFalse(ledger.observe(id, videoId: "v", positionMs: 60000, isPlaying: true,
+                                      isPaused: false, readyStopped: false, uptime: 1.2))
+        XCTAssertFalse(ledger.observe(id, videoId: "v", positionMs: 30100, isPlaying: true,
+                                      isPaused: false, readyStopped: false, uptime: 20))
+        XCTAssertTrue(try rows(ledger).allSatisfy { $0["confirmed"] is NSNull && $0["failure"] is NSNull })
     }
 
     func testBoundedWireFormatKeepsUnknownAndFailureSeparate() throws {

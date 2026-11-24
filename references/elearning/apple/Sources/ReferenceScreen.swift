@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ReferenceScreen: View {
     @StateObject private var session = LearningSession()
-    @State private var search = ""
     @Environment(\.scenePhase) private var phase
 
     var body: some View {
@@ -19,7 +18,7 @@ struct ReferenceScreen: View {
                     lessonView(lesson)
                 } else if let catalog = session.catalog {
                     ForEach(catalog.courses) { course in
-                        Button(course.displayTitle) { session.course = course }.disabled(course.id == session.course?.id)
+                        Button(course.displayTitle) { session.chooseCourse(course) }.disabled(course.id == session.course?.id)
                     }
                     Toggle("Play next lesson automatically", isOn: $session.autoAdvance)
                     Toggle("Use embedded HLS subtitles", isOn: $session.embeddedCaptions)
@@ -38,9 +37,9 @@ struct ReferenceScreen: View {
             .frame(maxWidth: 1000, alignment: .leading).padding().frame(maxWidth: .infinity)
         }
         .task { if session.catalog == nil { await session.fetchCatalog() } }
-        .onChange(of: session.lesson?.id) { _ in search = "" }
         .onChange(of: phase) { phase in
-            if phase == .background { session.save(); session.player?.pause() }
+            if phase == .background { session.save(); session.setBackgrounded(true) }
+            else if phase == .active { session.setBackgrounded(false) }
         }
         .alert(item: $session.resumeChoice) { lesson in
             Alert(title: Text("Continue this lesson?"),
@@ -78,25 +77,7 @@ struct ReferenceScreen: View {
                     }
                 }.disabled(!session.ready)
             }
-            Text("Transcript").font(.headline)
-            HStack {
-                Button("English") { session.transcriptLanguage = "en" }
-                Button("日本語") { session.transcriptLanguage = "ja" }
-            }
-            TextField("Search transcript", text: $search)
-                .accessibilityLabel("Search transcript")
-            if session.transcriptError {
-                Text("Transcript unavailable.")
-                Button("Retry transcript") { session.fetchTranscript() }
-            } else if let transcript = session.transcript {
-                let matches = transcript.search(search, in: session.transcriptLanguage)
-                if matches.isEmpty { Text("No matching cues") }
-                ForEach(Array(matches.enumerated()), id: \.offset) { _, cue in
-                    Button("\(Media.clock(cue.startMs / 1000))  \(cue.text)") {
-                        session.player?.seek(time: cue.startMs / 1000)
-                    }.disabled(!session.ready)
-                }
-            } else if lesson.transcriptUrl != nil { ProgressView() }
+            TranscriptPanel(session: session)
         }
     }
     private func move(_ delta: Int) {

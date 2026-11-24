@@ -15,7 +15,7 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
     init { isFillViewport = true; addView(content) }
 
     fun update() {
-        val key = listOf(session.catalog, session.catalogFailed, session.progressLoading, session.learner, session.resumes, session.autoAdvanceDraft, session.format, session.captionDelivery)
+        val key = listOf(session.catalog, session.catalogFailed, session.progressLoading, session.learner, session.courseId, session.resumes, session.autoAdvanceDraft, session.format, session.captionDelivery)
         if (key == lastKey) return
         lastKey = key
         val focusedControl = if (context.isTelevision) findFocus()?.tag else null
@@ -27,7 +27,22 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
             return
         }
         val course = catalog.course(session.courseId)
-        content.addView(context.heading(course.localizedTitle(context)))
+        if (catalog.courses.size == 1) {
+            content.addView(context.heading(course.localizedTitle(context)))
+        } else {
+            content.addView(RadioGroup(context).apply {
+                catalog.courses.forEach { choice ->
+                    addView(RadioButton(context).apply {
+                        id = android.view.View.generateViewId()
+                        tag = choice
+                        text = choice.localizedTitle(context)
+                        minHeight = context.dp(48)
+                        isChecked = choice.id == course.id
+                        setOnClickListener { session.selectCourse(choice.id) }
+                    })
+                }
+            })
+        }
         content.addView(context.row().apply {
             weighted(Switch(context).apply {
                 text = context.getString(R.string.auto_advance)
@@ -52,7 +67,7 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
             })
         })
         content.addView(context.divider())
-        if (session.format == StreamFormat.HLS && course.lessonIds.map(catalog::lesson).filter { it.subtitleTracks.isNotEmpty() }.all { it.hlsWithSubtitles != null }) {
+        if (session.format == StreamFormat.HLS && catalog.hasManifestCaptions(course)) {
             content.addView(context.label(context.getString(R.string.caption_source), 14f))
             content.addView(context.row().apply {
                 weighted(context.action(context.getString(R.string.external_captions), session.captionDelivery == CaptionDelivery.EXTERNAL) { session.setCaptionDelivery(CaptionDelivery.EXTERNAL) }.apply { tag = CaptionDelivery.EXTERNAL })
@@ -60,7 +75,8 @@ class CourseScreen(context: Context, private val session: PlaybackSession, priva
             })
             content.addView(context.divider())
         }
-        val recent = session.resumes.values.filter { it.positionMs > 0 && it.canResume(catalog.lesson(it.lessonId).durationMs) }.maxByOrNull { it.savedAtMs }
+        val recent = course.lessonIds.mapNotNull(session.resumes::get)
+            .filter { it.positionMs > 0 && it.canResume(catalog.lesson(it.lessonId).durationMs) }.maxByOrNull { it.savedAtMs }
         if (recent != null) {
             content.addView(context.label(catalog.lesson(recent.lessonId).localizedTitle(context), 17f, true))
             content.addView(context.label(context.getString(R.string.saved_position, formatTime(recent.positionMs)), 14f))

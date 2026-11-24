@@ -1,5 +1,11 @@
 const japanese = navigator.language.toLowerCase().startsWith('ja');
 const strings = {
+  'The previous position is unavailable. Choose Play to watch this video.':
+    '元の視聴位置を確認できません。「再生」を選ぶと映像が始まります。',
+  'The saved DVR position has expired. You can keep watching this clip.':
+    '元の視聴位置は追いかけ再生の範囲外です。クリップは引き続き視聴できます。',
+  'This delivery format is unavailable for the selected video.':
+    'この映像では選択した配信形式を利用できません。',
   'Download handoff records': '引き継ぎ記録をダウンロード',
   'Picture in picture': 'ピクチャ・イン・ピクチャ',
   Controls: '操作画面',

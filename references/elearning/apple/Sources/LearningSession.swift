@@ -4,7 +4,8 @@ import BitmovinPlayer
 @MainActor
 final class LearningSession: Playback {
     @Published var catalog: CourseCatalog?
-    @Published var course: Course?
+    @Published private(set) var course: Course?
+    private var courseIDs: [String: String] = [:]
     @Published var learner = "A"
     @Published var autoAdvance = false
     @Published var embeddedCaptions = false
@@ -18,12 +19,14 @@ final class LearningSession: Playback {
     private var pendingResume: Progress?
     private var resumeSeekPlaying: Bool?
     private var lastSaved: Double?
+    private var finished = false
     private var transcriptTask: Task<Void, Never>?
 
     var lessons: [Lesson] { catalog?.orderedLessons(in: course) ?? [] }
 
     override init() {
         super.init()
+        captionLanguage = transcriptLanguage
         replacePlayer(learnerId: "demo-learner-a")
     }
 
@@ -32,15 +35,33 @@ final class LearningSession: Playback {
             let result = try await Media.fetch("catalog.json", as: CourseCatalog.self)
             guard !result.courses.isEmpty else { throw URLError(.cannotDecodeContentData) }
             catalog = result
-            course = result.courses.first
+            restoreCourse()
             problem = nil
         } catch { problem = "Course catalog unavailable." }
+    }
+
+    func chooseCourse(_ next: Course) {
+        guard let selected = catalog?.courses.first(where: { $0.id == next.id }) else { return }
+        courseIDs[learner] = selected.id
+        course = selected
+    }
+
+    private func restoreCourse() {
+        let remembered = courseIDs[learner]
+        course = catalog?.courses.first { $0.id == remembered } ?? catalog?.courses.first
     }
 
     func selectLearner(_ next: String) {
         guard next != learner else { return }
         closeLesson()
         learner = next
+        restoreCourse()
+        diagnostics.removeAll()
+        standardControls = true
+        speed = 1
+        transcriptLanguage = Locale.current.language.languageCode?.identifier == "ja" ? "ja" : "en"
+        captionLanguage = transcriptLanguage
+        autoAdvance = false
         replacePlayer(learnerId: "demo-learner-" + next.lowercased())
     }
 
@@ -55,11 +76,11 @@ final class LearningSession: Playback {
         else { open(lesson, resume: false) }
     }
 
-    func save() {
-        guard let player, ready, owns(player), !invalidResume, pendingResume == nil, let lesson,
+    func save(allowZero: Bool = false) {
+        guard let player, ready, owns(player), !invalidResume, !finished, pendingResume == nil, let lesson,
               player.duration.isFinite else { return }
         let position = player.currentTime(.relativeTime)
-        guard position.isFinite, position > 0, position < player.duration else { return }
+        guard position.isFinite, position >= 0, position < player.duration, allowZero || position > 0 else { return }
         persist(lesson, position: position)
         lastSaved = position
     }
@@ -82,6 +103,7 @@ final class LearningSession: Playback {
         resumeChoice = nil
         transcript = nil
         invalidResume = false
+        finished = false
         player?.unload()
     }
 
@@ -89,13 +111,14 @@ final class LearningSession: Playback {
         guard let player, let index = lessons.firstIndex(where: { $0.id == next.id }) else { return }
         closeLesson()
         lesson = next
-        let preferences = saved(next)
-        pendingResume = resume ? preferences : nil
+        pendingResume = resume ? saved(next) : nil
         invalidResume = false
         lastSaved = nil
-        standardControls = preferences?.standard ?? true
-        speed = preferences?.speed ?? 1
-        captionLanguage = preferences?.language ?? transcriptLanguage
+        if let saved = pendingResume {
+            standardControls = saved.standard ?? standardControls
+            speed = saved.speed
+            captionLanguage = saved.language
+        }
         desiredPlayback = true
         do {
             let queue = autoAdvance ? Array(lessons[index...]) : [next]
@@ -143,9 +166,23 @@ final class LearningSession: Playback {
         super.prepared(player)
     }
 
+    override func suspendPlayback() {
+        if resumeSeekPlaying != nil { resumeSeekPlaying = false }
+        super.suspendPlayback()
+    }
+
     override func onSeeked(_ event: SeekedEvent, player: Player) {
-        guard owns(player), let target = pendingResume, let play = resumeSeekPlaying,
-              abs(player.currentTime(.relativeTime) - target.seconds) < 1 else { return }
+        guard owns(player) else { return }
+        let seconds = player.currentTime(.relativeTime)
+        position = seconds.isFinite && seconds >= 0 ? seconds : nil
+        if pendingResume == nil {
+            guard ready, !invalidResume, seconds.isFinite, seconds >= 0, seconds < player.duration else { return }
+            finished = false
+            save(allowZero: true)
+            return
+        }
+        guard let target = pendingResume, let play = resumeSeekPlaying,
+              abs(seconds - target.seconds) < 1 else { return }
         pendingResume = nil
         resumeSeekPlaying = nil
         desiredPlayback = play
@@ -154,6 +191,11 @@ final class LearningSession: Playback {
 
     override func onPlay(_ event: PlayEvent, player: Player) {
         if owns(player), invalidResume { player.pause() }
+    }
+
+    override func onPlaying(_ event: PlayingEvent, player: Player) {
+        super.onPlaying(event, player: player)
+        if playing, owns(player) { finished = false }
     }
 
     override func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
@@ -172,12 +214,9 @@ final class LearningSession: Playback {
         if let previous = lesson { persist(previous, position: 0) }
         lesson = next.1
         activeSource = next.0
+        finished = false
         position = nil
         lastSaved = nil
-        let previousPrefs = saved(next.1)
-        standardControls = previousPrefs?.standard ?? standardControls
-        speed = previousPrefs?.speed ?? speed
-        captionLanguage = previousPrefs?.language ?? captionLanguage
         applyPreferences(player)
         fetchTranscript()
         record("Next lesson")
@@ -186,9 +225,9 @@ final class LearningSession: Playback {
     override func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
         guard owns(player), let lesson else { return }
         playing = false
-        ready = false
+        finished = true
         persist(lesson, position: 0)
-        captionText = nil
+        clearCaptions()
         record("Finished")
     }
 

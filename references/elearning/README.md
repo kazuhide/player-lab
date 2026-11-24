@@ -14,6 +14,8 @@ Follow the setup for [Web](web/README.md), [Android mobile](#configure-and-run-a
 4. Switch to learner B. Open the same lesson and check that learner A's saved position is private to A. Switch back to A and choose **Resume**.
 5. Open the course with automatic continuation enabled. Play through the end of the second lesson. The next lesson, **Summary**, has no subtitles.
 
+With a multi-course catalog, select a course before opening a lesson. Previous, next and automatic continuation follow the lesson order within that course. Each learner starts in the first course and keeps their own course selection during the app session.
+
 Use HLS for the cross-platform comparison. On Android and Web you can also select DASH. Resume positions are stored on the device or in the browser profile.
 
 This directory contains its own application, configuration, Gradle wrapper,

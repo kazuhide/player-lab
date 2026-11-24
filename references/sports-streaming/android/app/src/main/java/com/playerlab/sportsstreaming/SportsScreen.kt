@@ -28,7 +28,9 @@ import com.playerlab.sportsstreaming.core.*
     var captions by remember { mutableStateOf(false) }
     var speed by remember { mutableStateOf(false) }
     val japanese = LocalConfiguration.current.locales[0].language == "ja"
-    val safeMargin = if (LocalContext.current.isTelevision && !fullscreen && !pictureInPicture)
+    val television = LocalContext.current.isTelevision
+    val catalogFocus = remember { FocusRequester() }
+    val safeMargin = if (television && !fullscreen && !pictureInPicture)
         Modifier.padding(horizontal = 32.dp, vertical = 16.dp) else Modifier
     Scaffold(modifier = safeMargin, topBar = {
         if (!fullscreen && !pictureInPicture) TopAppBar(title = {
@@ -56,10 +58,11 @@ import com.playerlab.sportsstreaming.core.*
         })
     }) { padding ->
         BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
-            val wide = maxWidth >= 700.dp
+            val wide = television || maxWidth >= 700.dp
             val panel: @Composable (Modifier) -> Unit = { modifier ->
                 PlayerPanel(state, session, surface, modifier, fullscreen || pictureInPicture,
-                    pictureInPicture, wide, controlsFocus, onFullscreen, onPip, { captions = true }, { speed = true })
+                    pictureInPicture, wide, controlsFocus, catalogFocus.takeIf { television && !fullscreen && !pictureInPicture },
+                    onFullscreen, onPip, { captions = true }, { speed = true })
             }
             if (wide && !fullscreen && !pictureInPicture) {
                 Row(Modifier.fillMaxSize().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -68,7 +71,7 @@ import com.playerlab.sportsstreaming.core.*
                         EventContinuationPanel(state, session)
                         PlaybackNotice(state, session)
                     }
-                    MediaBrowser(state, session, japanese, Modifier.weight(1f).fillMaxHeight())
+                    MediaBrowser(state, session, japanese, Modifier.weight(1f).fillMaxHeight(), catalogFocus)
                 }
             } else {
                 Column(Modifier.fillMaxSize()) {

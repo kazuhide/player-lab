@@ -18,7 +18,7 @@
 
 ライブのSourceが有限の映像になっても、再生時刻の原点が0に変わるとは限りません。WebとAndroidでは時刻APIも異なります。Unix時刻、相対位置、アーカイブへ位置を引き継ぐ条件は[時刻APIの比較](docs/implementation.ja.md#playback-position-and-unix-time)を参照してください。
 
-Google CastにはSDKのリモート操作機能を使います。
+Android モバイルでは Google Cast で受信機に映像を送れます。Android TV と Apple TV ではテレビで再生し、リモコンで操作します。iOS と対応ブラウザーでは AirPlay の出力先を選べます。
 
 アプリ、Gradleラッパー、設定、素材、メディア配信サーバー、分析Webはこのディレクトリ内で完結します。他のPlayer Labアプリや共通ビルド成果物は不要です。
 

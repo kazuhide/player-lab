@@ -39,12 +39,47 @@ test(
       await page.waitForFunction(
         () => document.querySelector('video')?.paused && document.querySelector('video').readyState >= 2
       );
-      const saved = await page.locator('video').evaluate((v) => v.currentTime);
+      let saved = await page.locator('video').evaluate((v) => v.currentTime);
       const origin = updates.find((update) => update.status === 'live')?.utcStartMs;
       assert.ok(
         Number.isSafeInteger(origin) && saved * 1000 >= origin,
         'Start the short live fixture before running this test.'
       );
+      await page.locator('#assets button[data-id="SP-CLIP-A"]').click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector('video')?.currentTime > 0.2 &&
+          document.querySelector('video').currentTime < 20
+      );
+      // A status change between polling and dispatch must leave the clip untouched.
+      const clip = await page.locator('video').elementHandle();
+      const expiryRoute = async (route) => {
+        const res = await route.fetch();
+        const latest = await res.json();
+        await route.fulfill({
+          response: res,
+          json: { ...latest, seekableUtcStartMs: Math.floor(saved * 1000) + 2000 }
+        });
+      };
+      await page.route('**/api/events/SP-EVENT-S', expiryRoute);
+      await page.locator('#earlier').click();
+      await page.waitForFunction(() =>
+        document.querySelector('#message').textContent.includes('keep watching this clip')
+      );
+      assert.ok(await clip.evaluate((v) => v === document.querySelector('video')));
+      assert.equal(await page.locator('#earlier').isVisible(), false);
+      await page.unroute('**/api/events/SP-EVENT-S', expiryRoute);
+      await page.locator('#return').click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector('#play').textContent === 'Pause' &&
+          document.querySelector('#title').textContent === 'Short practice match'
+      );
+      await page.locator('#play').click();
+      await page.waitForFunction(
+        () => document.querySelector('video')?.paused && document.querySelector('video').readyState >= 2
+      );
+      saved = await page.locator('video').evaluate((v) => v.currentTime);
       await page.locator('#assets button[data-id="SP-CLIP-A"]').click();
       await page.waitForFunction(
         () =>

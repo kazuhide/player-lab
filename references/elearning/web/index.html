@@ -11,6 +11,12 @@
       <div class="layout">
         <aside>
           <h2>Course</h2>
+          <div class="row" id="coursePicker" hidden>
+            <label
+              >Course
+              <select id="courseSelect"></select
+            ></label>
+          </div>
           <label
             >Learner
             <select id="learner">
@@ -100,6 +106,7 @@
                 </select></label
               >
               <label>Search <input id="query" type="search" /></label>
+              <label><input id="follow" type="checkbox" checked />Follow current line</label>
             </div>
             <p role="status" id="transcriptStatus"></p>
             <div id="results"></div>

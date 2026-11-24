@@ -101,4 +101,6 @@ jobs:
           swift test
           xcodegen generate
           xcodebuild -project Learning.xcodeproj -scheme Learning-iOS -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
+          xcodebuild -project Learning.xcodeproj -scheme Learning-iOS-Playback -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
           xcodebuild -project Learning.xcodeproj -scheme Learning-tvOS -destination 'generic/platform=tvOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
+          xcodebuild -project Learning.xcodeproj -scheme Learning-tvOS-Playback -destination 'generic/platform=tvOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing

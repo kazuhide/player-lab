@@ -7,6 +7,7 @@ struct ReferenceScreen: View {
         let data: Data
     }
     @State private var export: Export?
+    @State private var refreshCount = 0
     @Environment(\.scenePhase) private var phase
 
     var body: some View {
@@ -29,11 +30,14 @@ struct ReferenceScreen: View {
                             Text(LocalizedStringKey(session.status ?? event.status))
                             Text(LocalizedStringKey(session.update?.archiveStatus ?? event.archiveStatus))
                         }
+                        if session.statusPollingFinished || session.statusError {
+                            Button("Refresh event status") { refreshCount += 1 }
+                        }
                         if session.statusError { Text("Event status unavailable. Retrying…") }
                         if let asset = session.asset {
                             Text(asset.displayTitle).font(.headline)
                             PlaybackControls(session: session, modeName: "Sports controls", showsExternalCaptions: true)
-                            if session.problem != nil { Button("Retry") { session.open(asset) } }
+                            if session.problem != nil { Button("Retry") { session.retry() } }
                             if let notice = session.notice { Text(LocalizedStringKey(notice)) }
                             if session.ready {
                                 HStack {
@@ -85,8 +89,7 @@ struct ReferenceScreen: View {
                         }
                         ForEach(session.assets) { asset in
                             Button(asset.displayTitle) { session.open(asset) }
-                                .disabled(session.player == nil || (asset.kind == "archive" && !session.archiveReady) ||
-                                          (asset.kind == "live" && session.status != "live"))
+                                .disabled(session.player == nil || !session.canOpen(asset))
                         }
                     }
                 } else if let error = session.problem {
@@ -100,8 +103,11 @@ struct ReferenceScreen: View {
         }
         .sheet(item: $export) { HandoffRecords(data: $0.data) }
         .task { if session.catalog == nil { await session.fetchCatalog() } }
-        .task(id: session.event?.id) { await session.poll() }
-        .onChange(of: phase) { if $0 == .background { session.player?.pause() } }
+        .task(id: "\(session.event?.id ?? "")/\(refreshCount)") { await session.poll() }
+        .onChange(of: phase) { phase in
+            if phase == .background { session.setBackgrounded(true) }
+            else if phase == .active { session.setBackgrounded(false) }
+        }
     }
 
     private func setCaptions(_ language: String) {

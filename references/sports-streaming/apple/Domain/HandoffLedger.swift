@@ -3,6 +3,8 @@ import Foundation
 /// In-memory records of local, mapped archive requests. Recording a request
 /// and confirming its observed position are separate operations.
 struct HandoffLedger {
+    static let confirmationWindow: TimeInterval = 5
+
     private struct Observation {
         let positionMs: Int
         let uptime: TimeInterval
@@ -14,7 +16,8 @@ struct HandoffLedger {
         let videoId: String
         let targetMs: Int?
         let play: Bool
-        var candidate: Observation?
+        var seekIssuedAt: TimeInterval?
+        var landing: Observation?
         var confirmedMs: Int?
         var failed = false
     }
@@ -35,36 +38,44 @@ struct HandoffLedger {
         records[index].failed = true
     }
 
+    mutating func seekIssued(_ id: UUID, uptime: TimeInterval) {
+        guard let index = records.firstIndex(where: { $0.id == id }) else { return }
+        records[index].seekIssuedAt = uptime
+    }
+
+    mutating func seekCompleted(_ id: UUID, videoId: String, positionMs: Int?, uptime: TimeInterval) -> Bool {
+        guard let index = records.firstIndex(where: { $0.id == id }) else { return false }
+        let record = records[index]
+        guard !record.failed, record.videoId == videoId, let issued = record.seekIssuedAt else { return false }
+        // Consume the single completion even when the SDK landed short. Later
+        // playback or another seek cannot establish where this request landed.
+        records[index].seekIssuedAt = nil
+        guard (0...Self.confirmationWindow).contains(uptime - issued),
+              let positionMs, positionMs >= 0, let target = record.targetMs,
+              abs(Double(positionMs) - Double(target)) <= 1000 else { return false }
+        records[index].landing = Observation(positionMs: positionMs, uptime: uptime)
+        return true
+    }
+
     mutating func observe(_ id: UUID, videoId: String, positionMs: Int?, isPlaying: Bool,
                           isPaused: Bool, readyStopped: Bool, uptime: TimeInterval) -> Bool {
         guard let index = records.firstIndex(where: { $0.id == id }) else { return false }
         let record = records[index]
-        guard !record.failed, videoId == record.videoId, let target = record.targetMs,
+        guard !record.failed, videoId == record.videoId, let landing = record.landing,
               let positionMs, positionMs >= 0 else { return false }
         if record.confirmedMs != nil { return true }
-        let nearTarget = abs(Double(positionMs) - Double(target)) <= 1000
+        let elapsed = uptime - landing.uptime
+        guard (0...Self.confirmationWindow).contains(elapsed) else { return false }
+        let advance = Double(positionMs) - Double(landing.positionMs)
         if record.play {
-            guard isPlaying, !isPaused else { return false }
-            if let candidate = record.candidate {
-                guard positionMs > candidate.positionMs else { return false }
-                records[index].confirmedMs = candidate.positionMs
-                return true
-            }
+            // The fastest selectable speed is 2x. A jump to a different
+            // position is evidence of another navigation, not playback.
+            guard isPlaying, !isPaused, advance > 0, advance <= elapsed * 2000 + 250 else { return false }
         } else {
-            guard !isPlaying, nearTarget else { return false }
-            if isPaused {
-                records[index].confirmedMs = positionMs
-                return true
-            }
-            guard readyStopped else { return false }
-            if let candidate = record.candidate {
-                guard uptime - candidate.uptime >= 0.2, abs(positionMs - candidate.positionMs) <= 250 else { return false }
-                records[index].confirmedMs = candidate.positionMs
-                return true
-            }
+            guard !isPlaying, abs(advance) <= 250, isPaused || (readyStopped && elapsed >= 0.2) else { return false }
         }
-        if nearTarget { records[index].candidate = Observation(positionMs: positionMs, uptime: uptime) }
-        return false
+        records[index].confirmedMs = landing.positionMs
+        return true
     }
 
     func export(at now: Date = Date()) throws -> Data {

@@ -30,7 +30,8 @@ test('playing confirmation needs a second advancing observation from same source
   assert.equal(ledger.observe(ticket, 'archive', 22000, true, false), false);
   assert.equal(ledger.observe(ticket, 'wrong', 22100, true, false), false);
   assert.equal(ledger.observe(ticket, 'archive', 22000, true, false), false);
-  assert.equal(ledger.observe(ticket, 'archive', 22450, true, false), true);
+  assert.equal(ledger.observe(ticket, 'archive', 23100, true, false), true);
+  assert.equal(ticket.row.confirmed.positionMs, 22000);
   assert.equal(ticket.row.confirmed.positionAdvanced, true);
 });
 test('bounded local export preserves unknown and failed receipts', () => {

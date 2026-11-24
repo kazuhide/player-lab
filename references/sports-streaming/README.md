@@ -19,7 +19,7 @@ Follow the setup for [Web](web/README.md), [Android mobile](android/README.md), 
 
 Use HLS for the cross-platform comparison. The short fixture runs in real time for three minutes. Restart the publisher to repeat the event.
 
-Google Cast uses the SDK's remote-control integration.
+Android mobile provides a Google Cast sender. Android TV and Apple TV play the video on the television and use its remote. On iOS and supported browsers, the AirPlay picker lets viewers select a receiver.
 
 The application, Gradle wrapper, configuration, fixtures, media publisher and
 analysis Web application are contained in this directory. Building it does not

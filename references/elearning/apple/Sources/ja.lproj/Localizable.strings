@@ -37,3 +37,5 @@
 "+10 s" = "10秒進む";
 "Media warning (%@)" = "メディアの警告（%@）";
 "Playback speed" = "再生速度";
+"Follow current line" = "再生中の行を自動で表示";
+"Current line" = "再生中の行";

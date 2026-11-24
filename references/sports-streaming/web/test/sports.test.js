@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   archivePosition,
+  canReturnToUtc,
   sourceUtc,
   liveReturnOffset,
   validateCatalog,
@@ -54,4 +55,12 @@ test('saved DVR requests use the fresh SDK edge and cannot seek outside the movi
   assert.equal(liveReturnOffset(105, 110, -3, -20), -8);
   assert.equal(liveReturnOffset(92, 110, -3, -20), null);
   assert.equal(liveReturnOffset(114, 110, -3, -20), null);
+});
+
+test('offer saved DVR return only within the published half-open live window', () => {
+  const status = { status: 'live', seekableUtcStartMs: 200, seekableUtcEndMs: 300 };
+  assert.equal(canReturnToUtc(status, 200), true);
+  for (const utc of [null, 199, 300]) assert.equal(canReturnToUtc(status, utc), false);
+  assert.equal(canReturnToUtc({ ...status, status: 'ended' }, 201), false);
+  assert.equal(canReturnToUtc({ ...status, seekableUtcStartMs: null }, 201), false);
 });

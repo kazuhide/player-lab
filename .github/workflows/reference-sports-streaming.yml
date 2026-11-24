@@ -101,4 +101,6 @@ jobs:
           swift test
           xcodegen generate
           xcodebuild -project Sports.xcodeproj -scheme Sports-iOS -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
+          xcodebuild -project Sports.xcodeproj -scheme Sports-iOS-Playback -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
           xcodebuild -project Sports.xcodeproj -scheme Sports-tvOS -destination 'generic/platform=tvOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
+          xcodebuild -project Sports.xcodeproj -scheme Sports-tvOS-Playback -destination 'generic/platform=tvOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
