@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   archivePosition,
   finalizedPosition,
-  inMediaRanges,
+  mediaRangeAt,
   newerStatus,
   canReturnToUtc,
   sourceUtc,
@@ -104,8 +104,10 @@ test('publisher observation times order overlapping status reads regardless of d
 
 test('native finalized HLS can seek in any retained span and rejects gaps and range ends', () => {
   const ranges = { length: 2, start: (i) => [0, 8][i], end: (i) => [4, 20][i] };
-  for (const t of [0, 3.5, 8, 12]) assert.equal(inMediaRanges(ranges, t), true);
-  for (const t of [-1, 4, 6, 20, NaN]) assert.equal(inMediaRanges(ranges, t), false);
+  for (const t of [0, 3.5]) assert.deepEqual(mediaRangeAt(ranges, t), { start: 0, end: 4 });
+  for (const t of [8, 12]) assert.deepEqual(mediaRangeAt(ranges, t), { start: 8, end: 20 });
+  for (const t of [-1, 4, 6, 20, NaN]) assert.equal(mediaRangeAt(ranges, t), null);
+  assert.deepEqual(mediaRangeAt(ranges, 20, true), { start: 8, end: 20 });
 });
 
 test('a new publisher supersedes terminal status and a delayed old run stays retired', () => {

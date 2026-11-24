@@ -175,9 +175,13 @@ export function changedPublisher(current, next) {
   return current.status === 'ended' && ['scheduled', 'live'].includes(next.status);
 }
 
-export function inMediaRanges(ranges, time) {
-  for (let i = 0; i < ranges.length; i++) if (ranges.start(i) <= time && time < ranges.end(i)) return true;
-  return false;
+export function mediaRangeAt(ranges, time, includeEnd = false) {
+  for (let i = 0; i < ranges.length; i++) {
+    const start = ranges.start(i);
+    const end = ranges.end(i);
+    if (start <= time && (time < end || (includeEnd && time === end))) return { start, end };
+  }
+  return null;
 }
 
 // SDK manifest segment times start at the retained window. The decoded

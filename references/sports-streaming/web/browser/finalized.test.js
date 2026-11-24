@@ -146,7 +146,7 @@ test(
 );
 
 test(
-  'native WebKit HLS restores the same finalized DVR frame on retry and continues into the archive',
+  'native WebKit HLS restores and seeks within the retained DVR span before continuing into the archive',
   {
     skip: process.env.RUN_FINALIZED !== '1' || process.env.BROWSER !== 'webkit',
     timeout: 60000
@@ -218,6 +218,17 @@ test(
       }, expected);
       assert.equal(await page.locator('#message').textContent(), '');
       assert.equal(await page.locator('video').evaluate((v) => v.seekable.length), 2);
+      const recovered = await page.locator('video').evaluate((v) => v.currentTime);
+      for (const [control, target] of [
+        ['forward', recovered + 15],
+        ['back', recovered]
+      ]) {
+        await page.locator('#' + control).click();
+        await page.waitForFunction((seconds) => {
+          const v = document.querySelector('video');
+          return v.paused && !v.seeking && Math.abs(v.currentTime - seconds) < 0.5;
+        }, target);
+      }
       await page.locator('#targets button').first().click();
       assert.ok(Number.isSafeInteger(origin));
       await page.waitForFunction(

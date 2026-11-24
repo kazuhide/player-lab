@@ -1,7 +1,7 @@
 import { locale, titleOf } from './i18n.js';
 import { UI_JA } from './ui-ja.js';
 import { Player, PlayerEvent } from 'bitmovin-player';
-import { UIFactory } from 'bitmovin-player-ui';
+import { UIComponentLayoutOverride, UIFactory } from 'bitmovin-player-ui';
 import 'bitmovin-player-ui/dist/css/bitmovinplayer-ui.css';
 import { mediaUrl } from './media.js';
 
@@ -57,12 +57,21 @@ export class Session {
     };
     record('Load');
     this.ui = UIFactory.buildUI(player, {
+      componentLayoutOverrides: { QuickSeekButton: UIComponentLayoutOverride.Include },
       localization: {
         language: locale,
         vocabularies: { ja: UI_JA },
         adaptLocalizationToSubtitleLanguage: false
       }
     });
+    // The standard UI has a player wrapper per responsive layout. Quick-seek,
+    // touch and keyboard controls call its seek() without an issuer.
+    const tagStandardSeeks = () => {
+      const uiPlayer = this.ui.activeUi?.getPlayer();
+      if (uiPlayer) uiPlayer.seek = (seconds, issuer = 'ui') => player.seek(seconds, issuer);
+    };
+    tagStandardSeeks();
+    this.ui.onActiveUiChanged.subscribe(tagStandardSeeks);
     for (const type of [
       'Play',
       'Playing',

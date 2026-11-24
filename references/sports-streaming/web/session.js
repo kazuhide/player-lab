@@ -1,4 +1,4 @@
-import { finalizedPosition, inMediaRanges } from './sports.js';
+import { finalizedPosition, mediaRangeAt } from './sports.js';
 import { DashClock } from './dash-clock.js';
 import { locale, titleOf } from './i18n.js';
 import { UI_JA } from './ui-ja.js';
@@ -152,6 +152,19 @@ export class Session {
     const origin = video.getStartDate().getTime() / 1000;
     return Number.isFinite(origin) && Number.isFinite(video.currentTime) ? { video, origin } : null;
   }
+  controlRange() {
+    const player = this.player;
+    if (!this.ready || !player) return null;
+    if (player.isLive()) return { start: player.getMaxTimeShift(), end: 0, current: player.getTimeShift() };
+    const clock = this.nativeFinalizedClock();
+    if (clock) {
+      const current = clock.video.currentTime;
+      // A paused frame at the end of a span must still allow a backward jump.
+      const span = mediaRangeAt(clock.video.seekable, current, true);
+      return span && { ...span, current, clock };
+    }
+    return { ...player.getSeekableRange(), current: player.getCurrentTime() };
+  }
   utcSeconds() {
     const native = this.nativeFinalizedClock();
     if (native) return native.origin + native.video.currentTime;
@@ -166,7 +179,7 @@ export class Session {
       // Native HLS exposes program date via the active media element and
       // retained ranges via TimeRanges. It has no SDK segment map.
       const mediaTime = utcSeconds - native.origin;
-      return inMediaRanges(native.video.seekable, mediaTime)
+      return mediaRangeAt(native.video.seekable, mediaTime)
         ? this.player.getCurrentTime('relativetime') + (mediaTime - native.video.currentTime)
         : null;
     }
@@ -217,9 +230,12 @@ export class Session {
       return this.seekTo(relativeSeconds);
     const clock = this.nativeFinalizedClock();
     if (!this.ready || !clock) return false;
+    return this.seekNative(clock, utcSeconds - clock.origin);
+  }
+  async seekNative(clock, target) {
+    const player = this.player;
     const { video, origin } = clock;
-    const target = utcSeconds - origin;
-    if (!inMediaRanges(video.seekable, target)) return false;
+    if (!mediaRangeAt(video.seekable, target)) return false;
     if (!video.seeking && Math.abs(video.currentTime - target) < 0.05) return true;
     // The SDK may expose only the first retained native range. Seek on the
     // same source-bound video and timeline used to validate this target.
@@ -234,7 +250,7 @@ export class Session {
         finish(
           current?.video === video &&
             current.origin === origin &&
-            inMediaRanges(video.seekable, target) &&
+            !!mediaRangeAt(video.seekable, target) &&
             Math.abs(video.currentTime - target) <= 1
         );
       };

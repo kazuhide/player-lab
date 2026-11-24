@@ -32,7 +32,7 @@ test(
         pages.map(async (page) => {
           await page.goto(origin);
           await page.waitForFunction(() => window.bookmark !== undefined);
-          await page.evaluate(() => bookmark.startIfEmpty({ seconds: 11, speed: 1, caption: 'off' }));
+          await page.evaluate(() => bookmark.enter({ seconds: 11, speed: 1, caption: 'off' }, 'automatic'));
         })
       );
       for (const otherFirst of [true, false]) {

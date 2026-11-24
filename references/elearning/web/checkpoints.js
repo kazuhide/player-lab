@@ -81,11 +81,21 @@ export class CheckpointWriter {
     this.expected = value;
     this.owns = value !== null;
   }
-  select(initial) {
+  enter(initial, intent) {
     return serialized(this.key, () => {
-      const previous = parseRecord(localStorage.getItem(this.key));
-      if (previous?.seconds > 0) return previous;
-      this.#replace(initial);
+      const current = localStorage.getItem(this.key);
+      const previous = parseRecord(current);
+      if (intent === 'catalog' && previous?.seconds > 0) return previous;
+      if (intent === 'automatic') {
+        // Adopt the record seen on entry. The next real progress update succeeds
+        // only if no other window replaced it while the new lesson was loading.
+        this.expected = current;
+        this.owns = true;
+      } else {
+        // Reserve the bookmark at the gesture. Keep its last playable position
+        // until this source actually starts, including across a failed load.
+        this.#replace(previous ?? initial);
+      }
       return null;
     });
   }
@@ -93,15 +103,6 @@ export class CheckpointWriter {
     return serialized(this.key, () => {
       const current = localStorage.getItem(this.key);
       if (!claim && (!this.owns || current !== this.expected)) return false;
-      this.#replace(record);
-      return true;
-    });
-  }
-  // Natural playlist progression may start an empty bookmark. Only an
-  // explicit viewer action takes over an existing bookmark.
-  startIfEmpty(record) {
-    return serialized(this.key, () => {
-      if (localStorage.getItem(this.key) !== null) return false;
       this.#replace(record);
       return true;
     });

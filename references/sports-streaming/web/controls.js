@@ -22,7 +22,7 @@ export function mountControls(session, preferences, move, seekBar, range) {
     el('play').textContent = p.isPlaying() ? t('Pause') : t('Play');
     el('pip').hidden = !p.isViewModeAvailable('pictureinpicture');
     el('airplay').hidden = !p.isAirplayAvailable();
-    const bounds = range(p);
+    const bounds = range();
     el('seek').disabled = !bounds || !(bounds.end > bounds.start);
     if (!el('seek').disabled) {
       el('seek').min = bounds.start;

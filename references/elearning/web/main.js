@@ -31,6 +31,7 @@ let generation = 0,
   lastSave = 0,
   advance = false,
   checkpoint = 0,
+  waitingForProgress = false,
   finished = false,
   autoplayGeneration = 0,
   writer = null;
@@ -57,10 +58,12 @@ function store(operation, owner = writer) {
     () => unavailable(owner)
   );
 }
-function save(claim = false) {
+function save(claim = false, requestedSeconds) {
   if (!writer || !watching || (finished && !claim) || !session.ready) return;
-  const seconds = finished && claim ? 0 : session.player.getCurrentTime();
+  const seconds = requestedSeconds ?? session.player.getCurrentTime();
   if (!Number.isFinite(seconds) || seconds < 0) return;
+  if (waitingForProgress && seconds === 0 && !claim) return;
+  waitingForProgress = false;
   checkpoint = seconds;
   store(writer.write(bookmark(seconds), claim));
   lastSave = Date.now();
@@ -135,13 +138,14 @@ function setSelection(item) {
   for (const b of el('lessons').children) b.setAttribute('aria-current', String(b.dataset.id === item.id));
 }
 async function choose(item, origin = 'catalog', userAction = true) {
+  const autoplay = document.hidden ? null : autoplayGeneration;
   endSelection();
   setSelection(item);
   const selected = (writer = new CheckpointWriter(resumeKey(learner, item.id)));
   if (origin === 'catalog') {
     let previous = null;
     try {
-      previous = await selected.select(bookmark(0));
+      previous = await selected.enter(bookmark(0), 'catalog');
     } catch {
       unavailable(selected);
       try {
@@ -160,15 +164,14 @@ async function choose(item, origin = 'catalog', userAction = true) {
       return;
     }
   }
-  void open(0, origin, origin === 'catalog' ? undefined : userAction ? 'claim' : 'empty');
+  void open(0, origin, origin === 'catalog' ? undefined : userAction ? 'explicit' : 'automatic', autoplay);
 }
-async function open(seconds, origin, ownership) {
+async function open(seconds, origin, ownership, autoplay = document.hidden ? null : autoplayGeneration) {
   const token = ++generation;
-  const autoplay = document.hidden ? null : autoplayGeneration;
   startOrigin = origin;
   advance = el('auto').checked;
-  if (ownership === 'claim') store(writer.write(bookmark(seconds), true));
-  if (ownership === 'empty') store(writer.startIfEmpty(bookmark(seconds)));
+  if (ownership) store(writer.enter(bookmark(seconds), ownership));
+  waitingForProgress = origin === 'playlist';
   watching = false;
   checkpoint = seconds;
   controls.enable(false);
@@ -198,6 +201,7 @@ async function open(seconds, origin, ownership) {
     }
     if (!session.ready) throw Error();
     watching = true;
+    if (ownership === 'explicit' && origin === 'catalog') save();
     controls.enable(true);
     const index = lessons.indexOf(lesson);
     el('prev').disabled = index <= 0;
@@ -246,8 +250,12 @@ function onEvent(type, event) {
 
   if (type === 'Seeked') updateActiveCue();
   if (type === 'Paused' || type === 'Seeked') save();
-  if (type === 'Play' || type === 'Seek') {
-    if (!document.hidden && ['reference-user', 'ui'].includes(event.issuer)) save(true);
+  if (!document.hidden && ['reference-user', 'ui'].includes(event.issuer)) {
+    if (type === 'Play') save(true, finished ? 0 : undefined);
+    if (type === 'Seek') {
+      finished = false;
+      save(true, event.seekTarget);
+    }
   }
   if (type === 'Playing') {
     finished = false;
@@ -309,10 +317,10 @@ el('resume').onclick = () => {
   el('mode').value = record.mode === 'custom' ? 'custom' : 'standard';
   controls.mode();
   Object.assign(preferences, { speed: record.speed, caption: record.caption });
-  void open(record.seconds, 'catalog', 'claim');
+  void open(record.seconds, 'catalog', 'explicit');
 };
 el('restart').onclick = () => {
-  void open(0, 'catalog', 'claim');
+  void open(0, 'catalog', 'explicit');
 };
 el('cancel').onclick = () => {
   endSelection();
@@ -324,7 +332,7 @@ el('retry').onclick = () => {
   void open(checkpoint, startOrigin);
 };
 el('course').onclick = el('cancel').onclick;
-el('mode').addEventListener('change', () => save(true));
+el('mode').addEventListener('change', () => save());
 el('reload').onclick = loadCourse;
 el('format').onchange = () => {
   el('delivery').disabled = el('format').value !== 'hls';

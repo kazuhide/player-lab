@@ -24,14 +24,11 @@ const controls = mountControls(
   session,
   preferences,
   (delta) => {
-    const p = session.player;
-    seek((p.isLive() ? p.getTimeShift() : p.getCurrentTime()) + delta);
+    const range = session.controlRange();
+    if (range) seek(range.current + delta, range);
   },
   seek,
-  (p) =>
-    p.isLive()
-      ? { start: p.getMaxTimeShift(), end: 0, current: p.getTimeShift() }
-      : { ...p.getSeekableRange(), current: p.getCurrentTime() }
+  () => session.controlRange()
 );
 let catalog,
   event,
@@ -49,14 +46,20 @@ let catalog,
 let interactive = false,
   savedPlay = true,
   autoClaimed = false;
-function seek(target) {
+function seek(target, range = session.controlRange()) {
   const p = session.player;
-  if (!interactive || !p) return;
+  if (!interactive || !range) return;
   if (pendingHandoff?.observing) pendingHandoff = null;
-  if (p.isLive()) p.timeShift(Math.max(p.getMaxTimeShift(), Math.min(0, target)), 'reference');
-  else {
-    const r = p.getSeekableRange();
-    if (r.end > r.start) p.seek(Math.max(r.start, Math.min(r.end - 0.05, target)), 'reference');
+  if (p.isLive()) p.timeShift(Math.max(range.start, Math.min(range.end, target)), 'reference');
+  else if (range.end > range.start) {
+    const seconds = Math.max(range.start, Math.min(range.end - 0.05, target));
+    if (
+      (target > range.current && seconds <= range.current) ||
+      (target < range.current && seconds >= range.current)
+    )
+      return;
+    if (range.clock) void session.seekNative(range.clock, seconds);
+    else p.seek(seconds, 'reference');
   }
 }
 function intendsPlay() {
