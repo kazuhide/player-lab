@@ -3,8 +3,8 @@ import './style.css';
 import { button, clock, jsonAt } from './media.js';
 import { Session } from './session.js';
 import { el, message, mountControls } from './controls.js';
-import { CheckpointWriter } from './checkpoints.js';
-import { parseCourses, parseRecord, resumeKey, searchCues } from './learning.js';
+import { CheckpointWriter, readCheckpoint } from './checkpoints.js';
+import { parseCourses, resumeKey, searchCues } from './learning.js';
 
 const base = import.meta.env.VITE_MEDIA_BASE_URL || 'http://127.0.0.1:8621/';
 const preferences = { speed: 1, caption: 'en' };
@@ -52,8 +52,8 @@ function unavailable(owner) {
 }
 function store(operation, owner = writer) {
   void operation.then(
-    () => {
-      if (owner === writer) el('storageStatus').hidden = true;
+    (updated) => {
+      if (owner === writer && updated !== false) el('storageStatus').hidden = true;
     },
     () => unavailable(owner)
   );
@@ -148,11 +148,7 @@ async function choose(item, origin = 'catalog', userAction = true) {
       previous = await selected.enter(bookmark(0), 'catalog');
     } catch {
       unavailable(selected);
-      try {
-        previous = parseRecord(localStorage.getItem(selected.key));
-      } catch {
-        /* Storage can be disabled entirely. */
-      }
+      previous = await readCheckpoint(selected.key);
     }
     if (selected !== writer) return;
     record = previous;

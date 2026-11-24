@@ -1,3 +1,4 @@
+import { allowCommitAbort, installBookmarkReader } from './bookmarks.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
@@ -30,7 +31,7 @@ async function seek(page, seconds) {
 }
 async function savedAt(page, seconds) {
   await page.waitForFunction(
-    ([key, t]) => Math.abs(JSON.parse(localStorage.getItem(key))?.seconds - t) < 0.25,
+    async ([key, t]) => Math.abs((await window.readSaved(key))?.seconds - t) < 0.25,
     [key, seconds]
   );
 }
@@ -56,6 +57,7 @@ for (const choice of ['resume', 'restart'])
     let held;
     try {
       const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
       const first = await open(context);
       await first.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [key, seed]);
       await choose(first);
@@ -67,7 +69,7 @@ for (const choice of ['resume', 'restart'])
       await seek(second, 25);
       await savedAt(second, 25);
       const previousRevision = await second.evaluate(
-        (k) => JSON.parse(localStorage.getItem(k)).revision,
+        async (k) => (await window.readSaved(k)).revision,
         key
       );
       held = holdMedia(first, '**/EDU-FX-01/hls/*.m3u8');
@@ -75,8 +77,8 @@ for (const choice of ['resume', 'restart'])
       await first.locator('#' + choice).click();
       await held.pending;
       await first.waitForFunction(
-        ([k, previous]) => {
-          const bookmark = JSON.parse(localStorage.getItem(k));
+        async ([k, previous]) => {
+          const bookmark = await window.readSaved(k);
           return bookmark?.seconds === 25 && bookmark.revision !== previous;
         },
         [key, previousRevision]
@@ -103,6 +105,7 @@ test(
     let held;
     try {
       const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
       const first = await open(context);
       await choose(first);
       await pause(first);
@@ -122,10 +125,10 @@ test(
           .filter({ hasText: / · Playing$/ })
           .count();
       const previous = await playingEvents();
-      const old = await first.evaluate((k) => JSON.parse(localStorage.getItem(k)).revision, key);
+      const old = await first.evaluate(async (k) => (await window.readSaved(k)).revision, key);
       await first.locator('#play').click();
       await first.waitForFunction(
-        ([k, rev]) => JSON.parse(localStorage.getItem(k)).revision !== rev,
+        async ([k, rev]) => (await window.readSaved(k)).revision !== rev,
         [key, old]
       );
       assert.equal(await playingEvents(), previous);
@@ -150,6 +153,7 @@ test(
     const browser = await launch();
     try {
       const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
       await context.addInitScript(() => {
         const open = IDBFactory.prototype.open;
         IDBFactory.prototype.open = function (name, ...args) {
@@ -186,6 +190,7 @@ test(
     const browser = await launch();
     try {
       const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
       const first = await open(context);
       await choose(first);
       await pause(first);
@@ -222,13 +227,13 @@ test(
       await timeline.press('Space');
       await first.waitForFunction(() => document.querySelector('video').currentTime > 12.25);
       await timeline.press('Space');
-      await first.waitForFunction((k) => {
+      await first.waitForFunction(async (k) => {
         const video = document.querySelector('video');
-        const seconds = JSON.parse(localStorage.getItem(k))?.seconds;
+        const seconds = (await window.readSaved(k))?.seconds;
         return video.paused && Math.abs(seconds - video.currentTime) < 0.25;
       }, key);
       const position = await first.evaluate(
-        (k) => Math.floor(JSON.parse(localStorage.getItem(k)).seconds),
+        async (k) => Math.floor((await window.readSaved(k)).seconds),
         key
       );
       await first.locator('#course').click();
@@ -248,6 +253,7 @@ test(
     const browser = await launch();
     try {
       const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
       const page = await open(context);
       const nextKey = 'reference.elearning.resume.a/EDU-FX-02';
       await page.evaluate(
@@ -283,12 +289,13 @@ for (const rival of [false, true])
       let held;
       try {
         const context = await browser.newContext({ locale: 'en-US' });
+        await installBookmarkReader(context);
         const summaryKey = 'reference.elearning.resume.a/EDU-FX-03';
         const second = await open(context);
         await chooseById(second, 'EDU-FX-03');
         await pause(second);
         await seek(second, 4);
-        await second.waitForFunction((k) => JSON.parse(localStorage.getItem(k))?.seconds === 4, summaryKey);
+        await second.waitForFunction(async (k) => (await window.readSaved(k))?.seconds === 4, summaryKey);
         const queue = await open(context);
         await queue.locator('#auto').check();
         await chooseById(queue, 'EDU-FX-02');
@@ -297,16 +304,10 @@ for (const rival of [false, true])
         await held.ready;
         await seek(queue, 779);
         await held.pending;
-        assert.equal(
-          await queue.evaluate((k) => JSON.parse(localStorage.getItem(k)).seconds, summaryKey),
-          4
-        );
+        assert.equal(await queue.evaluate(async (k) => (await window.readSaved(k)).seconds, summaryKey), 4);
         if (rival) {
           await seek(second, 6);
-          await second.waitForFunction(
-            (k) => JSON.parse(localStorage.getItem(k))?.seconds === 6,
-            summaryKey
-          );
+          await second.waitForFunction(async (k) => (await window.readSaved(k))?.seconds === 6, summaryKey);
         }
         held.release();
         await queue.waitForFunction(
@@ -316,8 +317,8 @@ for (const rival of [false, true])
         );
         if (!rival) {
           await pause(queue);
-          await queue.waitForFunction((k) => {
-            const seconds = JSON.parse(localStorage.getItem(k))?.seconds;
+          await queue.waitForFunction(async (k) => {
+            const seconds = (await window.readSaved(k))?.seconds;
             return seconds >= 1 && seconds < 3.5;
           }, summaryKey);
           await queue.locator('#play').click();
@@ -326,12 +327,9 @@ for (const rival of [false, true])
           () => document.querySelector('#message').textContent === 'Lesson finished.'
         );
         if (!rival) {
-          await queue.waitForFunction((k) => localStorage.getItem(k) === null, summaryKey);
+          await queue.waitForFunction(async (k) => (await window.readSaved(k)) === null, summaryKey);
           await seek(second, 6);
-          await second.waitForFunction(
-            (k) => JSON.parse(localStorage.getItem(k))?.seconds === 6,
-            summaryKey
-          );
+          await second.waitForFunction(async (k) => (await window.readSaved(k))?.seconds === 6, summaryKey);
         }
         await queue.selectOption('#mode', 'standard');
         await queue.selectOption('#mode', 'custom');
@@ -354,6 +352,7 @@ test(
     let held;
     try {
       const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
       const key = 'reference.elearning.resume.a/EDU-FX-03';
       const queue = await open(context);
       await queue.locator('#auto').check();
@@ -363,7 +362,7 @@ test(
       await held.ready;
       await seek(queue, 779);
       await held.pending;
-      assert.equal(await queue.evaluate((k) => localStorage.getItem(k), key), null);
+      assert.equal(await queue.evaluate((k) => window.readSaved(k), key), null);
 
       const finisher = await open(context);
       await chooseById(finisher, 'EDU-FX-03');
@@ -372,7 +371,7 @@ test(
       await finisher.waitForFunction(
         () => document.querySelector('#message').textContent === 'Lesson finished.'
       );
-      await finisher.waitForFunction((k) => localStorage.getItem(k) === null, key);
+      await finisher.waitForFunction(async (k) => (await window.readSaved(k)) === null, key);
       held.release();
       await queue.waitForFunction(
         () =>
@@ -387,6 +386,41 @@ test(
       assert.equal(await queue.locator('#choices').isVisible(), false);
     } finally {
       held?.release();
+      await browser.close();
+    }
+  }
+);
+
+test(
+  'a rejected periodic save recovers on Pause and offers the new resume position',
+  { timeout: 30000 },
+  async () => {
+    const browser = await launch();
+    try {
+      const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
+      await allowCommitAbort(context);
+      const page = await open(context);
+      await choose(page);
+      await page.waitForFunction(() => document.querySelector('video')?.currentTime > 0.5);
+      const before = await page.evaluate((k) => readSaved(k), key);
+      await page.evaluate(() => {
+        window.abortNextBookmark = true;
+      });
+      await page.locator('#storageStatus').waitFor();
+      assert.equal(await page.evaluate(async (k) => (await readSaved(k)).revision, key), before.revision);
+      await pause(page);
+      await page.locator('#storageStatus').waitFor({ state: 'hidden' });
+      const saved = await page.evaluate((k) => readSaved(k), key);
+      assert.ok(saved.seconds > before.seconds + 2);
+      await page.locator('#course').click();
+      await choose(page);
+      await page.locator('#resume').waitFor();
+      assert.equal(
+        await page.locator('#resume').textContent(),
+        'Resume at 0:' + String(Math.floor(saved.seconds)).padStart(2, '0')
+      );
+    } finally {
       await browser.close();
     }
   }

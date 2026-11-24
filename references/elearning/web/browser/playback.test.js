@@ -1,3 +1,4 @@
+import { installBookmarkReader } from './bookmarks.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
@@ -12,6 +13,7 @@ test(
     const browser = await launch();
     try {
       const page = await browser.newPage({ locale: 'en-US' });
+      await installBookmarkReader(page);
       await page.goto(process.env.APP_URL || 'http://localhost:5181');
       await page.selectOption('#format', format);
       // Select after the catalog arrives, so the delivery selector reflects the requested protocol.
@@ -77,6 +79,7 @@ test(
     const browser = await launch();
     try {
       const page = await browser.newPage({ locale: 'en-US' });
+      await installBookmarkReader(page);
       await page.route('**/catalog.json', async (route) => {
         const res = await route.fetch();
         const catalog = await res.json();
@@ -152,6 +155,7 @@ test(
     const browser = await launch();
     try {
       const page = await browser.newPage({ locale: 'en-US' });
+      await installBookmarkReader(page);
       await page.goto(process.env.APP_URL || 'http://localhost:5181');
       await page.locator('#lessons button').first().waitFor();
       await page.evaluate(() =>
@@ -221,6 +225,7 @@ test(
     const browser = await launch();
     try {
       const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
       const key = 'reference.elearning.resume.a/EDU-FX-01';
       const openLesson = async () => {
         const page = await context.newPage();
@@ -237,7 +242,7 @@ test(
           input.dispatchEvent(new Event('change'));
         }, seconds);
         await page.waitForFunction(
-          ([id, s]) => Math.abs(JSON.parse(localStorage.getItem(id))?.seconds - s) < 0.5,
+          async ([id, s]) => Math.abs((await window.readSaved(id))?.seconds - s) < 0.5,
           [key, seconds]
         );
       };
@@ -248,7 +253,7 @@ test(
       await saveAt(newer, 23);
       await older.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
       await older.close();
-      await newer.waitForFunction((key) => JSON.parse(localStorage.getItem(key))?.seconds >= 22.5, key);
+      await newer.waitForFunction(async (key) => (await window.readSaved(key))?.seconds >= 22.5, key);
       await newer.locator('#course').click();
       await newer.locator('#lessons button').first().click();
       await newer.locator('#resume').waitFor();
@@ -266,6 +271,7 @@ test(
     const browser = await launch();
     try {
       const context = await browser.newContext({ locale: 'en-US' });
+      await installBookmarkReader(context);
       const key = 'reference.elearning.resume.a/EDU-FX-03';
       const openSummary = async () => {
         const page = await context.newPage();
@@ -286,29 +292,32 @@ test(
           i.dispatchEvent(new Event('change'));
         }, seconds);
         await page.waitForFunction(
-          ([k, s]) => Math.abs(JSON.parse(localStorage.getItem(k))?.seconds - s) < 0.25,
+          async ([k, s]) => Math.abs((await window.readSaved(k))?.seconds - s) < 0.25,
           [key, seconds]
         );
       };
       const finishing = await openSummary();
       const paused = await openSummary();
       await seek(finishing, 4);
-      const first = await finishing.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
+      const first = await finishing.evaluate(async (k) => await window.readSaved(k), key);
       assert.ok(first.revision);
       await finishing.locator('#play').click();
       await finishing.waitForFunction(
         () => document.querySelector('video').currentTime > 4.2 && !document.querySelector('video').paused
       );
-      const beforeOther = await finishing.evaluate((k) => localStorage.getItem(k), key);
+      const beforeOther = await finishing.evaluate(
+        (k) => window.readSaved(k).then((record) => record.revision),
+        key
+      );
       await seek(paused, 4);
       await paused.waitForFunction(
-        ([k, old]) => {
-          const value = localStorage.getItem(k);
-          return value !== old && Math.abs(JSON.parse(value)?.seconds - 4) < 0.25;
+        async ([k, old]) => {
+          const value = await window.readSaved(k);
+          return value?.revision !== old && Math.abs(value?.seconds - 4) < 0.25;
         },
         [key, beforeOther]
       );
-      const second = await paused.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
+      const second = await paused.evaluate(async (k) => await window.readSaved(k), key);
       assert.deepEqual({ ...first, revision: null }, { ...second, revision: null });
       await finishing.waitForFunction(
         () => document.querySelector('#message').textContent === 'Lesson finished.'
@@ -316,7 +325,7 @@ test(
       await paused.close();
       assert.ok(
         await finishing.evaluate(
-          (k) => Math.abs(JSON.parse(localStorage.getItem(k))?.seconds - 4) < 0.25,
+          async (k) => Math.abs((await window.readSaved(k))?.seconds - 4) < 0.25,
           key
         )
       );
@@ -334,6 +343,7 @@ for (const mode of ['custom', 'standard'])
       const browser = await launch();
       try {
         const context = await browser.newContext({ locale: 'en-US' });
+        await installBookmarkReader(context);
         const key = 'reference.elearning.resume.a/EDU-FX-01';
         const open = async (saved) => {
           const page = await context.newPage();
@@ -351,7 +361,7 @@ for (const mode of ['custom', 'standard'])
             i.dispatchEvent(new Event('change'));
           }, s);
           await page.waitForFunction(
-            ([k, t]) => Math.abs(JSON.parse(localStorage.getItem(k))?.seconds - t) < 0.3,
+            async ([k, t]) => Math.abs((await window.readSaved(k))?.seconds - t) < 0.3,
             [key, s]
           );
         };
@@ -369,8 +379,8 @@ for (const mode of ['custom', 'standard'])
         await controls.click({ force: true });
         await older.waitForFunction(() => document.querySelector('video').currentTime > 11);
         await controls.click({ force: true });
-        await older.waitForFunction((k) => {
-          const s = JSON.parse(localStorage.getItem(k))?.seconds;
+        await older.waitForFunction(async (k) => {
+          const s = (await window.readSaved(k))?.seconds;
           return s > 11 && s < 20;
         }, key);
         await older.locator('#course').click();
