@@ -7,6 +7,7 @@ import { el, message, mountControls } from './controls.js';
 import {
   archivePosition,
   canReturnToUtc,
+  changedPublisher,
   newerStatus,
   sourceUtc,
   liveReturnOffset,
@@ -172,6 +173,22 @@ async function readStatus(reads) {
     const current = newerStatus(lastPublishedStatus, update);
     if (!status && current !== update) return;
     if (current !== status) {
+      if (changedPublisher(lastPublishedStatus, current)) {
+        // Never reuse a previous run's DVR position, source or pending handoff.
+        if (asset?.kind === 'clip') {
+          statusReads = new Set();
+          savedUtc = null;
+          waiting = 0;
+          applyStatus(current);
+          void poll();
+          return current;
+        }
+        const live = asset?.kind === 'live' && current.status === 'live' ? asset : null;
+        const play = interactive ? intendsPlay() : intent?.play !== false;
+        chooseEvent(event, current);
+        if (live) void open(live, { play });
+        return current;
+      }
       applyStatus(current);
       maybeContinue();
     }
@@ -192,7 +209,7 @@ async function readStatus(reads) {
     if (++failedPolls < 3) timer = setTimeout(poll, 5000);
   }
 }
-function chooseEvent(item) {
+function chooseEvent(item, knownStatus = null) {
   ++generation;
   ++statusRequest;
   statusReads = new Set();
@@ -220,6 +237,7 @@ function chooseEvent(item) {
   el('retry').hidden = true;
   el('status').textContent = t('Checking event…');
   showAssets();
+  if (knownStatus) applyStatus(knownStatus);
   void poll();
 }
 async function open(item, options = {}) {
@@ -278,7 +296,7 @@ async function open(item, options = {}) {
         );
         return;
       }
-      const positioned = live ? await timeShiftTo(p, seconds, offset) : await session.seekTo(offset);
+      const positioned = live ? await timeShiftTo(p, seconds, offset) : await session.seekFinalized(seconds, offset);
       if (token !== generation) return;
       const observed = session.utcSeconds();
       if (!positioned || !Number.isFinite(observed) || Math.abs(observed - seconds) > 1.5) throw Error();
@@ -495,11 +513,12 @@ el('earlier').onclick = async () => {
   if (!interactive || asset?.kind !== 'clip' || !canReturnToUtc(status, savedUtc)) return;
   const token = generation,
     selectedEvent = event;
-  const request = poll();
-  // An earlier request can be processed later by the publisher. Include
-  // outstanding observations before deciding whether to leave this clip.
-  await Promise.all([...statusReads]);
-  if (token !== generation || !(await request) || !status) return;
+  const reads = statusReads;
+  if (!(await poll()) || token !== generation) return;
+  // Refresh can begin while a previous read is settling. Drain this event's
+  // outstanding reads before the synchronous decision to leave the clip.
+  while (token === generation && reads === statusReads && reads.size) await Promise.all([...reads]);
+  if (token !== generation || reads !== statusReads || !status) return;
   if (!canReturnToUtc(status, savedUtc)) {
     savedUtc = null;
     actions();

@@ -40,9 +40,9 @@ export function parseCourses(catalog) {
 export function resumeKey(learner, lesson) {
   return 'reference.elearning.resume.' + encodeURIComponent(learner) + '/' + encodeURIComponent(lesson);
 }
-export function readRecord(storage, learner, lesson) {
+export function parseRecord(raw) {
   try {
-    const value = JSON.parse(storage.getItem(resumeKey(learner, lesson)));
+    const value = JSON.parse(raw);
     if (
       Number.isFinite(value?.seconds) &&
       value.seconds >= 0 &&

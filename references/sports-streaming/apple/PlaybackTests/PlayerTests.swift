@@ -268,29 +268,37 @@ final class PlayerTests: XCTestCase {
         let player = try XCTUnwrap(session.player)
         defer { player.destroy() }
         await session.fetchCatalog()
-        guard let event = session.catalog?.events.first(where: { $0.status == "live" }), let path = event.statusUrl else {
-            throw XCTSkip("Run while the fixture publisher has an active event to exercise the live DVR edge.")
+        let catalog = try XCTUnwrap(session.catalog)
+        for event in catalog.events {
+            guard let path = event.statusUrl else { continue }
+            let update = try await Media.fetch(path, as: EventUpdate.self)
+            guard update.applies(to: event), update.status == "live", let start = update.seekableUtcStartMs,
+                  let end = update.seekableUtcEndMs, start < end else { continue }
+            session.chooseEvent(event)
+            session.update = update
+            let live = try XCTUnwrap(session.assets.first { $0.id == event.liveAssetId })
+            // The requested frame expired while the original Return transaction was loading.
+            for useEdge in [false, true] {
+                session.open(live, play: true, restoreUTC: start - 300_000)
+                try await waitFor("The native window must reject the saved frame") { session.notice != nil && session.ready }
+                // The short event can end during native startup. Try the next event in that case.
+                let latest = try await Media.fetch(path, as: EventUpdate.self)
+                guard latest.status == "live", latest.seekableUtcStartMs != nil else { break }
+                XCTAssertFalse(player.isPlaying)
+                XCTAssertFalse(session.desiredPlayback)
+                if useEdge { session.rejoinLiveEdge() } else { player.play() }
+                try await waitFor("The chosen transport must play the retained live source") { session.playing && player.isPlaying }
+                XCTAssertNil(session.notice)
+                player.pause()
+                try await waitFor("Pause must synchronize the controls and player") {
+                    !session.playing && !session.desiredPlayback && !player.isPlaying
+                }
+                player.play()
+                try await waitFor("The same source remains playable after pausing") { session.playing && player.isPlaying }
+                if useEdge { return }
+            }
         }
-        session.chooseEvent(event)
-        let update = try await Media.fetch(path, as: EventUpdate.self)
-        session.update = update
-        let live = try XCTUnwrap(session.assets.first { $0.id == event.liveAssetId })
-        // Reproduce a timestamp that expired after the original Return transaction.
-        let expired = try XCTUnwrap(update.seekableUtcStartMs) - 300_000
-        session.open(live, play: false, restoreUTC: expired)
-        try await waitFor("The current native window must reject the saved frame") {
-            session.notice != nil && session.ready
-        }
-        XCTAssertFalse(player.isPlaying)
-        session.rejoinLiveEdge()
-        try await waitFor("The explicit Live edge choice should play") { session.playing && player.isPlaying }
-        XCTAssertNil(session.notice)
-        player.pause()
-        try await waitFor("The app’s pause state must agree with the native player") {
-            !session.playing && !session.desiredPlayback && !player.isPlaying
-        }
-        player.play()
-        try await waitFor("The same source remains playable after pausing") { session.playing && player.isPlaying }
+        throw XCTSkip("Run with an active event and a published DVR window to exercise live transport recovery.")
     }
 
     func testClipSeekAndPauseKeepSource() async throws {

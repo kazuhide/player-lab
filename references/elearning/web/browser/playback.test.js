@@ -35,7 +35,7 @@ test(
       await page.selectOption('#mode', 'custom');
       await page.locator('#course').click();
       await page.locator('#lessons button').first().click();
-      assert.ok(await page.locator('#resume').isVisible());
+      await page.locator('#resume').waitFor();
       await page.locator('#resume').click();
       await page.waitForFunction(() => !document.querySelector('#controls').disabled);
       assert.equal(await page.inputValue('#captions'), 'off');
@@ -192,7 +192,13 @@ test(
           document.querySelector('video')?.currentTime >= 11.5
       );
       assert.ok(await page.locator('video').evaluate((v) => v.paused));
-      assert.equal(await page.locator('#log [data-event="Playing"]').count(), 0);
+      assert.equal(
+        await page
+          .locator('#log li')
+          .filter({ hasText: / · Playing$/ })
+          .count(),
+        0
+      );
       await page.locator('#seek').evaluate((input) => {
         input.value = Number(input.max) - 1;
         input.dispatchEvent(new Event('change'));
@@ -245,6 +251,7 @@ test(
       await newer.waitForFunction((key) => JSON.parse(localStorage.getItem(key))?.seconds >= 22.5, key);
       await newer.locator('#course').click();
       await newer.locator('#lessons button').first().click();
+      await newer.locator('#resume').waitFor();
       assert.match(await newer.locator('#resume').textContent(), /0:23/);
     } finally {
       await browser.close();
@@ -264,6 +271,9 @@ test(
         const page = await context.newPage();
         await page.goto(process.env.APP_URL || 'http://localhost:5181');
         await page.locator('#lessons button[data-id="EDU-FX-03"]').click();
+        await page.waitForFunction(
+          () => !document.querySelector('#choices').hidden || !document.querySelector('#controls').disabled
+        );
         if (await page.locator('#choices').isVisible()) await page.locator('#restart').click();
         await page.selectOption('#mode', 'custom');
         await page.waitForFunction(() => document.querySelector('#play').textContent === 'Pause');
@@ -286,10 +296,17 @@ test(
       const first = await finishing.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
       assert.ok(first.revision);
       await finishing.locator('#play').click();
+      await finishing.waitForFunction(
+        () => document.querySelector('video').currentTime > 4.2 && !document.querySelector('video').paused
+      );
+      const beforeOther = await finishing.evaluate((k) => localStorage.getItem(k), key);
       await seek(paused, 4);
       await paused.waitForFunction(
-        ([k, prev]) => JSON.parse(localStorage.getItem(k))?.revision !== prev,
-        [key, first.revision]
+        ([k, old]) => {
+          const value = localStorage.getItem(k);
+          return value !== old && Math.abs(JSON.parse(value)?.seconds - 4) < 0.25;
+        },
+        [key, beforeOther]
       );
       const second = await paused.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
       assert.deepEqual({ ...first, revision: null }, { ...second, revision: null });
@@ -358,6 +375,7 @@ for (const mode of ['custom', 'standard'])
         }, key);
         await older.locator('#course').click();
         await older.locator('#lessons button[data-id="EDU-FX-01"]').click();
+        await older.locator('#resume').waitFor();
         assert.match(await older.locator('#resume').textContent(), /0:1[1-9]/);
       } finally {
         await browser.close();

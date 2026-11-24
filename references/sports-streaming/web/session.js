@@ -1,4 +1,4 @@
-import { finalizedPosition } from './sports.js';
+import { finalizedPosition, inMediaRanges } from './sports.js';
 import { DashClock } from './dash-clock.js';
 import { locale, titleOf } from './i18n.js';
 import { UI_JA } from './ui-ja.js';
@@ -166,12 +166,9 @@ export class Session {
       // Native HLS exposes program date via the active media element and
       // retained ranges via TimeRanges. It has no SDK segment map.
       const mediaTime = utcSeconds - native.origin;
-      const { seekable } = native.video;
-      for (let i = 0; i < seekable.length; i++) {
-        if (mediaTime >= seekable.start(i) && mediaTime < seekable.end(i))
-          return this.player.getCurrentTime('relativetime') + (mediaTime - native.video.currentTime);
-      }
-      return null;
+      return inMediaRanges(native.video.seekable, mediaTime)
+        ? this.player.getCurrentTime('relativetime') + (mediaTime - native.video.currentTime)
+        : null;
     }
     return finalizedPosition(this.player.getAvailableSegments(), this.finalizedAnchor, utcSeconds);
   }
@@ -209,6 +206,42 @@ export class Session {
       player.on(PlayerEvent.Seeked, check);
       try {
         if (!player.seek(seconds, 'reference')) finish(false);
+      } catch {
+        finish(false);
+      }
+    });
+  }
+  async seekFinalized(utcSeconds, relativeSeconds) {
+    const player = this.player;
+    if (player.getPlayerType() !== 'native' || player.getStreamType() !== 'hls')
+      return this.seekTo(relativeSeconds);
+    const clock = this.nativeFinalizedClock();
+    if (!this.ready || !clock) return false;
+    const { video, origin } = clock;
+    const target = utcSeconds - origin;
+    if (!inMediaRanges(video.seekable, target)) return false;
+    if (!video.seeking && Math.abs(video.currentTime - target) < 0.05) return true;
+    // The SDK may expose only the first retained native range. Seek on the
+    // same source-bound video and timeline used to validate this target.
+    return new Promise((resolve) => {
+      const finish = (ok) => {
+        clearTimeout(timer);
+        video.removeEventListener('seeked', check);
+        resolve(ok);
+      };
+      const check = () => {
+        const current = this.player === player && this.ready && this.nativeFinalizedClock();
+        finish(
+          current?.video === video &&
+            current.origin === origin &&
+            inMediaRanges(video.seekable, target) &&
+            Math.abs(video.currentTime - target) <= 1
+        );
+      };
+      const timer = setTimeout(() => finish(false), 5000);
+      video.addEventListener('seeked', check);
+      try {
+        video.currentTime = target;
       } catch {
         finish(false);
       }

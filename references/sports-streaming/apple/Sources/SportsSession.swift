@@ -261,6 +261,14 @@ final class SportsSession: Playback {
         super.prepared(player)
     }
 
+    private func pauseAfterUnavailableRestore(_ message: String) {
+        // Ready established a usable source even though the old frame is gone.
+        established = true
+        currentRequest = asset.map { OpenRequest(asset: $0, seek: nil, play: false, restoreUTC: nil, archiveHandoff: false) }
+        notice = message
+        suspendPlayback()
+    }
+
     override func prepared(_ player: Player) {
         guard problem == nil else { return }
         if asset?.kind == "archive", player.duration.isFinite, player.duration > 0 {
@@ -269,14 +277,12 @@ final class SportsSession: Playback {
         if let target = returnToUTC {
             returnToUTC = nil
             guard player.isLive, let current = utc() else {
-                notice = "Previous live position unavailable. Choose Live edge to rejoin."
-                player.pause()
+                pauseAfterUnavailableRestore("Previous live position unavailable. Choose Live edge to rejoin.")
                 return
             }
             let offset = (target - current) / 1000 + player.timeShift
             guard (player.maxTimeShift...0).contains(offset) else {
-                notice = "Previous position is outside the DVR window."
-                player.pause()
+                pauseAfterUnavailableRestore("Previous position is outside the DVR window.")
                 return
             }
             player.timeShift = offset
@@ -389,6 +395,7 @@ final class SportsSession: Playback {
         }
         archiveFinished = false
         super.onPlaying(event, player: player)
+        if playing, asset?.kind == "live" { notice = nil }
     }
 
     override func onPaused(_ event: PausedEvent, player: Player) {
@@ -402,6 +409,9 @@ final class SportsSession: Playback {
             if let end = archiveDuration, let current = seconds, current >= end { seconds = nil }
             currentRequest = OpenRequest(asset: request.asset, seek: seconds, play: desiredPlayback,
                                          restoreUTC: nil, archiveHandoff: false)
+        }
+        if established, let request = currentRequest, request.asset.kind == "live", request.restoreUTC == nil {
+            currentRequest = OpenRequest(asset: request.asset, seek: nil, play: desiredPlayback, restoreUTC: nil, archiveHandoff: false)
         }
         if let request = pendingHandoff { handoffs.fail(request) }
         established = false

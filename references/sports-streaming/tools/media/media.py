@@ -827,6 +827,7 @@ class FixtureServer(ThreadingHTTPServer):
     allow_reuse_address = True
 
     def __init__(self, *args, **kwargs):
+        self.publisher_started_at_us = time.time_ns() // 1000
         self.request_slots = threading.BoundedSemaphore(8)
         super().__init__(*args, **kwargs)
 
@@ -956,6 +957,7 @@ class Handler(SimpleHTTPRequestHandler):
                 mapping["assetId"] = archive_asset["id"]
             seekable = seekable_utc(item, elapsed, state) if status == "live" else (None, None)
             return self.send_json({"id": event_id, "eventId": event_id, "status": status, "archiveStatus": archive,
+                                   "publisherStartedAtUs": self.server.publisher_started_at_us,
                                    "liveAssetId": item["id"], "archiveAssetId": item["archiveId"],
                                    "utcStartMs": source_utc_base(state, item["archiveId"]),
                                    "mediaUtcNow": (source_utc_base(state, item["archiveId"]) + round(elapsed * 1000)) if source_utc_base(state, item["archiveId"]) is not None else None,

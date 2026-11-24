@@ -319,6 +319,42 @@ final class PlayerTests: XCTestCase {
         XCTAssertEqual(session.saved(lesson)?.seconds, 0)
     }
 
+    func testClosingBeforeSeekedSavesObservedNearTargetLanding() async throws {
+        let session = LearningSession(seekResume: { _, _ in })
+        let player = try XCTUnwrap(session.player)
+        await session.fetchCatalog()
+        let lesson = try XCTUnwrap(session.lessons.first)
+        let key = Progress.key(learner: "A", lesson: lesson.id)
+        let previous = UserDefaults.standard.data(forKey: key)
+        defer {
+            session.closeLesson()
+            player.destroy()
+            UserDefaults.standard.set(previous, forKey: key)
+        }
+        let saved = Progress(seconds: 12, speed: 1, language: "", standard: false)
+        UserDefaults.standard.set(try JSONEncoder().encode(saved), forKey: key)
+        session.open(lesson, resume: true)
+        try await waitFor("The original resume seek is pending") { session.ready }
+        let source = try XCTUnwrap(session.activeSource)
+        var observed: Double?
+        let native = player.events.on(SeekedEvent.self).sink { _ in
+            let seconds = player.currentTime(.relativeTime)
+            guard abs(seconds - 19.91) < 0.03 else { return }
+            observed = seconds
+            // Model the SDK reporting a requested cue of 20 seconds with this
+            // real HLS landing. Back runs before the dispatched completion.
+            session.onSeekStarted(SeekEvent(from: SeekPosition(source: source, time: 0),
+                                           to: SeekPosition(source: source, time: 20)), player: player)
+            session.closeLesson()
+        }
+        defer { native.cancel() }
+        player.seek(time: 19.91)
+        try await waitFor("The source should close on its measured landing") { session.lesson == nil }
+        let actual = try XCTUnwrap(observed)
+        XCTAssertNotEqual(actual, 20)
+        XCTAssertEqual(try XCTUnwrap(session.saved(lesson)?.seconds), actual, accuracy: 0.001)
+    }
+
     func testSkipToEndDuringResumeKeepsCompletedLessonReplayable() async throws {
         let session = LearningSession(seekResume: { _, _ in })
         let player = try XCTUnwrap(session.player)

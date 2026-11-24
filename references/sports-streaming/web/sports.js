@@ -40,6 +40,7 @@ export function validateStatus(update, event) {
     update.eventId !== event.id ||
     update.liveAssetId !== event.liveAssetId ||
     update.archiveAssetId !== event.archiveAssetId ||
+    (update.publisherStartedAtUs != null && !millis(update.publisherStartedAtUs)) ||
     !['scheduled', 'live', 'ended', 'cancelled'].includes(update.status) ||
     !['not_ready', 'processing', 'ready', 'failed'].includes(update.archiveStatus)
   )
@@ -126,10 +127,15 @@ export function canReturnToUtc(status, utc) {
 // network delivery order do not identify which snapshot the publisher took last.
 export function newerStatus(current, incoming) {
   if (!current) return incoming;
-  for (const [a, b] of [
-    [current.mediaUtcNow, incoming.mediaUtcNow],
-    [Date.parse(current.observedAt), Date.parse(incoming.observedAt)]
-  ]) {
+  const run = current.publisherStartedAtUs;
+  const nextRun = incoming.publisherStartedAtUs;
+  const knownRuns = millis(run) && millis(nextRun);
+  if (knownRuns && run !== nextRun) return nextRun > run ? incoming : current;
+  const media = [current.mediaUtcNow, incoming.mediaUtcNow];
+  const observed = [Date.parse(current.observedAt), Date.parse(incoming.observedAt)];
+  // Older publishers have no run identity. Their observation timestamps span
+  // process restarts, whereas the fixture media clock starts over each time.
+  for (const [a, b] of knownRuns ? [media, observed] : [observed, media]) {
     if (Number.isFinite(a) && Number.isFinite(b) && a !== b) return b > a ? incoming : current;
   }
   // Snapshots can share a timestamp. The fixture's live window moves forward
@@ -160,6 +166,18 @@ export function newerStatus(current, incoming) {
   )
     return current;
   return incoming;
+}
+
+export function changedPublisher(current, next) {
+  if (!current) return false;
+  if (millis(current.publisherStartedAtUs) && millis(next.publisherStartedAtUs))
+    return current.publisherStartedAtUs !== next.publisherStartedAtUs;
+  return current.status === 'ended' && ['scheduled', 'live'].includes(next.status);
+}
+
+export function inMediaRanges(ranges, time) {
+  for (let i = 0; i < ranges.length; i++) if (ranges.start(i) <= time && time < ranges.end(i)) return true;
+  return false;
 }
 
 // SDK manifest segment times start at the retained window. The decoded

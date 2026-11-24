@@ -129,6 +129,24 @@ class HttpPublicationTests(unittest.TestCase):
         self.assertIn('CLOSED-CAPTIONS=NONE', embedded)
         self.assertEqual(embedded.count('TYPE=SUBTITLES'), 2)
 
+    def test_restarting_the_publisher_reuses_media_but_starts_a_new_event_run(self):
+        self.state['startedMonotonic'] = time.monotonic() - 100
+        path = '/api/events/EVENT-A'
+        ended = json.loads(self.get(path)[2])
+        self.assertEqual(ended['publisherStartedAtUs'], json.loads(self.get(path)[2])['publisherStartedAtUs'])
+        port = self.server.server_port
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(2)
+        self.state['startedMonotonic'] = time.monotonic() - 6
+        self.server = media.FixtureServer(('127.0.0.1', port), partial(media.Handler, state=self.state))
+        self.thread = threading.Thread(target=self.server.serve_forever, kwargs={'poll_interval': .01}, daemon=True)
+        self.thread.start()
+        restarted = json.loads(self.get(path)[2])
+        self.assertEqual((ended['status'], restarted['status']), ('ended', 'live'))
+        self.assertLess(ended['publisherStartedAtUs'], restarted['publisherStartedAtUs'])
+        self.assertLess(restarted['mediaUtcNow'], ended['mediaUtcNow'])
+
     def test_live_mpegts_segment_uses_transport_stream_mime_type(self):
         hls = self.folder / 'hls'
         (hls / 'media.m3u8').write_text('#EXTM3U\n#EXTINF:2,\nseg-00000.ts\n')

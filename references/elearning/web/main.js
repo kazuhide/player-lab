@@ -3,7 +3,8 @@ import './style.css';
 import { button, clock, jsonAt } from './media.js';
 import { Session } from './session.js';
 import { el, message, mountControls } from './controls.js';
-import { parseCourses, readRecord, resumeKey, searchCues } from './learning.js';
+import { CheckpointWriter } from './checkpoints.js';
+import { parseCourses, parseRecord, resumeKey, searchCues } from './learning.js';
 
 const base = import.meta.env.VITE_MEDIA_BASE_URL || 'http://127.0.0.1:8621/';
 const preferences = { speed: 1, caption: 'en' };
@@ -32,44 +33,42 @@ let generation = 0,
   checkpoint = 0,
   finished = false,
   autoplayGeneration = 0,
-  storedCheckpoint = null,
-  userRequestedPlay = false;
+  writer = null;
 function seek(value) {
   if (!watching) return;
   const range = session.player.getSeekableRange();
   if (range.end > range.start)
-    session.player.seek(Math.max(range.start, Math.min(value, range.end - 0.05)), 'reference');
+    session.player.seek(Math.max(range.start, Math.min(value, range.end - 0.05)), 'reference-user');
 }
-function save(passive = true, reclaim = false) {
-  if (!watching || finished || !session.ready) return;
-  const seconds = session.player.getCurrentTime();
+function bookmark(seconds) {
+  return { seconds, ...preferences, mode: el('mode').value, autoAdvance: advance };
+}
+function unavailable(owner) {
+  if (owner === writer) {
+    el('storageStatus').textContent = t('This browser could not save the resume position.');
+    el('storageStatus').hidden = false;
+  }
+}
+function store(operation, owner = writer) {
+  void operation.then(
+    () => {
+      if (owner === writer) el('storageStatus').hidden = true;
+    },
+    () => unavailable(owner)
+  );
+}
+function save(claim = false) {
+  if (!writer || !watching || (finished && !claim) || !session.ready) return;
+  const seconds = finished && claim ? 0 : session.player.getCurrentTime();
   if (!Number.isFinite(seconds) || seconds < 0) return;
   checkpoint = seconds;
-  try {
-    const key = resumeKey(learner, lesson.id);
-    const current = localStorage.getItem(key);
-    if (reclaim && current === storedCheckpoint) return;
-    const serialized = JSON.stringify({
-      seconds,
-      ...preferences,
-      mode: el('mode').value,
-      autoAdvance: advance,
-      revision: crypto.getRandomValues(new Uint32Array(4)).join('.')
-    });
-    // Cleanup callbacks in a paused tab can run after another tab saved or
-    // finished the same lesson. Only fresh user activity can reclaim its key.
-    if (!passive || current === storedCheckpoint) {
-      localStorage.setItem(key, serialized);
-      storedCheckpoint = serialized;
-    }
-  } catch {
-    message('This browser could not save the resume position.');
-  }
+  store(writer.write(bookmark(seconds), claim));
   lastSave = Date.now();
 }
 function endSelection() {
   save();
-  userRequestedPlay = false;
+  writer = null;
+  el('storageStatus').hidden = true;
   ++generation;
   watching = false;
   finished = false;
@@ -135,20 +134,24 @@ function setSelection(item) {
   el('course').hidden = false;
   for (const b of el('lessons').children) b.setAttribute('aria-current', String(b.dataset.id === item.id));
 }
-function choose(item, origin = 'catalog') {
+async function choose(item, origin = 'catalog', userAction = true) {
   endSelection();
   setSelection(item);
-  try {
-    storedCheckpoint = localStorage.getItem(resumeKey(learner, item.id));
-  } catch {
-    storedCheckpoint = null;
-  }
+  const selected = (writer = new CheckpointWriter(resumeKey(learner, item.id)));
   if (origin === 'catalog') {
+    let previous = null;
     try {
-      record = readRecord(localStorage, learner, item.id);
+      previous = await selected.select(bookmark(0));
     } catch {
-      record = null;
+      unavailable(selected);
+      try {
+        previous = parseRecord(localStorage.getItem(selected.key));
+      } catch {
+        /* Storage can be disabled entirely. */
+      }
     }
+    if (selected !== writer) return;
+    record = previous;
     if (record && record.seconds > 0) {
       el('choices').hidden = false;
       el('resume').hidden = false;
@@ -157,13 +160,15 @@ function choose(item, origin = 'catalog') {
       return;
     }
   }
-  void open(0, origin);
+  void open(0, origin, origin === 'catalog' ? undefined : userAction ? 'claim' : 'empty');
 }
-async function open(seconds, origin) {
+async function open(seconds, origin, ownership) {
   const token = ++generation;
   const autoplay = document.hidden ? null : autoplayGeneration;
   startOrigin = origin;
   advance = el('auto').checked;
+  if (ownership === 'claim') store(writer.write(bookmark(seconds), true));
+  if (ownership === 'empty') store(writer.startIfEmpty(bookmark(seconds)));
   watching = false;
   checkpoint = seconds;
   controls.enable(false);
@@ -238,37 +243,27 @@ function onEvent(type, event) {
     updateActiveCue();
     if (Date.now() - lastSave >= 5000) save();
   }
+
   if (type === 'Seeked') updateActiveCue();
-  if (type === 'Paused' || type === 'Seeked') save(type !== 'Seeked' || document.hidden);
-  if (type === 'Play') {
-    userRequestedPlay = !document.hidden && ['reference-user', 'ui'].includes(event.issuer);
+  if (type === 'Paused' || type === 'Seeked') save();
+  if (type === 'Play' || type === 'Seek') {
+    if (!document.hidden && ['reference-user', 'ui'].includes(event.issuer)) save(true);
   }
-  if (type === 'Paused') userRequestedPlay = false;
   if (type === 'Playing') {
     finished = false;
-    if (userRequestedPlay && !document.hidden) save(false, true);
-    userRequestedPlay = false;
     if (document.hidden && session.player.getViewMode() !== 'pictureinpicture')
       session.player.pause('reference');
   }
   if (type === 'PlaybackFinished') {
     finished = true;
-    try {
-      const key = resumeKey(learner, lesson.id);
-      if (localStorage.getItem(key) === storedCheckpoint) {
-        localStorage.removeItem(key);
-        storedCheckpoint = null;
-      }
-    } catch {
-      /* Storage unavailable. */
-    }
-    if (advance && lessons.indexOf(lesson) < lessons.length - 1) adjacent(1);
+    if (writer) store(writer.write(null));
+    if (advance && lessons.indexOf(lesson) < lessons.length - 1) adjacent(1, false);
     else message('Lesson finished.');
   }
 }
-function adjacent(delta) {
+function adjacent(delta, userAction = true) {
   const item = lessons[lessons.indexOf(lesson) + delta];
-  if (lesson && item) choose(item, 'playlist');
+  if (lesson && item) choose(item, 'playlist', userAction);
 }
 function selectCourse(course) {
   endSelection();
@@ -314,10 +309,10 @@ el('resume').onclick = () => {
   el('mode').value = record.mode === 'custom' ? 'custom' : 'standard';
   controls.mode();
   Object.assign(preferences, { speed: record.speed, caption: record.caption });
-  void open(record.seconds, 'catalog');
+  void open(record.seconds, 'catalog', 'claim');
 };
 el('restart').onclick = () => {
-  void open(0, 'catalog');
+  void open(0, 'catalog', 'claim');
 };
 el('cancel').onclick = () => {
   endSelection();
@@ -329,7 +324,7 @@ el('retry').onclick = () => {
   void open(checkpoint, startOrigin);
 };
 el('course').onclick = el('cancel').onclick;
-el('mode').addEventListener('change', () => save(false));
+el('mode').addEventListener('change', () => save(true));
 el('reload').onclick = loadCourse;
 el('format').onchange = () => {
   el('delivery').disabled = el('format').value !== 'hls';

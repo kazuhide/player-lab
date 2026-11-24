@@ -69,6 +69,7 @@ export class Session {
       'Paused',
       'TimeChanged',
       'PlaybackFinished',
+      'Seek',
       'Seeked',
       'TimeShifted',
       'SubtitleAdded',

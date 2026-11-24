@@ -111,9 +111,8 @@ final class LearningSession: Playback {
     }
 
     func closeLesson() {
-        if let player, ready, owns(player), let lesson, currentRequest?.isViewerSeek == true,
-           let target = pendingResume?.seconds, player.currentTime(.relativeTime) == target {
-            persist(lesson, position: target == player.duration ? 0 : target)
+        if currentRequest?.isViewerSeek == true, let player, let lesson, let landing = pendingLanding(player) {
+            persist(lesson, position: landing.atEnd ? 0 : landing.seconds)
         } else {
             save(allowZero: established && observedPositivePosition)
         }
@@ -196,9 +195,14 @@ final class LearningSession: Playback {
     override func observe(_ player: Player) {
         super.observe(player)
         seekStart = player.events.on(SeekEvent.self).receive(on: DispatchQueue.main).sink { [weak self, weak player] event in
-            guard let self, let player, self.owns(player), event.to.source === self.activeSource else { return }
-            self.replacePendingSeek(with: event.to.time)
+            guard let self, let player else { return }
+            self.onSeekStarted(event, player: player)
         }
+    }
+
+    func onSeekStarted(_ event: SeekEvent, player: Player) {
+        guard owns(player), event.to.source === activeSource else { return }
+        replacePendingSeek(with: event.to.time)
     }
 
     override func seek(by delta: Double) {
@@ -266,27 +270,37 @@ final class LearningSession: Playback {
         super.suspendPlayback()
     }
 
+    private func pendingLanding(_ player: Player) -> (seconds: Double, atEnd: Bool)? {
+        guard ready, owns(player), problem == nil, !invalidResume, resumeSeekPlaying != nil,
+              let target = pendingResume?.seconds, player.duration.isFinite, player.duration > 0 else { return nil }
+        let seconds = player.currentTime(.relativeTime)
+        guard seconds.isFinite, seconds >= 0, abs(seconds - target) < 1,
+              seconds != 0 || target == 0 else { return nil }
+        return (seconds, seconds >= player.duration)
+    }
+
     override func onSeeked(_ event: SeekedEvent, player: Player) {
         guard ready, owns(player), problem == nil else { return }
-        let seconds = player.currentTime(.relativeTime)
-        position = seconds.isFinite && seconds >= 0 ? seconds : nil
         if pendingResume == nil {
-            guard ready, !invalidResume, seconds.isFinite, seconds >= 0, seconds < player.duration else { return }
+            let seconds = player.currentTime(.relativeTime)
+            position = seconds.isFinite && seconds >= 0 ? seconds : nil
+            guard !invalidResume, seconds.isFinite, seconds >= 0, seconds < player.duration else { return }
             finished = false
             observedPositivePosition = observedPositivePosition || seconds > 0
             save(allowZero: true)
             return
         }
-        guard let target = pendingResume, let play = resumeSeekPlaying,
-              abs(seconds - target.seconds) < 1 else { return }
+        guard let play = resumeSeekPlaying, let lesson, let landing = pendingLanding(player) else { return }
         cancelPendingSeek()
         established = true
-        if target.seconds == player.duration, seconds >= player.duration {
+        position = landing.seconds
+        if landing.atEnd {
             finishLesson()
             return
         }
-        observedPositivePosition = seconds > 0
-        save(allowZero: true)
+        observedPositivePosition = landing.seconds > 0
+        persist(lesson, position: landing.seconds)
+        lastSaved = landing.seconds
         desiredPlayback = play
         super.prepared(player)
     }

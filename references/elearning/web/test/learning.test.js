@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parseCourses, readRecord, resumeKey, searchCues } from '../learning.js';
+import { parseCourses, parseRecord, resumeKey, searchCues } from '../learning.js';
 import { mediaUrl } from '../media.js';
 const fixture = (file) => JSON.parse(readFileSync(new URL('../../fixtures/' + file, import.meta.url)));
 test('course follows published order and refuses dangling IDs', () => {
@@ -16,10 +16,10 @@ test('course follows published order and refuses dangling IDs', () => {
 test('resume belongs to one demo learner and lesson', () => {
   const key = resumeKey('a', 'one');
   const storage = { getItem: (k) => (k === key ? '{"seconds":12,"speed":1.5,"caption":"off"}' : null) };
-  assert.equal(readRecord(storage, 'a', 'one').seconds, 12);
-  assert.equal(readRecord(storage, 'b', 'one'), null);
-  assert.equal(readRecord(storage, 'a', 'two'), null);
-  assert.equal(readRecord({ getItem: () => '{broken' }, 'a', 'one'), null);
+  assert.equal(parseRecord(storage.getItem(resumeKey('a', 'one'))).seconds, 12);
+  assert.equal(parseRecord(storage.getItem(resumeKey('b', 'one'))), null);
+  assert.equal(parseRecord(storage.getItem(resumeKey('a', 'two'))), null);
+  assert.equal(parseRecord('{broken'), null);
 });
 test('transcript search normalizes query and preserves the original cue time', () => {
   const results = searchCues(fixture('transcripts/EDU-FX-01.json').cues, 'en', 'ＲＥＡＤ');

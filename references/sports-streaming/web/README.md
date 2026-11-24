@@ -23,6 +23,8 @@ Open `http://localhost:5182`. Restart the server after editing the environment. 
 
 ## Playback
 
+The fixture status response includes `publisherStartedAtUs`, the publisher process start time in Unix microseconds. After a publisher restart, refresh uses the new run and discards the previous DVR checkpoint. Older publishers are ordered by `observedAt`.
+
 Choose an event and open its live source, a prepared clip, or a ready archive. **Sports** controls provide 15-second jumps and a DVR slider. Returning from a clip offers the latest live point and, when a source-bound UTC position was available, the saved DVR position. The saved-position action appears only while the most recent publisher update includes that point in the DVR window. Before leaving the clip, the app refreshes the window again. Overlapping status reads use the publisher’s observation times and DVR bounds to determine which window is current. The new live source then checks its SDK seek window before seeking. A clip that finishes while the event is live returns to the live edge.
 
 Changing HLS/DASH on an open video reloads that asset at the VOD offset or verified live UTC and preserves play/pause intent. For the fixture's single, zero-based DASH period, the app anchors the decoded segment timestamp to the matching MPD and catalog UTC origin. If the asset or browser does not support the requested format, the current source stays open. After an event ends, the SDK’s segment timeline identifies the retained media. Native HLS uses the active video element’s program date and seekable ranges. If the target position cannot be verified, playback waits for an explicit choice. A finished archive opens paused for replay when switching formats.

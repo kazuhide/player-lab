@@ -179,6 +179,29 @@ test(
         if (!v.currentSrc.startsWith('http')) throw Error('Expected native HLS');
         return v.getStartDate().getTime() / 1000 + v.currentTime;
       });
+      // Split the native element's reported retained window around a gap before
+      // the saved 12s frame. The HLS media, decoder, seek and landing remain real.
+      await page.evaluate(() => {
+        const descriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'seekable');
+        Object.defineProperty(HTMLMediaElement.prototype, 'seekable', {
+          ...descriptor,
+          get() {
+            const ranges = descriptor.get.call(this);
+            if (
+              !this.currentSrc.includes('SP-LIVE-S/') ||
+              ranges.length !== 1 ||
+              ranges.start(0) > 3 ||
+              ranges.end(0) < 15
+            )
+              return ranges;
+            return {
+              length: 2,
+              start: (i) => (i === 0 ? ranges.start(0) : 8),
+              end: (i) => (i === 0 ? 4 : ranges.end(0))
+            };
+          }
+        });
+      });
       await page.locator('video').evaluate((v) => {
         v.src = 'data:video/mp4;base64,AAAA';
         v.load();
@@ -194,6 +217,7 @@ test(
         );
       }, expected);
       assert.equal(await page.locator('#message').textContent(), '');
+      assert.equal(await page.locator('video').evaluate((v) => v.seekable.length), 2);
       await page.locator('#targets button').first().click();
       assert.ok(Number.isSafeInteger(origin));
       await page.waitForFunction(

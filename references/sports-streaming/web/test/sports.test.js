@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   archivePosition,
   finalizedPosition,
+  inMediaRanges,
   newerStatus,
   canReturnToUtc,
   sourceUtc,
@@ -99,4 +100,41 @@ test('publisher observation times order overlapping status reads regardless of d
   assert.equal(newerStatus(old, tie), tie);
   const terminal = { ...old, status: 'ended' };
   assert.equal(newerStatus(terminal, old), terminal);
+});
+
+test('native finalized HLS can seek in any retained span and rejects gaps and range ends', () => {
+  const ranges = { length: 2, start: (i) => [0, 8][i], end: (i) => [4, 20][i] };
+  for (const t of [0, 3.5, 8, 12]) assert.equal(inMediaRanges(ranges, t), true);
+  for (const t of [-1, 4, 6, 20, NaN]) assert.equal(inMediaRanges(ranges, t), false);
+});
+
+test('a new publisher supersedes terminal status and a delayed old run stays retired', () => {
+  const ended = {
+    status: 'ended',
+    archiveStatus: 'ready',
+    mediaUtcNow: 190000,
+    observedAt: '2026-11-25T00:00:00Z'
+  };
+  const live = {
+    status: 'live',
+    archiveStatus: 'not_ready',
+    mediaUtcNow: 12000,
+    observedAt: '2026-11-25T00:00:01Z'
+  };
+  for (const [old, fresh] of [
+    [ended, live],
+    [
+      { ...ended, publisherStartedAtUs: 100 },
+      { ...live, publisherStartedAtUs: 200 }
+    ]
+  ]) {
+    assert.equal(newerStatus(old, fresh), fresh);
+    assert.equal(newerStatus(fresh, old), fresh);
+  }
+  const fresh = { ...live, publisherStartedAtUs: 200 };
+  assert.equal(
+    newerStatus(fresh, { ...ended, publisherStartedAtUs: 100, observedAt: live.observedAt }),
+    fresh
+  );
+  assert.equal(newerStatus(fresh, { ...live, publisherStartedAtUs: 200, mediaUtcNow: 5000 }), fresh);
 });
