@@ -158,10 +158,14 @@ export class Session {
     if (player.isLive()) return { start: player.getMaxTimeShift(), end: 0, current: player.getTimeShift() };
     const clock = this.nativeFinalizedClock();
     if (clock) {
-      const current = clock.video.currentTime;
-      // A paused frame at the end of a span must still allow a backward jump.
-      const span = mediaRangeAt(clock.video.seekable, current, true);
-      return span && { ...span, current, clock };
+      const ranges = clock.video.seekable;
+      if (!ranges.length) return null;
+      return {
+        start: ranges.start(0),
+        end: ranges.end(ranges.length - 1),
+        current: clock.video.currentTime,
+        clock
+      };
     }
     return { ...player.getSeekableRange(), current: player.getCurrentTime() };
   }

@@ -146,7 +146,7 @@ test(
 );
 
 test(
-  'native WebKit HLS restores and seeks within the retained DVR span before continuing into the archive',
+  'native WebKit HLS restores and seeks across retained DVR spans before continuing into the archive',
   {
     skip: process.env.RUN_FINALIZED !== '1' || process.env.BROWSER !== 'webkit',
     timeout: 60000
@@ -165,22 +165,29 @@ test(
       await page.selectOption('#mode', 'custom');
       await page.waitForFunction(() => document.querySelector('video')?.currentTime > 0.5);
       await page.locator('#play').click();
-      await page.locator('#seek').evaluate((i) => {
-        i.value = 12;
-        i.dispatchEvent(new Event('change'));
-      });
+      const slideTo = (seconds) =>
+        page.locator('#seek').evaluate((i, value) => {
+          i.value = value;
+          i.dispatchEvent(new Event('change'));
+        }, seconds);
+      const waitForPosition = (seconds) =>
+        page.waitForFunction((target) => {
+          const v = document.querySelector('video');
+          return v.paused && !v.seeking && Math.abs(v.currentTime - target) < 0.5;
+        }, seconds);
+      await slideTo(16);
       await page.waitForFunction(
         () =>
           document.querySelector('#log [data-event=Seeked]') &&
           !document.querySelector('video').seeking &&
-          Math.abs(document.querySelector('video').currentTime - 12) < 0.5
+          Math.abs(document.querySelector('video').currentTime - 16) < 0.5
       );
       const expected = await page.locator('video').evaluate((v) => {
         if (!v.currentSrc.startsWith('http')) throw Error('Expected native HLS');
         return v.getStartDate().getTime() / 1000 + v.currentTime;
       });
       // Split the native element's reported retained window around a gap before
-      // the saved 12s frame. The HLS media, decoder, seek and landing remain real.
+      // the saved 16s frame. The HLS media, decoder, seek and landing remain real.
       await page.evaluate(() => {
         const descriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'seekable');
         Object.defineProperty(HTMLMediaElement.prototype, 'seekable', {
@@ -221,13 +228,26 @@ test(
       const recovered = await page.locator('video').evaluate((v) => v.currentTime);
       for (const [control, target] of [
         ['forward', recovered + 15],
-        ['back', recovered]
+        ['back', recovered],
+        ['back', recovered - 15],
+        ['forward', recovered]
       ]) {
         await page.locator('#' + control).click();
-        await page.waitForFunction((seconds) => {
-          const v = document.querySelector('video');
-          return v.paused && !v.seeking && Math.abs(v.currentTime - seconds) < 0.5;
-        }, target);
+        await waitForPosition(target);
+      }
+      const sliderBounds = await page.locator('#seek').evaluate((i) => [Number(i.min), Number(i.max)]);
+      const mediaBounds = await page
+        .locator('video')
+        .evaluate((v) => [v.seekable.start(0), v.seekable.end(1)]);
+      assert.deepEqual(sliderBounds, mediaBounds);
+      for (const [target, landing] of [
+        [2, 2],
+        [6, 8],
+        [6, 3.95],
+        [16, 16]
+      ]) {
+        await slideTo(target);
+        await waitForPosition(landing);
       }
       await page.locator('#targets button').first().click();
       assert.ok(Number.isSafeInteger(origin));

@@ -216,10 +216,25 @@ test(
         );
         await savedAt(first, seconds);
       }
+      await seek(second, 29);
+      await savedAt(second, 29);
+      const timeline = first.locator('#player .bmpui-ui-seekbar');
+      await timeline.press('Space');
+      await first.waitForFunction(() => document.querySelector('video').currentTime > 12.25);
+      await timeline.press('Space');
+      await first.waitForFunction((k) => {
+        const video = document.querySelector('video');
+        const seconds = JSON.parse(localStorage.getItem(k))?.seconds;
+        return video.paused && Math.abs(seconds - video.currentTime) < 0.25;
+      }, key);
+      const position = await first.evaluate(
+        (k) => Math.floor(JSON.parse(localStorage.getItem(k)).seconds),
+        key
+      );
       await first.locator('#course').click();
       await choose(first);
       await first.locator('#resume').waitFor();
-      assert.match(await first.locator('#resume').textContent(), /0:11/);
+      assert.equal(await first.locator('#resume').textContent(), 'Resume at 0:' + position);
     } finally {
       await browser.close();
     }
@@ -330,3 +345,49 @@ for (const rival of [false, true])
       }
     }
   );
+
+test(
+  'a pending automatic entry cannot revive a lesson completed in another window',
+  { timeout: 45000 },
+  async () => {
+    const browser = await launch();
+    let held;
+    try {
+      const context = await browser.newContext({ locale: 'en-US' });
+      const key = 'reference.elearning.resume.a/EDU-FX-03';
+      const queue = await open(context);
+      await queue.locator('#auto').check();
+      await chooseById(queue, 'EDU-FX-02');
+      await queue.waitForFunction(() => document.querySelector('video')?.currentTime > 0.25);
+      held = holdMedia(queue, '**/EDU-FX-03/hls/*.m3u8');
+      await held.ready;
+      await seek(queue, 779);
+      await held.pending;
+      assert.equal(await queue.evaluate((k) => localStorage.getItem(k), key), null);
+
+      const finisher = await open(context);
+      await chooseById(finisher, 'EDU-FX-03');
+      await finisher.waitForFunction(() => document.querySelector('video')?.currentTime > 0.25);
+      await seek(finisher, 7);
+      await finisher.waitForFunction(
+        () => document.querySelector('#message').textContent === 'Lesson finished.'
+      );
+      await finisher.waitForFunction((k) => localStorage.getItem(k) === null, key);
+      held.release();
+      await queue.waitForFunction(
+        () =>
+          document.querySelector('#title').textContent === 'Summary' &&
+          document.querySelector('video')?.currentTime > 2
+      );
+      await queue.locator('#course').click();
+      await chooseById(queue, 'EDU-FX-03');
+      await queue.waitForFunction(
+        () => !document.querySelector('#controls').disabled || !document.querySelector('#choices').hidden
+      );
+      assert.equal(await queue.locator('#choices').isVisible(), false);
+    } finally {
+      held?.release();
+      await browser.close();
+    }
+  }
+);

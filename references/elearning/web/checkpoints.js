@@ -2,7 +2,8 @@ import { parseRecord } from './learning.js';
 
 // All tabs use a readwrite transaction on the same object store. IndexedDB
 // serializes overlapping transactions, including on HTTP origins without
-// Web Locks. The payload stays under its existing Web Storage key.
+// Web Locks. The store retains only the last revision, including after EOF.
+// Bookmark data stays under its existing Web Storage key.
 let connection;
 let opening;
 
@@ -49,9 +50,11 @@ function transact(db, key, operation) {
     const transaction = db.transaction('bookmarks', 'readwrite');
     let result;
     let error;
-    transaction.objectStore('bookmarks').get(key).onsuccess = () => {
+    const store = transaction.objectStore('bookmarks');
+    const request = store.get(key);
+    request.onsuccess = () => {
       try {
-        result = operation();
+        result = operation(store, request.result);
       } catch (exception) {
         error = exception;
         transaction.abort();
@@ -66,23 +69,33 @@ export class CheckpointWriter {
   constructor(key) {
     this.key = key;
     this.expected = null;
+    this.revision = undefined;
     this.owns = false;
   }
-  #replace(record) {
+  #replace(record, store) {
+    const revision = crypto.getRandomValues(new Uint32Array(4)).join('.');
     const value =
       record === null
         ? null
         : JSON.stringify({
             ...record,
-            revision: crypto.getRandomValues(new Uint32Array(4)).join('.')
+            revision
           });
-    if (value === null) localStorage.removeItem(this.key);
-    else localStorage.setItem(this.key, value);
-    this.expected = value;
-    this.owns = value !== null;
+    // If IndexedDB denies the write, keep the previous readable bookmark.
+    store.put(revision, this.key).onsuccess = () => {
+      try {
+        if (value === null) localStorage.removeItem(this.key);
+        else localStorage.setItem(this.key, value);
+        this.expected = value;
+        this.revision = revision;
+        this.owns = value !== null;
+      } catch {
+        store.transaction.abort();
+      }
+    };
   }
   enter(initial, intent) {
-    return serialized(this.key, () => {
+    return serialized(this.key, (store, revision) => {
       const current = localStorage.getItem(this.key);
       const previous = parseRecord(current);
       if (intent === 'catalog' && previous?.seconds > 0) return previous;
@@ -90,20 +103,21 @@ export class CheckpointWriter {
         // Adopt the record seen on entry. The next real progress update succeeds
         // only if no other window replaced it while the new lesson was loading.
         this.expected = current;
+        this.revision = revision;
         this.owns = true;
       } else {
         // Reserve the bookmark at the gesture. Keep its last playable position
         // until this source actually starts, including across a failed load.
-        this.#replace(previous ?? initial);
+        this.#replace(previous ?? initial, store);
       }
       return null;
     });
   }
   write(record, claim = false) {
-    return serialized(this.key, () => {
+    return serialized(this.key, (store, revision) => {
       const current = localStorage.getItem(this.key);
-      if (!claim && (!this.owns || current !== this.expected)) return false;
-      this.#replace(record);
+      if (!claim && (!this.owns || current !== this.expected || revision !== this.revision)) return false;
+      this.#replace(record, store);
       return true;
     });
   }

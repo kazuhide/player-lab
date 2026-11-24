@@ -65,13 +65,15 @@ export class Session {
       }
     });
     // The standard UI has a player wrapper per responsive layout. Quick-seek,
-    // touch and keyboard controls call its seek() without an issuer.
-    const tagStandardSeeks = () => {
+    // touch and keyboard controls can call seek() or play() without an issuer.
+    const tagStandardActions = () => {
       const uiPlayer = this.ui.activeUi?.getPlayer();
-      if (uiPlayer) uiPlayer.seek = (seconds, issuer = 'ui') => player.seek(seconds, issuer);
+      if (!uiPlayer) return;
+      uiPlayer.seek = (seconds, issuer = 'ui') => player.seek(seconds, issuer);
+      uiPlayer.play = (issuer = 'ui') => player.play(issuer);
     };
-    tagStandardSeeks();
-    this.ui.onActiveUiChanged.subscribe(tagStandardSeeks);
+    tagStandardActions();
+    this.ui.onActiveUiChanged.subscribe(tagStandardActions);
     for (const type of [
       'Play',
       'Playing',

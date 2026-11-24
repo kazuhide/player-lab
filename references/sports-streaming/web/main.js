@@ -9,6 +9,7 @@ import {
   canReturnToUtc,
   changedPublisher,
   newerStatus,
+  retainedSeekTarget,
   sourceUtc,
   liveReturnOffset,
   validateCatalog,
@@ -51,15 +52,17 @@ function seek(target, range = session.controlRange()) {
   if (!interactive || !range) return;
   if (pendingHandoff?.observing) pendingHandoff = null;
   if (p.isLive()) p.timeShift(Math.max(range.start, Math.min(range.end, target)), 'reference');
-  else if (range.end > range.start) {
+  else if (range.clock) {
+    const seconds = retainedSeekTarget(range.clock.video.seekable, range.current, target);
+    if (seconds !== null) void session.seekNative(range.clock, seconds);
+  } else if (range.end > range.start) {
     const seconds = Math.max(range.start, Math.min(range.end - 0.05, target));
     if (
       (target > range.current && seconds <= range.current) ||
       (target < range.current && seconds >= range.current)
     )
       return;
-    if (range.clock) void session.seekNative(range.clock, seconds);
-    else p.seek(seconds, 'reference');
+    p.seek(seconds, 'reference');
   }
 }
 function intendsPlay() {

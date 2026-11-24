@@ -5,6 +5,7 @@ import {
   archivePosition,
   finalizedPosition,
   mediaRangeAt,
+  retainedSeekTarget,
   newerStatus,
   canReturnToUtc,
   sourceUtc,
@@ -107,7 +108,23 @@ test('native finalized HLS can seek in any retained span and rejects gaps and ra
   for (const t of [0, 3.5]) assert.deepEqual(mediaRangeAt(ranges, t), { start: 0, end: 4 });
   for (const t of [8, 12]) assert.deepEqual(mediaRangeAt(ranges, t), { start: 8, end: 20 });
   for (const t of [-1, 4, 6, 20, NaN]) assert.equal(mediaRangeAt(ranges, t), null);
-  assert.deepEqual(mediaRangeAt(ranges, 20, true), { start: 8, end: 20 });
+});
+
+test('native DVR controls reach other spans and cross gaps in the requested direction', () => {
+  const ranges = { length: 2, start: (i) => [0, 8][i], end: (i) => [4, 40][i] };
+  for (const [current, target, landing] of [
+    [16, 1, 1],
+    [1, 16, 16],
+    [2, 6, 8],
+    [8, 6, 3.95],
+    [2, -13, 0],
+    [36, 51, 39.95],
+    [39.99, 55, null],
+    [16, 39.99, 39.99]
+  ]) {
+    assert.equal(retainedSeekTarget(ranges, current, target), landing);
+  }
+  assert.equal(retainedSeekTarget({ length: 0 }, 15, 0), null);
 });
 
 test('a new publisher supersedes terminal status and a delayed old run stays retired', () => {

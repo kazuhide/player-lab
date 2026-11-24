@@ -35,6 +35,19 @@ test(
           await page.evaluate(() => bookmark.enter({ seconds: 11, speed: 1, caption: 'off' }, 'automatic'));
         })
       );
+      // The first window entered an empty lesson and is still waiting for media.
+      // A different window starts that lesson, saves, and finishes it before the first load completes.
+      await other.evaluate(() => bookmark.enter({ seconds: 0, speed: 1, caption: 'off' }, 'catalog'));
+      assert.equal(
+        await other.evaluate(() => bookmark.write({ seconds: 3, speed: 1, caption: 'off' })),
+        true
+      );
+      assert.equal(await other.evaluate(() => bookmark.write(null)), true);
+      assert.equal(
+        await owner.evaluate(() => bookmark.write({ seconds: 2, speed: 1, caption: 'off' })),
+        false
+      );
+      assert.equal(await gate.evaluate(() => localStorage.getItem('test-key')), null);
       for (const otherFirst of [true, false]) {
         for (const terminal of [true, false]) {
           await owner.evaluate(() => bookmark.write({ seconds: 11, speed: 1, caption: 'off' }, true));

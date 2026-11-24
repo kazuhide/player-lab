@@ -175,13 +175,35 @@ export function changedPublisher(current, next) {
   return current.status === 'ended' && ['scheduled', 'live'].includes(next.status);
 }
 
-export function mediaRangeAt(ranges, time, includeEnd = false) {
+export function mediaRangeAt(ranges, time) {
   for (let i = 0; i < ranges.length; i++) {
     const start = ranges.start(i);
     const end = ranges.end(i);
-    if (start <= time && (time < end || (includeEnd && time === end))) return { start, end };
+    if (start <= time && time < end) return { start, end };
   }
   return null;
+}
+
+export function retainedSeekTarget(ranges, current, target) {
+  if (!Number.isFinite(current) || !Number.isFinite(target)) return null;
+  let previous = null;
+  let next = null;
+  for (let i = 0; i < ranges.length; i++) {
+    const start = ranges.start(i);
+    const end = ranges.end(i);
+    if (target < start) {
+      next = start;
+      break;
+    }
+    if (target < end) return target;
+    // Range ends are exclusive. Land just inside the preceding playable span.
+    previous = Math.max(start, end - 0.05);
+  }
+  if (target === current) return null;
+  const forward = target > current;
+  const boundary = forward ? (next ?? previous) : (previous ?? next);
+  if (boundary === null || (forward ? boundary < current : boundary > current)) return null;
+  return boundary;
 }
 
 // SDK manifest segment times start at the retained window. The decoded
