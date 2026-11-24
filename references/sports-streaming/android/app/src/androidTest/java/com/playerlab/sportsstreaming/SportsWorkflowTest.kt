@@ -20,6 +20,8 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SportsWorkflowTest {
+
+
     @Test fun explicitSelectionMetadataAndBoundedSeekUseTheActiveSource() {
         val args = InstrumentationRegistry.getArguments()
         val base = requireNotNull(args.getString("mediaBaseUrl"))
@@ -28,7 +30,7 @@ class SportsWorkflowTest {
         ActivityScenario.launch<MainActivity>(intent).use { scenario ->
             var loadedListener: ((SourceEvent.Loaded) -> Unit)? = null
             try {
-                waitUntil(scenario) { !it.playbackForTest().state.value.loadingCatalog && it.playbackForTest().state.value.catalog != null }
+                waitForSportsPlayback(scenario) { !it.playbackForTest().state.value.loadingCatalog && it.playbackForTest().state.value.catalog != null }
                 scenario.onActivity {
                     assertNull("Opening the list must not autoplay", it.playbackForTest().player.source)
                     it.switchUiForTest(true)
@@ -37,7 +39,7 @@ class SportsWorkflowTest {
                 scenario.onActivity {
                     it.playbackForTest().selectAsset("SP-CLIP-A", protocol)
                 }
-                waitUntil(scenario) { it.playbackForTest().player.isPlaying && it.playbackForTest().state.value.canControlPlayback }
+                waitForSportsPlayback(scenario) { it.playbackForTest().player.isPlaying && it.playbackForTest().state.value.canControlPlayback }
                 var expectedSource: Source? = null
                 var expectedRequest: PlaybackRequest? = null
                 scenario.onActivity {
@@ -56,7 +58,7 @@ class SportsWorkflowTest {
                     session.selectAsset("SP-CLIP-A", protocol)
                     expectedRequest = requireNotNull(session.coordinator.current)
                 }
-                waitUntil(scenario) {
+                waitForSportsPlayback(scenario) {
                     val session = it.playbackForTest()
                     val range = session.player.source?.seekableRange
                     expectedSource != null && session.coordinator.current == expectedRequest &&
@@ -72,15 +74,15 @@ class SportsWorkflowTest {
                     session.player.pause()
                     session.seekTo(5_000)
                 }
-                waitUntil(scenario) { kotlin.math.abs(it.playbackForTest().player.currentTime - 5.0) < 0.6 &&
+                waitForSportsPlayback(scenario) { kotlin.math.abs(it.playbackForTest().player.currentTime - 5.0) < 0.6 &&
                     kotlin.math.abs((it.playbackForTest().state.value.positionMs ?: -10_000) - 5_000) < 600 && it.playbackForTest().player.isPaused }
                 assertRenderedControlAvailability(scenario)
                 scenario.onActivity { assertFreshSeekBounds(it.playbackForTest(), 0.0); it.playbackForTest().seekBy(-15.0) }
-                waitUntil(scenario) { it.playbackForTest().player.currentTime < 0.6 &&
+                waitForSportsPlayback(scenario) { it.playbackForTest().player.currentTime < 0.6 &&
                     (it.playbackForTest().state.value.positionMs ?: 10_000) < 600 }
                 assertRenderedControlAvailability(scenario)
                 scenario.onActivity { assertFreshSeekBounds(it.playbackForTest(), 15.0); it.playbackForTest().seekBy(15.0) }
-                waitUntil(scenario) { kotlin.math.abs(it.playbackForTest().player.currentTime - 15.0) < 0.6 &&
+                waitForSportsPlayback(scenario) { kotlin.math.abs(it.playbackForTest().player.currentTime - 15.0) < 0.6 &&
                     kotlin.math.abs((it.playbackForTest().state.value.positionMs ?: -10_000) - 15_000) < 600 }
                 assertRenderedControlAvailability(scenario)
                 scenario.onActivity { assertTrue(it.playbackForTest().player.isPaused) }
@@ -134,17 +136,18 @@ class SportsWorkflowTest {
             assertTrue("Rendered control '$label' must use the app's availability predicate ($enabled)", present)
         }
     }
-    private fun waitUntil(scenario: ActivityScenario<MainActivity>, predicate: (MainActivity) -> Boolean) {
-        val deadline = System.nanoTime() + 45_000_000_000L
-        while (System.nanoTime() < deadline) {
-            var passed = false
-            scenario.onActivity {
-                assertNull("SDK error code ${it.playbackForTest().lastErrorCode}", it.playbackForTest().lastErrorCode)
-                passed = predicate(it)
-            }
-            if (passed) return
-            Thread.sleep(100)
+}
+
+internal fun waitForSportsPlayback(scenario: ActivityScenario<MainActivity>, predicate: (MainActivity) -> Boolean) {
+    val deadline = System.nanoTime() + 45_000_000_000L
+    while (System.nanoTime() < deadline) {
+        var passed = false
+        scenario.onActivity {
+            assertNull("SDK error code ${it.playbackForTest().lastErrorCode}", it.playbackForTest().lastErrorCode)
+            passed = predicate(it)
         }
-        fail("The active source did not reach the requested state")
+        if (passed) return
+        Thread.sleep(100)
     }
+    fail("The active source did not reach the requested state")
 }

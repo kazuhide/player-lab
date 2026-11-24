@@ -95,7 +95,7 @@ On the development computer, open `http://127.0.0.1:9051/#measured`. Select
 select **Fetch data**. Opening the screen or changing a filter does not query
 Analytics. Select **Fetch data** again to retrieve new results.
 
-The server restricts measured queries to Android and the lesson IDs in its
+The server restricts measured queries to the selected collector platform and the lesson IDs in its
 configuration. It does not query all videos in the account or create playback
 events. The **Demo data** screen uses fictional sessions and does not contribute
 to your account's measurements. For the first comparison, keep the entry filter

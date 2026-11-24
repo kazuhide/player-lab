@@ -26,6 +26,10 @@ class Catalog(val courses: List<Course>, val lessons: List<Lesson>) {
 
     fun lesson(id: String): Lesson = requireNotNull(byId[id]) { "Unknown lesson" }
     fun course(id: String): Course = requireNotNull(courses.find { it.id == id }) { "Unknown course" }
+    fun hasManifestCaptions(course: Course): Boolean {
+        val captioned = course.lessonIds.map(::lesson).filter { it.subtitleTracks.isNotEmpty() }
+        return captioned.isNotEmpty() && captioned.all { it.hlsWithSubtitles != null }
+    }
     fun plan(courseId: String, lessonId: String, autoAdvance: Boolean): List<Lesson> {
         val ids = course(courseId).lessonIds
         val index = ids.indexOf(lessonId)

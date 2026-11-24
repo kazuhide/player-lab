@@ -2,7 +2,7 @@ import { translations } from './translations.mjs';
 import { LatestRequest, hourlySegments, qualityStatus, modeFromHash } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
 import { demoSnapshot } from './demo.mjs';
-import { metrics, queryRecipe } from './query-recipes.mjs';
+import { platforms, metrics, queryRecipe } from './query-recipes.mjs';
 import { exportSnapshot, toCSV } from './exports.mjs';
 
 const $ = id => document.getElementById(id);
@@ -80,7 +80,7 @@ function renderRecipe() {
   $('recipe-shape').value = metric.shapes.includes(oldShape) ? oldShape : 'total';
   try {
     const params = current ? null : parameters();
-    const snapshot = current ?? { period: { start: params.get('start'), end: params.get('end') }, filters: { asset: params.get('asset'), origin: params.get('origin'), type: 'all' } };
+    const snapshot = current ?? { period: { start: params.get('start'), end: params.get('end') }, filters: { asset: params.get('asset'), origin: params.get('origin'), type: 'all', platform: params.get('platform') } };
     const recipe = queryRecipe(snapshot, config, metric.id, $('recipe-shape').value);
     $('recipe-json').textContent = JSON.stringify(recipe.body, null, 2);
     $('recipe-node').textContent = recipe.node;
@@ -149,7 +149,7 @@ function parameters() {
     end = new Date(Math.floor(Date.now() / 60_000) * 60_000); start = new Date(end.getTime() - Number($('period').value) * 3_600_000);
   }
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start || end - start > 7 * 86_400_000 || end.getTime() > Date.now() + 60_000) throw new Error('INVALID_PERIOD');
-  return new URLSearchParams({ start: start.toISOString(), end: end.toISOString(), asset: $('asset').value, origin: $('origin').value, type: 'all' });
+  return new URLSearchParams({ platform: $('collector').value, start: start.toISOString(), end: end.toISOString(), asset: $('asset').value, origin: $('origin').value, type: 'all' });
 }
 
 async function refresh() {
@@ -183,6 +183,8 @@ function loadDemo() {
 
 function selectMode(next) {
   mode = next;
+  $('collector').disabled = next === 'demo';
+  if (next === 'demo') $('collector').value = 'android';
   $('export-status').textContent = ''; $('copy-status').textContent = '';
   latest.cancel(); loading = false; current = null; currentKey = '';
   state = config.queryConfigured ? 'noQuery' : 'unconfigured';
@@ -193,6 +195,7 @@ async function init() {
   const response = await fetch('/api/config', { cache: 'no-store' });
   if (!response.ok) throw new Error('CONFIG_FAILED');
   config = await response.json();
+  $('collector').replaceChildren(...Object.entries(platforms).map(([value, label]) => new Option(label, value)));
   $('origin-field').hidden = false;
   const end = new Date(Math.floor(Date.now() / 60_000) * 60_000); const start = new Date(end.getTime() - 86_400_000);
   $('start').value = start.toISOString().slice(0, 16); $('end').value = end.toISOString().slice(0, 16);

@@ -52,6 +52,13 @@ class TranscriptPanel(context: Context, private val session: PlaybackSession) : 
             if (action == EditorInfo.IME_ACTION_SEARCH) { closeSearchKeyboard(); true } else false
         }
         follow.setOnCheckedChangeListener { _, value -> session.viewState.followPlayback = value }
+        list.setOnKeyListener { _, keyCode, event ->
+            if (event.action == android.view.KeyEvent.ACTION_DOWN &&
+                (keyCode == android.view.KeyEvent.KEYCODE_DPAD_DOWN || keyCode == android.view.KeyEvent.KEYCODE_DPAD_UP)) {
+                follow.isChecked = false
+            }
+            false
+        }
         list.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) { session.viewState.followPlayback = false; follow.isChecked = false }
             false

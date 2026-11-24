@@ -2,6 +2,7 @@ package com.playerlab.elearning
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.view.KeyEvent
 import android.content.res.Configuration
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -44,6 +45,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun handleRemote(event: KeyEvent): Boolean =
+        isTelevision && session.handleTransportKey(event)
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
+        handleRemote(event) || super.onKeyDown(keyCode, event)
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
+        handleRemote(event) || super.onKeyUp(keyCode, event)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -82,7 +92,10 @@ class MainActivity : ComponentActivity() {
         root.addView(frame, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            val tvMargins = isTelevision && !session.viewState.fullscreen
+            val horizontal = if (tvMargins) dp(32) else 0
+            val vertical = if (tvMargins) dp(16) else 0
+            view.setPadding(bars.left + horizontal, bars.top + vertical, bars.right + horizontal, bars.bottom + vertical)
             insets
         }
         setContentView(root)
@@ -96,6 +109,7 @@ class MainActivity : ComponentActivity() {
             override fun handleOnBackPressed() {
                 when {
                     session.viewState.fullscreen -> setFullscreen(false)
+                    lessonScreen?.leaveTelevisionControls() == true -> Unit
                     session.screen == AppScreen.LESSON -> session.returnToCourse()
                     else -> finish()
                 }
@@ -143,6 +157,7 @@ class MainActivity : ComponentActivity() {
             header.visibility = if (fullscreen) View.GONE else View.VISIBLE
             if (appliedFullscreen != fullscreen) {
                 appliedFullscreen = fullscreen
+                ViewCompat.requestApplyInsets(contentRoot)
                 val controller = WindowCompat.getInsetsController(window, window.decorView)
                 if (fullscreen) controller.hide(WindowInsetsCompat.Type.systemBars()) else controller.show(WindowInsetsCompat.Type.systemBars())
             }

@@ -9,6 +9,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
@@ -20,7 +23,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun PlayerPanel(
     state: PlaybackUiState, session: PlaybackSession, surface: PlayerSurfaceHost, modifier: Modifier,
-    expanded: Boolean, pictureInPicture: Boolean, boundedHeight: Boolean, onFullscreen: () -> Unit, onPip: () -> Unit,
+    expanded: Boolean, pictureInPicture: Boolean, boundedHeight: Boolean, controlsFocus: FocusRequester, catalogFocus: FocusRequester?,
+    onFullscreen: () -> Unit, onPip: (() -> Unit)?,
     onCaptions: () -> Unit, onSpeed: () -> Unit,
 ) {
     val backLabel = stringResource(R.string.back_15)
@@ -33,18 +37,21 @@ import androidx.compose.ui.viewinterop.AndroidView
                 SingleChoiceSegmentedButtonRow(Modifier.weight(1f)) {
                     listOf(R.string.standard_ui, R.string.sports_ui).forEachIndexed { index, label ->
                         SegmentedButton(selected = state.sportsUi == (index == 1), onClick = { session.setSportsUi(index == 1) },
-                            modifier = Modifier.heightIn(min = 48.dp), shape = SegmentedButtonDefaults.itemShape(index, 2),
+                            modifier = (if (index == 0) Modifier.focusRequester(controlsFocus) else Modifier).heightIn(min = 48.dp),
+                            shape = SegmentedButtonDefaults.itemShape(index, 2),
                             label = { Text(stringResource(label), maxLines = 1) })
                     }
                 }
                 TextButton(onClick = { session.setProtocol(if (state.protocol == com.playerlab.sportsstreaming.core.StreamProtocol.HLS)
                     com.playerlab.sportsstreaming.core.StreamProtocol.DASH else com.playerlab.sportsstreaming.core.StreamProtocol.HLS) },
-                    enabled = state.acceptsPlaybackCommands, modifier = Modifier.heightIn(min = 48.dp)) { Text(state.protocol.name) }
+                    enabled = state.acceptsPlaybackCommands, modifier = Modifier.heightIn(min = 48.dp).onFocusChanged {
+                        surface.focusCatalog = if (it.isFocused && catalogFocus != null) ({ catalogFocus.requestFocus() }) else null
+                    }) { Text(state.protocol.name) }
             }
         }
         Box(if (expanded || boundedHeight) Modifier.weight(1f).fillMaxWidth().background(Color.Black)
             else Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black)) {
-            AndroidView(factory = {
+            if (!surface.context.isTelevision || state.activeAssetId != null || session.player.source != null) AndroidView(factory = {
                 (surface.parent as? ViewGroup)?.removeView(surface)
                 surface
             }, update = { it.showUi(state.sportsUi) }, modifier = Modifier.fillMaxSize())
@@ -98,8 +105,8 @@ import androidx.compose.ui.viewinterop.AndroidView
     }
 }
 
-@Composable private fun PlaybackOptions(enabled: Boolean, onCaptions: () -> Unit, onSpeed: () -> Unit, onPip: () -> Unit) {
+@Composable private fun PlaybackOptions(enabled: Boolean, onCaptions: () -> Unit, onSpeed: () -> Unit, onPip: (() -> Unit)?) {
     TextButton(onClick = onCaptions, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.subtitles)) }
     TextButton(onClick = onSpeed, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.speed)) }
-    IconButton(onClick = onPip, enabled = enabled) { Icon(Icons.Outlined.PictureInPictureAlt, stringResource(R.string.pip)) }
+    if (onPip != null) IconButton(onClick = onPip, enabled = enabled) { Icon(Icons.Outlined.PictureInPictureAlt, stringResource(R.string.pip)) }
 }

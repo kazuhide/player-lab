@@ -2,7 +2,7 @@ import { translations } from './translations.mjs';
 import { LatestRequest, hourlySegments, qualityStatus, modeFromHash } from './client.mjs';
 import { element, dataTable, drawChart } from './ui.mjs';
 import { createDemoData } from './demo.mjs';
-import { metrics, queryTasks, metricExample, selectionFor } from './query-recipes.mjs';
+import { platforms, metrics, queryTasks, metricExample, selectionFor } from './query-recipes.mjs';
 import { exportSnapshot, exportCsv } from './export.mjs';
 
 const $ = id => document.getElementById(id);
@@ -150,7 +150,7 @@ function parameters() {
     end = new Date(Math.floor(Date.now() / 60_000) * 60_000); start = new Date(end.getTime() - Number($('period').value) * 3_600_000);
   }
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start || end - start > 7 * 86_400_000 || end.getTime() > Date.now() + 60_000) throw new Error('INVALID_PERIOD');
-  return new URLSearchParams({ start: start.toISOString(), end: end.toISOString(), asset: $('asset').value, origin: 'all', type: $('type').value });
+  return new URLSearchParams({ platform: $('collector').value, start: start.toISOString(), end: end.toISOString(), asset: $('asset').value, origin: 'all', type: $('type').value });
 }
 
 async function refresh() {
@@ -185,6 +185,8 @@ function loadDemo() {
 
 function chooseMode(next) {
   latest.cancel(); loading = false; current = null; currentKey = ''; mode = next;
+  $('collector').disabled = next === 'demo';
+  if (next === 'demo') $('collector').value = 'android';
   state = config.queryConfigured ? 'noQuery' : 'unconfigured';
   translate();
   if (mode === 'demo') loadDemo();
@@ -194,6 +196,7 @@ async function init() {
   const response = await fetch('/api/config', { cache: 'no-store' });
   if (!response.ok) throw new Error('CONFIG_FAILED');
   config = await response.json();
+  $('collector').replaceChildren(...Object.entries(platforms).map(([value, label]) => new Option(label, value)));
   $('origin-field').hidden = true;
   const end = new Date(Math.floor(Date.now() / 60_000) * 60_000); const start = new Date(end.getTime() - 86_400_000);
   $('start').value = start.toISOString().slice(0, 16); $('end').value = end.toISOString().slice(0, 16);

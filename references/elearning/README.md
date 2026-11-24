@@ -2,10 +2,21 @@
 
 [English](README.md) · [日本語](README.ja.md) · [Implementation guide](docs/implementation.md) · [Analytics dashboard](analytics-dashboard/README.md)
 
-An independent Android example for course playback with Bitmovin Player. Select
-a lesson, search its timed transcript, change subtitle language, and resume a
-lesson for demo learner A or B. Switch between the SDK's standard Web UI and
-native learning controls while keeping the current playback session.
+Choose a lesson, search its timed transcript, switch subtitle tracks and resume where each demo learner left off. Enable automatic continuation to play the remaining lessons in order.
+
+Follow the setup for [Web](web/README.md), [Android mobile](#configure-and-run-android), [Android TV](android/TV.md) or [iOS and tvOS](apple/README.md). All five targets use the same catalog and HLS fixtures.
+
+## Try the same lesson on each platform
+
+1. Select learner A, turn off automatic continuation and open **Number-line exercises**.
+2. Turn subtitles off. Search the English transcript for `12:34` and select the result. Check that playback moves to that cue with subtitles still off.
+3. Pause, switch between standard and learning controls, and check that the lesson stays paused. Enable English subtitles, play for a few seconds, then leave the lesson.
+4. Switch to learner B. Open the same lesson and check that learner A's saved position is private to A. Switch back to A and choose **Resume**.
+5. Open the course with automatic continuation enabled. Play through the end of the second lesson. The next lesson, **Summary**, has no subtitles.
+
+With a multi-course catalog, select a course before opening a lesson. Previous, next and automatic continuation follow the lesson order within that course. Each learner starts in the first course and keeps their own course selection during the app session.
+
+Use HLS for the cross-platform comparison. On Android and Web you can also select DASH. Resume positions are stored on the device or in the browser profile.
 
 This directory contains its own application, configuration, Gradle wrapper,
 fixture inputs, media publisher and analytics application. It can be copied and

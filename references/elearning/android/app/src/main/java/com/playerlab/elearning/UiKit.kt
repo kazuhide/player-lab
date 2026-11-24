@@ -47,13 +47,16 @@ fun Context.action(text: CharSequence, primary: Boolean = false, onClick: () -> 
     stateListAnimator = null
     setPadding(dp(12), dp(8), dp(12), dp(8))
     setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()), intArrayOf(LearningColors.muted, if (primary) Color.WHITE else LearningColors.ink)))
+    background = buttonBackground(primary)
+    setOnClickListener { onClick() }
+}
+internal fun Context.buttonBackground(primary: Boolean = false): RippleDrawable {
     val states = StateListDrawable().apply {
         addState(intArrayOf(-android.R.attr.state_enabled), rounded(Color.rgb(232, 237, 242), LearningColors.border))
-        addState(intArrayOf(android.R.attr.state_focused), rounded(if (primary) LearningColors.primary else LearningColors.selected, LearningColors.primary, 2))
+        addState(intArrayOf(android.R.attr.state_focused), rounded(if (primary) LearningColors.primary else LearningColors.selected, if (primary) Color.BLACK else LearningColors.primary, 3))
         addState(intArrayOf(), rounded(if (primary) LearningColors.primary else Color.WHITE, LearningColors.border))
     }
-    background = RippleDrawable(ColorStateList.valueOf(Color.argb(50, 23, 110, 145)), states, rounded(Color.WHITE))
-    setOnClickListener { onClick() }
+    return RippleDrawable(ColorStateList.valueOf(Color.argb(50, 23, 110, 145)), states, rounded(Color.WHITE))
 }
 fun Context.rounded(fill: Int, stroke: Int = fill, strokeWidth: Int = 1) = GradientDrawable().apply {
     setColor(fill)
@@ -67,7 +70,7 @@ fun Context.iconAction(icon: Int, description: Int, onClick: () -> Unit) = Image
     setImageResource(icon)
     contentDescription = getString(description)
     imageTintList = ColorStateList.valueOf(LearningColors.ink)
-    background = RippleDrawable(ColorStateList.valueOf(LearningColors.selected), rounded(Color.WHITE, LearningColors.border), rounded(Color.WHITE))
+    background = buttonBackground()
     setPadding(dp(12), dp(12), dp(12), dp(12))
     minimumWidth = dp(48)
     minimumHeight = dp(48)

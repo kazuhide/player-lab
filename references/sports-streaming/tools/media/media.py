@@ -705,6 +705,17 @@ def video_filters(asset):
     ]
 
 
+def hls_master(subtitles):
+    # Explicitly declare that these synthetic videos have no in-band CEA tracks.
+    # Some clients otherwise expose a phantom caption track for MPEG-TS.
+    master = ["#EXTM3U", "#EXT-X-VERSION:7"]
+    for language in subtitles:
+        master.append(f'#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{language}",LANGUAGE="{language}",AUTOSELECT=YES,DEFAULT=NO,URI="sub-{language}.m3u8"')
+    variant = '#EXT-X-STREAM-INF:BANDWIDTH=600000,RESOLUTION=640x360,CODECS="avc1.64001e,mp4a.40.2",CLOSED-CAPTIONS=NONE'
+    master.append(variant + (',SUBTITLES="subs"' if subtitles else ""))
+    return "\n".join([*master, "media.m3u8", ""])
+
+
 def generate_asset(asset):
     identifier = asset["id"]
     if not re.fullmatch(r"[A-Z0-9-]+", identifier):
@@ -744,12 +755,11 @@ def generate_asset(asset):
     for protocol in ("hls", "dash"):
         (output / protocol).mkdir(exist_ok=True)
     ffmpeg("-i", mp4, "-c", "copy", "-f", "hls", "-hls_time", "2", "-hls_playlist_type", "vod",
-           "-hls_segment_type", "fmp4", "-hls_flags", "independent_segments", "-hls_segment_filename",
-           output / "hls/seg-%05d.m4s", output / "hls/media.m3u8")
+           "-muxdelay", "0", "-hls_segment_type", "mpegts", "-hls_flags", "independent_segments", "-hls_segment_filename",
+           output / "hls/seg-%05d.ts", output / "hls/media.m3u8")
     ffmpeg("-i", mp4, "-c", "copy", "-f", "dash", "-seg_duration", "2", "-use_template", "1", "-use_timeline", "1",
            output / "dash/manifest.mpd")
     subtitles = asset.get("subtitles", [])
-    master = ["#EXTM3U", "#EXT-X-VERSION:7"]
     for language in subtitles:
         canonical = read_json(FIXTURES / "transcripts" / f"{identifier}.json")["cues"]
         cues = [cue for cue in canonical if cue.get("language") == language]
@@ -759,10 +769,8 @@ def generate_asset(asset):
         (output / "hls" / f"sub-{language}.vtt").write_text(vtt)
         (output / "hls" / f"sub-{language}.m3u8").write_text(
             f"#EXTM3U\n#EXT-X-TARGETDURATION:{math.ceil(duration)}\n#EXT-X-VERSION:3\n#EXTINF:{duration:.3f},\nsub-{language}.vtt\n#EXT-X-ENDLIST\n")
-        master.append(f'#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{language}",LANGUAGE="{language}",AUTOSELECT=YES,DEFAULT=NO,URI="sub-{language}.m3u8"')
-    master.append('#EXT-X-STREAM-INF:BANDWIDTH=600000,RESOLUTION=640x360,CODECS="avc1.64001e,mp4a.40.2"' + (',SUBTITLES="subs"' if subtitles else ""))
-    master.append("media.m3u8")
-    (output / "hls/master.m3u8").write_text("\n".join(master) + "\n")
+    (output / "hls/master.m3u8").write_text(hls_master(subtitles))
+    (output / "hls/external.m3u8").write_text(hls_master([]))
     probe = subprocess.check_output([FFPROBE, "-v", "error", "-show_streams", "-show_format", "-of", "json", str(mp4)])
     measured = json.loads(probe)
     receipt = {"assetId": identifier, "source": "self-authored local FFmpeg fixture", "generatedAt": utc(round(time.time() * 1000)),
@@ -819,6 +827,7 @@ class FixtureServer(ThreadingHTTPServer):
     allow_reuse_address = True
 
     def __init__(self, *args, **kwargs):
+        self.publisher_started_at_us = time.time_ns() // 1000
         self.request_slots = threading.BoundedSemaphore(8)
         super().__init__(*args, **kwargs)
 
@@ -948,6 +957,7 @@ class Handler(SimpleHTTPRequestHandler):
                 mapping["assetId"] = archive_asset["id"]
             seekable = seekable_utc(item, elapsed, state) if status == "live" else (None, None)
             return self.send_json({"id": event_id, "eventId": event_id, "status": status, "archiveStatus": archive,
+                                   "publisherStartedAtUs": self.server.publisher_started_at_us,
                                    "liveAssetId": item["id"], "archiveAssetId": item["archiveId"],
                                    "utcStartMs": source_utc_base(state, item["archiveId"]),
                                    "mediaUtcNow": (source_utc_base(state, item["archiveId"]) + round(elapsed * 1000)) if source_utc_base(state, item["archiveId"]) is not None else None,
@@ -978,7 +988,10 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_error(404)
         text, _, allowed = media_paths(disk_id, protocol)
         subtitles = assets.get(disk_id, {}).get("subtitles", [])
-        extra = {"master.m3u8", "media.m3u8"} | {f"sub-{language}.{ext}" for language in subtitles for ext in ("m3u8", "vtt")} if protocol == "hls" else {"manifest.mpd"}
+        if protocol == "hls" and filename in ("external.m3u8", "master.m3u8"):
+            languages = subtitles if filename == "master.m3u8" else []
+            return self.send_bytes(hls_master(languages).encode(), "application/vnd.apple.mpegurl")
+        extra = {"media.m3u8"} | {f"sub-{language}.{ext}" for language in subtitles for ext in ("m3u8", "vtt")} if protocol == "hls" else {"manifest.mpd"}
         if filename not in allowed | extra:
             return self.send_error(404)
         if item and filename in ("media.m3u8", "manifest.mpd"):
@@ -996,7 +1009,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_bytes(value.encode(), "application/dash+xml")
         if item and filename in allowed and not fragment_available(disk_id, protocol, filename, elapsed, state["window"], item["durationMs"] / 1000):
             return self.send_error(404)
-        content_type = {".m3u8": "application/vnd.apple.mpegurl", ".mpd": "application/dash+xml", ".vtt": "text/vtt; charset=utf-8"}.get(Path(filename).suffix, "video/mp4")
+        content_type = {".ts": "video/mp2t", ".m3u8": "application/vnd.apple.mpegurl", ".mpd": "application/dash+xml", ".vtt": "text/vtt; charset=utf-8"}.get(Path(filename).suffix, "video/mp4")
         return self.send_file(GENERATED, disk_id + "/" + suffix, content_type)
 
 

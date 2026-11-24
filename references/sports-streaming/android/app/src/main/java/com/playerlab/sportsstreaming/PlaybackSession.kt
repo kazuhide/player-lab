@@ -33,6 +33,7 @@ import kotlin.math.roundToLong
 import java.net.URI
 import android.os.SystemClock
 import android.os.Handler
+import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.casting.BitmovinCastManager
 import org.json.JSONObject
 import com.google.android.gms.cast.MediaStatus
@@ -40,7 +41,8 @@ import java.security.MessageDigest
 import java.util.UUID
 
 class PlaybackSession(application: Application) : AndroidViewModel(application) {
-    val player: Player = Player(application, PlayerConfig(key = BuildConfig.PLAYER_LICENSE_KEY),
+    val player: Player = Player(application, PlayerConfig(key = BuildConfig.PLAYER_LICENSE_KEY,
+            remoteControlConfig = RemoteControlConfig(isCastEnabled = !application.isTelevision)),
         if (BuildConfig.ANALYTICS_LICENSE_KEY.isBlank()) AnalyticsPlayerConfig.Disabled
         else AnalyticsPlayerConfig.Enabled(AnalyticsConfig(BuildConfig.ANALYTICS_LICENSE_KEY)))
     val subtitleRenderer = SubtitleView(application).apply {
@@ -123,8 +125,10 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
             subtitleRenderer.setPlayer(player)
             if (state.value.activeAsset?.kind == AssetKind.CLIP && state.value.selectedEvent?.status == EventStatus.LIVE) returnToLive(false)
         }
-        castController = CastController(application, ::onCastConnection, ::onReceiverMedia) {
-            mutableState.update { it.copy(notice = PlaybackNotice.CAST_FAILED) }
+        if (!application.isTelevision) {
+            castController = CastController(application, ::onCastConnection, ::onReceiverMedia) {
+                mutableState.update { it.copy(notice = PlaybackNotice.CAST_FAILED) }
+            }
         }
         player.on(PlayerEvent.CastStopped::class) {
             if (pendingRemoteReplacement != null && castController?.isConnected == true) return@on
@@ -215,9 +219,10 @@ class PlaybackSession(application: Application) : AndroidViewModel(application) 
         } else selectAsset(asset.id, protocol, current.positionMs, desiredPlaying)
     }
     fun setSportsUi(sports: Boolean) { mutableState.update { it.copy(sportsUi = sports) } }
-    fun togglePlayback() {
+    fun togglePlayback() = setPlaying(!player.isPlaying)
+    fun setPlaying(playing: Boolean) {
         if (!state.value.canControlPlayback || player.source == null) return
-        if (player.isPlaying) player.pause() else player.play()
+        if (playing) player.play() else player.pause()
         updatePlaybackState()
     }
     fun seekBy(deltaSeconds: Double) {

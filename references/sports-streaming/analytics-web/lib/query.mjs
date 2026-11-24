@@ -1,5 +1,5 @@
 import { setTimeout as delay } from 'node:timers/promises';
-import { queryBody, queryTasks } from '../public/query-recipes.mjs';
+import { platforms, queryBody, queryTasks } from '../public/query-recipes.mjs';
 export { metrics, queryBody, queryTasks } from '../public/query-recipes.mjs';
 
 export class QueryError extends Error {
@@ -15,7 +15,7 @@ const UPSTREAM = 'https://api.bitmovin.com/v1/analytics/queries/';
 const MAX_BODY = 512 * 1024;
 
 export function validateParameters(params, config, now = Date.now()) {
-  const allowed = new Set(['start', 'end', 'asset', 'type', 'origin']);
+  const allowed = new Set(['start', 'end', 'asset', 'type', 'origin', 'platform']);
   for (const key of params.keys()) {
     if (!allowed.has(key) || params.getAll(key).length !== 1) throw new QueryError('INVALID_PARAMETERS');
   }
@@ -26,6 +26,8 @@ export function validateParameters(params, config, now = Date.now()) {
   const a = Date.parse(start);
   const b = Date.parse(end);
   if (!Number.isFinite(a) || !Number.isFinite(b) || new Date(a).toISOString() !== start || new Date(b).toISOString() !== end || b <= a || b - a > 7 * DAY || b > now + 60_000) throw new QueryError('INVALID_PERIOD');
+  const platform = params.get('platform') ?? 'android';
+  if (!Object.hasOwn(platforms, platform)) throw new QueryError('INVALID_PARAMETERS');
   const asset = params.get('asset') ?? 'all';
   const type = params.get('type') ?? 'all';
   const origin = params.get('origin') ?? 'all';
@@ -34,7 +36,7 @@ export function validateParameters(params, config, now = Date.now()) {
   if (origin !== 'all' && !config.origins.includes(origin)) throw new QueryError('INVALID_ORIGIN');
   const assets = config.assets.filter(item => (asset === 'all' || item.id === asset) && (type === 'all' || item.kind === type)).map(item => item.id);
   if (!assets.length) throw new QueryError('INVALID_ASSET');
-  return { start, end, asset, type, origin, assets };
+  return { start, end, asset, type, origin, platform, assets };
 }
 
 function semaphore(limit) {
@@ -166,7 +168,7 @@ export function createAnalyticsService({ config, apiKey, licenseKey, fetchImpl =
     const base = {
       source: 'Bitmovin Analytics Query API', requestedAt, fetchedAt: null, latestSampleAt: null,
       period: { start: selection.start, end: selection.end, interval: 'HOUR' },
-      filters: { asset: selection.asset, type: selection.type, origin: selection.origin, platform: 'android' },
+      filters: { asset: selection.asset, type: selection.type, origin: selection.origin, platform: selection.platform },
       metrics: {}, series: {}, comparison: {},
     };
     if (!apiKey || !licenseKey) return { ...base, status: 'unconfigured' };

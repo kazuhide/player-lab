@@ -15,7 +15,7 @@ function validResponse(_url, request) {
 }
 
 test('only predefined parameters and valid UTC periods are accepted', () => {
-  for (const [key, value] of [['url', 'https://example.test'], ['licenseKey', 'other'], ['dimension', 'IP_ADDRESS'], ['interval', 'MINUTE'], ['asset', 'unknown'], ['type', 'unknown'], ['origin', 'unknown']]) {
+  for (const [key, value] of [['url', 'https://example.test'], ['licenseKey', 'other'], ['dimension', 'IP_ADDRESS'], ['interval', 'MINUTE'], ['asset', 'unknown'], ['type', 'unknown'], ['origin', 'unknown'], ['platform', 'unknown'], ['platform', 'constructor']]) {
     const params = parameters(); params.set(key, value);
     assert.throws(() => validateParameters(params, config, now));
   }
@@ -217,4 +217,15 @@ test('zero count and sum with otherwise absent measurements means no data withou
   assert.equal(result.metrics.watchHours.value, 0);
   assert.equal(result.metrics.startupMedian.value, null);
   assert.equal(result.metrics.startupMedian.status, 'empty');
+});
+
+test('collector selection preserves the reference video scope on every platform', () => {
+  for (const platform of ['web', 'ios', 'tvos', 'android']) {
+    const params = parameters();
+    params.set('platform', platform);
+    const selected = validateParameters(params, config, now);
+    const { filters } = queryBody(selected, metrics[0], 'server-license');
+    assert.deepEqual(filters[0], { name: 'PLATFORM', operator: 'EQ', value: platform });
+    assert.deepEqual(filters[1], { name: 'VIDEO_ID', operator: 'IN', value: config.assets.map(asset => asset.id) });
+  }
 });

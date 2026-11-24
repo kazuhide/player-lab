@@ -11,11 +11,13 @@ import subprocess
 
 EXPECTED_TEST_COUNTS = {
     "CoreLearningTest": 6,
+    "CourseSelectionTest": 1,
     "GuideScreenshotTest": 1,
     "MandatoryBehaviorTest": 6,
     "ProcessDeathCheckpointTest": 1,
     "ReviewRegressionTest": 7,
     "SharedCaptionTest": 2,
+    "TelevisionRemoteTest": 2,
     "UiOwnershipTest": 3,
 }
 

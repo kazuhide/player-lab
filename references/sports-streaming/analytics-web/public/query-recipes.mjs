@@ -1,3 +1,5 @@
+export const platforms = Object.freeze({ android: 'Android', web: 'Web', ios: 'iOS', tvos: 'tvOS' });
+
 export const metrics = Object.freeze([
   { id: 'plays', operation: 'count', dimension: 'IMPRESSION_ID', positive: 'VIDEO_STARTUPTIME', divisor: 1, unit: 'count' },
   { id: 'watchHours', operation: 'sum', dimension: 'PLAYED', positive: 'PLAYED', divisor: 3_600_000, unit: 'hours' },
@@ -18,7 +20,7 @@ export function queryBody(selection, metric, licenseKey, shape = 'total', offset
     licenseKey, start: selection.start, end: selection.end,
     dimension: metric.dimension,
     filters: [
-      { name: 'PLATFORM', operator: 'EQ', value: 'android' },
+      { name: 'PLATFORM', operator: 'EQ', value: selection.platform },
       { name: 'VIDEO_ID', operator: 'IN', value: selection.assets },
     ],
     includeContext: false, limit: 200, offset,
@@ -35,14 +37,15 @@ export function selectionFor(config, period, filters) {
   const start = period?.start; const end = period?.end;
   const utc = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
   const validDate = value => typeof value === 'string' && utc.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
+  const platform = filters?.platform ?? 'android';
   const asset = filters?.asset ?? 'all'; const type = filters?.type ?? 'all'; const origin = filters?.origin ?? 'all';
-  if (!validDate(start) || !validDate(end) || end <= start || Date.parse(end) - Date.parse(start) > 7 * 86_400_000 ||
+  if (!Object.hasOwn(platforms, platform) || !validDate(start) || !validDate(end) || end <= start || Date.parse(end) - Date.parse(start) > 7 * 86_400_000 ||
       (asset !== 'all' && !config.assets.some(item => item.id === asset)) ||
       (type !== 'all' && !['live', 'clip', 'archive'].includes(type)) ||
       (origin !== 'all' && !config.origins.includes(origin))) throw new Error('INVALID_SELECTION');
   const assets = config.assets.filter(item => (asset === 'all' || item.id === asset) && (type === 'all' || item.kind === type)).map(item => item.id);
   if (!assets.length) throw new Error('INVALID_SELECTION');
-  return { start, end, asset, type, origin, assets };
+  return { start, end, asset, type, origin, platform, assets };
 }
 
 export function metricExample(selection, id, shape = 'total') {

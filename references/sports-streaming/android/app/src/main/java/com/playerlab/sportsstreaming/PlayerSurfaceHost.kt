@@ -25,6 +25,7 @@ class PlayerSurfaceHost(context: Context, private val player: Player, private va
     var sportsUi = false
         private set
     val attachedPlayerViewCount get() = if (playerView?.player === player) 1 else 0
+    var focusCatalog: (() -> Unit)? = null
 
     init {
         (subtitles.parent as? ViewGroup)?.removeView(subtitles)
@@ -49,6 +50,7 @@ class PlayerSurfaceHost(context: Context, private val player: Player, private va
         sportsUi = sports
         val view = PlayerView(context, null, PlayerViewConfig(
             uiConfig = if (sports) UiConfig.Disabled else UiConfig.WebUi(
+                variant = if (context.isTelevision) UiConfig.WebUi.Variant.TvUi else UiConfig.WebUi.Variant.SmallScreenUi,
                 supplementalCssLocation = "file:///android_asset/shared-subtitles.css"), enableComposeSurfaceSyncWorkaround = true))
         playerView = view
         addView(view, 0, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))

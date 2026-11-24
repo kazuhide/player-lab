@@ -1,7 +1,7 @@
 <a id="sports-streaming-for-android"></a>
 # Android向けスポーツ配信サンプル
 
-[English](README.md) · [日本語](README.ja.md)
+[English](README.md) · [日本語](README.ja.md) · [Android TV](TV.ja.md)
 
 Bitmovin Playerを使い、ライブイベント、クリップ、アーカイブを扱う独立した実装です。標準Player UIとスポーツ向け操作UIは、同じPlayerとSourceを使用します。
 

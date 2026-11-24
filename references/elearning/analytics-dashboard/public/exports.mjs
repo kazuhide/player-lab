@@ -16,7 +16,7 @@ export function exportSnapshot(snapshot, config, { dataSource, viewStatus, expor
   const output = {
     schemaVersion: 1, dataSource, scenario: dataSource === 'demo' && scenarios.has(snapshot.scenario) ? snapshot.scenario : null,
     period: { start: selection.start, end: selection.end, interval: 'HOUR' },
-    filters: { asset: selection.asset, origin: selection.origin, type: selection.type, platform: 'android' },
+    filters: { asset: selection.asset, origin: selection.origin, type: selection.type, platform: selection.platform },
     requestedAt: timestamp(snapshot.requestedAt), fetchedAt: timestamp(snapshot.fetchedAt), latestSampleAt: timestamp(snapshot.latestSampleAt), exportedAt: timestamp(exportedAt),
     dataStatus: snapshot.status, viewStatus: statuses.has(viewStatus) ? viewStatus : snapshot.status,
     isPartial: snapshot.status === 'partial', isEarlier: snapshot.stale === true,

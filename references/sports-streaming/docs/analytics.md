@@ -95,7 +95,7 @@ A page load or filter change does not query Analytics; each fetch requests new
 results. To open this server from Android's **Analytics** menu instead, use the
 [ADB port-forwarding setup](../README.md#requirements-and-configuration).
 
-The server restricts queries to Android and the configured `sports:SP-*` Video
+The server restricts queries to the selected collector platform and the configured `sports:SP-*` Video
 IDs. Fetching does not collect events or create playback sessions. **Demo data**
 uses fictional sessions and never adds measurements to your account.
 

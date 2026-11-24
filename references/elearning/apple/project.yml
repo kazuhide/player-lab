@@ -1,0 +1,110 @@
+name: Learning
+options:
+  disabledValidations: [missingConfigFiles]
+  preGenCommand: test -f Local.xcconfig || cp Local.xcconfig.example Local.xcconfig
+  deploymentTarget:
+    iOS: "16.0"
+    tvOS: "16.0"
+packages:
+  BitmovinAnalytics:
+    url: https://github.com/bitmovin/bitmovin-analytics-collector-ios.git
+    exactVersion: "3.30.0"
+  BitmovinPlayer:
+    url: https://github.com/bitmovin/player-ios.git
+    exactVersion: "3.128.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+configFiles:
+  Debug: Local.xcconfig
+  Release: Local.xcconfig
+targetTemplates:
+  Reference:
+    type: application
+    settings:
+      INFOPLIST_FILE: Info.plist
+    sources: [Sources, Domain]
+    dependencies:
+      - package: BitmovinPlayer
+targets:
+  Learning-iOS:
+    templates: [Reference]
+    platform: iOS
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.elearning.ios
+  Learning-tvOS:
+    templates: [Reference]
+    platform: tvOS
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.elearning.tvos
+  Learning-iOSUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: Learning-iOS
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.elearning.ios.uitests
+      TEST_TARGET_NAME: Learning-iOS
+  Learning-tvOSUITests:
+    type: bundle.ui-testing
+    platform: tvOS
+    sources: [UITests]
+    dependencies:
+      - target: Learning-tvOS
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.elearning.tvos.uitests
+      TEST_TARGET_NAME: Learning-tvOS
+  Learning-iOSPlaybackTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [PlaybackTests]
+    dependencies:
+      - target: Learning-iOS
+      - package: BitmovinPlayer
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.elearning.ios.playbacktests
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Learning-iOS.app/Learning-iOS
+      BUNDLE_LOADER: $(TEST_HOST)
+  Learning-tvOSPlaybackTests:
+    type: bundle.unit-test
+    platform: tvOS
+    sources: [PlaybackTests]
+    dependencies:
+      - target: Learning-tvOS
+      - package: BitmovinPlayer
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.elearning.tvos.playbacktests
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Learning-tvOS.app/Learning-tvOS
+      BUNDLE_LOADER: $(TEST_HOST)
+schemes:
+  Learning-iOS:
+    build:
+      targets:
+        Learning-iOS: all
+    test:
+      targets: [Learning-iOSUITests]
+  Learning-tvOS:
+    build:
+      targets:
+        Learning-tvOS: all
+    test:
+      targets: [Learning-tvOSUITests]
+  Learning-iOS-Playback:
+    build:
+      targets:
+        Learning-iOS: all
+    test:
+      targets: [Learning-iOSPlaybackTests]
+  Learning-tvOS-Playback:
+    build:
+      targets:
+        Learning-tvOS: all
+    test:
+      targets: [Learning-tvOSPlaybackTests]

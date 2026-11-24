@@ -34,7 +34,7 @@ Select **JSON** or **CSV** beside **Export displayed results**. A file is create
 | --- | --- |
 | `schemaVersion` | Export format version, currently `1` |
 | `dataSource`, `scenario` | `demo` or `measured`; a demo scenario or `null` for measured data |
-| `period`, `filters` | The original displayed result's UTC period, video, media type and Android scope |
+| `period`, `filters` | The original displayed result's UTC period, video, media type and collector platform |
 | `requestedAt`, `fetchedAt`, `exportedAt` | Query start, latest successful API response receipt, and local file creation time |
 | `latestSampleAt` | `null`; these aggregate queries do not establish the newest underlying event time |
 | `dataStatus`, `viewStatus`, `isEarlier` | Status of the exported data, current screen status, and whether an earlier result is still displayed |

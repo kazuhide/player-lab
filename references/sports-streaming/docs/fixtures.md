@@ -33,8 +33,7 @@ python3 tools/media/media.py serve --port 8622 --window 60 --archive-delay 6
 Complete generation before starting the publisher. It creates ignored files
 under `fixtures/generated/`. Encoder concurrency adapts to the CPU, with an
 upper bound of two encoders and two codec threads per encoder. Video is H.264,
-640 × 360 at 25 frames per second; audio is AAC at 48 kHz. HLS and DASH use
-fragmented MP4 and approximately two-second segments.
+640 × 360 at 25 frames per second; audio is AAC at 48 kHz. HLS uses MPEG-TS segments so browsers using Media Source Extensions can play the same muxed audio and video as native clients. DASH uses fragmented MP4. Both use approximately two-second segments.
 
 `verify` compares decoded video-frame hashes at the retained boundaries of the
 edited archive. Its receipt binds the checks to the source and output hashes.
@@ -74,7 +73,7 @@ real-time endurance test.
 and live aliases. [`catalog.json`](../fixtures/catalog.json) defines events,
 asset kinds, stable `sports:SP-*` video IDs, delivery paths and subtitle tracks.
 English/Japanese WebVTT derives from each asset's canonical transcript cues.
-Sports HLS uses `media.m3u8` with external tracks to avoid registering the same
+Sports HLS uses `external.m3u8` with external tracks to avoid registering the same
 captions twice; DASH also uses the external tracks.
 
 The checked-in catalog contains expected durations. The publisher's
@@ -158,3 +157,5 @@ Keep account tokens, storage credentials and private/signed delivery URLs out
 of committed catalogs, receipts, command examples and captures. The fixture
 CLI accepts no cloud credentials. Application licenses belong in the private
 configuration described in [Android setup](../README.md#requirements-and-configuration).
+
+If you generated an earlier HLS fixture with muxed fMP4, rerun `generate` and restart the publisher before comparing platforms.

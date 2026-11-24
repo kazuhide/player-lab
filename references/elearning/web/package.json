@@ -1,0 +1,21 @@
+{
+  "name": "@player-lab/elearning-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5181 --strictPort",
+    "build": "vite build --base=./",
+    "test": "node --test test/*.test.js",
+    "preview": "vite preview --host 127.0.0.1 --port 5181 --strictPort",
+    "test:browser": "node --test browser/*.test.js"
+  },
+  "dependencies": {
+    "bitmovin-player": "8.284.0",
+    "bitmovin-player-ui": "4.23.1"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1",
+    "vite": "8.3.8"
+  }
+}

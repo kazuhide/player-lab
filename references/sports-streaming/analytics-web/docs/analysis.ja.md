@@ -38,7 +38,7 @@ node --env-file=.env query-example.mjs
 | --- | --- |
 | `schemaVersion` | 出力形式のバージョン。現在は`1` |
 | `dataSource`、`scenario` | `demo`または`measured`。デモの状況、実測では`null` |
-| `period`、`filters` | 表示中の結果が対象としたUTCの期間、映像、種類、Androidの条件 |
+| `period`、`filters` | 表示中の結果が対象としたUTCの期間、映像、種類、プラットフォーム |
 | `requestedAt`、`fetchedAt`、`exportedAt` | 照会開始、成功したAPI応答のうち最後に受け取った時刻、ローカルでのファイル作成時刻 |
 | `latestSampleAt` | `null`。この集計では最新の元イベントの時刻はわからない |
 | `dataStatus`、`viewStatus`、`isEarlier` | 保存するデータの状態、現在の画面の状態、前回結果を表示しているか |

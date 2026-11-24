@@ -7,6 +7,6 @@ class SportsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         // https://github.com/bitmovin/bitmovin-player-android-samples/tree/main/BasicCasting
-        BitmovinCastManager.initialize()
+        if (!isTelevision) BitmovinCastManager.initialize()
     }
 }

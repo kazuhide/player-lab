@@ -20,7 +20,7 @@ from urllib.parse import unquote, urlsplit
 
 EXCLUDED_DIRECTORIES = {
     '.git', '.gradle', '.kotlin', '.venv', '__pycache__', 'build',
-    'captures', 'coverage', 'node_modules', 'test-results',
+    'captures', 'coverage', 'DerivedData', '.build', 'dist', 'node_modules', 'test-results',
 }
 FENCE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
 

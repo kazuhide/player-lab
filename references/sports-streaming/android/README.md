@@ -1,6 +1,6 @@
 # Sports Streaming for Android
 
-[English](README.md) · [日本語](README.ja.md)
+[English](README.md) · [日本語](README.ja.md) · [Android TV](TV.md)
 
 An independent Bitmovin Player integration for live events, clips and archives. The standard Player UI and sports controls use the same Player and Source.
 

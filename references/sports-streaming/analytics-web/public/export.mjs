@@ -30,7 +30,7 @@ export function exportSnapshot(input, { mode, viewStatus, config, exportedAt = n
       !['ok', 'empty', 'partial', 'error'].includes(input.status) || !['demoReady', 'ok', 'empty', 'partial', 'error'].includes(viewStatus)) return failure();
   let selection;
   try { selection = selectionFor(config, input.period, input.filters); } catch { return failure(); }
-  if (input.filters.platform !== 'android' || input.period.interval !== 'HOUR') return failure();
+  if (!input.filters.platform || (mode === 'demo' && selection.platform !== 'android') || input.period.interval !== 'HOUR') return failure();
   const scenario = mode === 'demo' ? input.scenario : null;
   if (mode === 'demo' && !['normal', 'slow-start', 'rebuffering'].includes(scenario)) return failure();
   const result = {
@@ -38,7 +38,7 @@ export function exportSnapshot(input, { mode, viewStatus, config, exportedAt = n
     isEarlier: mode === 'measured' && input.stale === true,
     exportedAt: timestamp(exportedAt), requestedAt: timestamp(input.requestedAt), fetchedAt: timestamp(input.fetchedAt), latestSampleAt: timestamp(input.latestSampleAt),
     period: { start: selection.start, end: selection.end, interval: 'HOUR' },
-    filters: { asset: selection.asset, type: selection.type, origin: selection.origin, platform: 'android' },
+    filters: { asset: selection.asset, type: selection.type, origin: selection.origin, platform: selection.platform },
     metrics: {}, series: {}, comparison: {},
   };
   if (result.exportedAt === null || (mode === 'demo' && (result.requestedAt !== null || result.fetchedAt !== null || result.latestSampleAt !== null))) return failure();
